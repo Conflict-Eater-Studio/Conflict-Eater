@@ -18,8 +18,8 @@ public class GameManager : Singleton<GameManager> {
     [SerializeField] private float _matchDurationInMinutes;
     [SerializeField] private float _roundMaxDurationInMinutes;
     
-    public static event EventHandler<OnMatchStartEventArgs> OnMatchStart;
-    public static event EventHandler OnRoundEnd;
+    public event EventHandler<OnMatchStartEventArgs> OnMatchStart;
+    public event EventHandler OnRoundEnd;
     
     private float _matchStartTime;
     private float _roundStartTime;
