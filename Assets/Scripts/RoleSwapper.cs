@@ -9,7 +9,7 @@ public class RoleSwapper : MonoBehaviour
 {
     [SerializeField] private Role firstPlayerRole;
     [SerializeField] private Role secondPlayerRole;
-
+    
     private void Start() {
         GameManager.Instance.OnRoundEnd += RoleSwapper_OnRoundEnd;    
         Debug.Log($"1Player: {firstPlayerRole.ToString()}");
