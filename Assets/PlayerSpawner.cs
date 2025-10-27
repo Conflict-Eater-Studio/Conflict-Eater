@@ -4,6 +4,9 @@ using UnityEngine.InputSystem;
 public class PlayerSpawner : MonoBehaviour
 {
     [SerializeField] private PlayerInputManager playerInputManager;
+    [SerializeField] private GameObject ghostPrefab;
+    [SerializeField] private Vector3 playerPosition;
+    [SerializeField] private Vector3 ghostPosition;
     private void OnEnable()
     {
         playerInputManager.playerJoinedEvent.AddListener(OnPlayerJoined);
@@ -20,14 +23,19 @@ public class PlayerSpawner : MonoBehaviour
 
         if (input.playerIndex == 0)
         {
-            Debug.Log("Gracz 1: PlayerController");
+            Debug.Log("Player 1: PlayerController");
+            input.transform.position = playerPosition;
             renderer.material.color = Color.yellow;
         }
-        else
+        if (input.playerIndex == 1)
         {
-            input.gameObject.AddComponent<GhostController>();
-            Debug.Log("Gracz 2: EnemyController");
-            renderer.material.color = Color.darkBlue;
+            input.name = "Ghost_1";
+            input.transform.position = ghostPosition;
+
+            var ghostController = input.gameObject.AddComponent<GhostController>();
+            ghostController.SetGhostPrefab(ghostPrefab);
+
+            Debug.Log("Player 2: EnemyController");
         }
     }
 }
