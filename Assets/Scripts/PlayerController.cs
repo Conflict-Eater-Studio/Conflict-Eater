@@ -3,16 +3,23 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-    public float speed = 5;
-    private Vector2  movementInput;
+    [SerializeField] protected float speed = 5f;
+    protected Vector2 moveInput;
+    protected Rigidbody2D rb;
 
-    void Update()
+    protected virtual void Awake()
     {
-        transform.Translate(new Vector3(movementInput.x, movementInput.y, 0) * speed * Time.deltaTime);
-
-        Debug.Log(movementInput);
-
+        rb = GetComponent<Rigidbody2D>();
     }
 
-    public void OnMove(InputAction.CallbackContext ctx) => movementInput = ctx.ReadValue<Vector2>();
+    public virtual void OnMove(InputAction.CallbackContext context)
+    {
+        moveInput = context.ReadValue<Vector2>();
+    }
+
+    protected virtual void FixedUpdate()
+    {
+        Vector2 movement = moveInput * speed * Time.fixedDeltaTime;
+        rb.MovePosition(rb.position + movement);
+    }
 }
