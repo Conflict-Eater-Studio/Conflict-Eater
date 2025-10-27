@@ -156,4 +156,10 @@ public class Movement
     }
 
     public void SetSpeed(float newSpeed) => _speed = newSpeed;
+    public void Stop()
+    {
+        _moveDirection = Vector2.zero;
+        _queuedDirection = Vector2.zero;
+        _isSnapping = false;
+    }
 }

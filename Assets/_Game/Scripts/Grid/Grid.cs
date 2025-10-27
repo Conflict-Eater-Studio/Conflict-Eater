@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -51,7 +52,7 @@ public class Grid : MonoBehaviour
             return false;
         }
     }
-    
+
     private void SpawnCoins()
     {
         BoundsInt bounds = _tilemapFloors.cellBounds;
@@ -69,5 +70,20 @@ public class Grid : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void ResetMapState()
+    {
+        foreach (GameObject coin in _coins)
+        {
+            Destroy(coin);
+        }
+        _coins.Clear();
+        SpawnCoins();
+
+        // Reset player (temp by CoinCollector)
+        var player = FindFirstObjectByType<CoinCollector>().gameObject;
+        player.transform.position = GetSpawnPoint(SpawnPointType.Player);
+        player.GetComponent<PlayerController>().Movement.Stop();
     }
 }

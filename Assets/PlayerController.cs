@@ -11,6 +11,7 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D _rb;
     private Vector2 _moveInput;
     private Movement _movement;
+    public Movement Movement => _movement;
 
     [Tooltip("Movement speed in units per second")]
     [SerializeField] protected float _speed = 5f;
