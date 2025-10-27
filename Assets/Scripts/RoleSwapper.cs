@@ -1,26 +1,35 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Users;
 
-enum Role {
-    Light,
-    Shadows,
-}
 public class RoleSwapper : MonoBehaviour
 {
-    [SerializeField] private Role firstPlayerRole;
-    [SerializeField] private Role secondPlayerRole;
-    
+    [SerializeField] private PlayerInputManager _playerInputManager;
+
+    private List<InputUser> _playerInputs;
+    private List<Gamepad> _gamepads;
+    private void Awake() {
+        _playerInputs = new List<InputUser>();
+        _gamepads = new List<Gamepad>();
+        _playerInputManager.playerJoinedEvent.AddListener(GetDevices);
+    }
+    private void GetDevices(PlayerInput playerInput) {  
+        _playerInputs.Add(playerInput.user);
+        _gamepads.Add(playerInput.GetDevice<Gamepad>());
+    }
+
     private void Start() {
         GameManager.Instance.OnRoundEnd += RoleSwapper_OnRoundEnd;    
-        Debug.Log($"1Player: {firstPlayerRole.ToString()}");
-        Debug.Log($"2Player: {secondPlayerRole.ToString()}");
     }
     private void OnDisable() {
         GameManager.Instance.OnRoundEnd -= RoleSwapper_OnRoundEnd;
     }
     private void RoleSwapper_OnRoundEnd(object sender, EventArgs e) {
-        (firstPlayerRole, secondPlayerRole) = (secondPlayerRole, firstPlayerRole);
-        Debug.Log($"1Player: {firstPlayerRole.ToString()}");
-        Debug.Log($"2Player: {secondPlayerRole.ToString()}");
+        if(_playerInputs == null || _playerInputs.Count == 0) return;
+        if(_gamepads == null || _gamepads.Count == 0) return;
+        _playerInputs[0].UnpairDevice(_gamepads[0]);
+        _playerInputs[0].
     }
 }
