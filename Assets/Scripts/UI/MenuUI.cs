@@ -12,6 +12,6 @@ public class MenuUI : MonoBehaviour
         _startButton.onClick.RemoveListener(TaskOnClick);
     }
     void TaskOnClick() {
-        GameManager.Instance.StartGame();   
+        GameManager.Instance.Timer.StartTimer();   
     }
 }

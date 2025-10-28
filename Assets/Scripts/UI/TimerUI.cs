@@ -3,7 +3,7 @@ using System.Reflection;
 using TMPro;
 using UnityEngine;
 
-public static class TimerUIExtensions {
+public static class Extensions {
     public static void SetText(this TMP_Text text, string value) {
         text.text = value;
     }
@@ -17,15 +17,15 @@ public class TimerUI : MonoBehaviour
     private float _roundStartTime;
     private float _matchDurationInMinutes;
     private float _roundDurationInMinutes;
-    private void Start() {
-        GameManager.Instance.OnMatchStart += TimerUI_OnMatchStart;
-        GameManager.Instance.OnRoundEnd += (sender, args) => {
+    private void Awake() {
+        GameManager.Instance.Timer.OnMatchStart += TimerUI_OnMatchStart;
+        GameManager.Instance.Timer.OnRoundEnd += (sender, args) => {
             _roundStartTime = Time.time;
         };
     }
     private void Update() {
-        TimeSpan matchTimeLeft = TimeSpan.FromSeconds((_matchStartTime + _matchDurationInMinutes * 60) - Time.time);
-        TimeSpan roundTimeLeft = TimeSpan.FromSeconds((_roundStartTime + _roundDurationInMinutes * 60) - Time.time);
+        TimeSpan matchTimeLeft = TimeSpan.FromSeconds((_matchStartTime + _matchDurationInMinutes) - Time.time);
+        TimeSpan roundTimeLeft = TimeSpan.FromSeconds((_roundStartTime + _roundDurationInMinutes) - Time.time);
         
         _matchTimeLeftText.SetText($"{matchTimeLeft.Minutes:00}:{matchTimeLeft.Seconds:00}");
         _roundTimeLeftText.SetText($"{roundTimeLeft.Minutes:00}:{roundTimeLeft.Seconds:00}");
@@ -34,7 +34,7 @@ public class TimerUI : MonoBehaviour
     private void TimerUI_OnMatchStart(object sender, OnMatchStartEventArgs e) {
         _matchStartTime = e.MatchStartTime;
         _roundStartTime = e.MatchStartTime;
-        _matchDurationInMinutes = e.MatchDurationInMinutes;
-        _roundDurationInMinutes = e.RoundDurationInMinutes;
+        _matchDurationInMinutes = e.MatchDuration;
+        _roundDurationInMinutes = e.RoundDuration;
     }
 }
