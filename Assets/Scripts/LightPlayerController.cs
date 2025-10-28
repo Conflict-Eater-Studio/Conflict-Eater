@@ -6,11 +6,14 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
-public class PlayerController : MonoBehaviour
+public class LightPlayerController : MonoBehaviour
 {
+    private const string MoveActionName = "Move";
+
     private Rigidbody2D _rb;
     private Vector2 _moveInput;
     private Movement _movement;
+    private PlayerInput _playerInput;
     public Movement Movement => _movement;
 
     [Tooltip("Movement speed in units per second")]
@@ -24,9 +27,16 @@ public class PlayerController : MonoBehaviour
 
     protected virtual void Awake()
     {
-        _rb = GetComponent<Rigidbody2D>();
+        _rb = GetComponentInParent<Rigidbody2D>();
         _grid = FindFirstObjectByType<Grid>();
         _movement = new Movement(_rb, transform, _grid, _speed, _centerThreshold, _snapSpeedMultiplier);
+
+        _playerInput = GetComponentInParent<PlayerInput>();
+        if (_playerInput)
+        {
+            InputAction moveAction = _playerInput.actions[MoveActionName];
+            moveAction.performed += OnMove;
+        }
     }
 
     public virtual void OnMove(InputAction.CallbackContext context)
@@ -41,5 +51,14 @@ public class PlayerController : MonoBehaviour
     protected virtual void FixedUpdate()
     {
         _movement.FixedTick();
+    }
+
+    private void OnDestroy()
+    {
+        if (_playerInput != null)
+        {
+            var moveAction = _playerInput.actions[MoveActionName];
+            moveAction.performed -= OnMove;
+        }
     }
 }

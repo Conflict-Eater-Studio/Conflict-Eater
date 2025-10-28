@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
+using static CoinCollector;
 
 
 public class OnMatchStartEventArgs : EventArgs {
@@ -23,7 +25,14 @@ public class GameManager : Singleton<GameManager> {
     
     private float _matchStartTime;
     private float _roundStartTime;
-    
+
+    public PlayerManager PlayerManager { get; private set; }
+
+    private void Awake()
+    {
+        PlayerManager = new PlayerManager();
+    }
+
     private void Update() {
         TimeSpan timeLeft = TimeSpan.FromSeconds((_roundStartTime + _roundMaxDurationInMinutes * 60) - Time.time);
         if (timeLeft.TotalSeconds <= 0) {

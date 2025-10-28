@@ -6,12 +6,6 @@ using UnityEngine.Tilemaps;
 
 public class Grid : MonoBehaviour
 {
-    public enum SpawnPointType
-    {
-        Player,
-        Ghost
-    }
-
     // Tilemap
     [SerializeField] private Tilemap _tilemapWalls;
     [SerializeField] private Tilemap _tilemapFloors;
@@ -29,14 +23,14 @@ public class Grid : MonoBehaviour
     {
     }
 
-    public Vector3 GetSpawnPoint(SpawnPointType type)
+    public Vector3 GetSpawnPoint(PlayerManager.PlayerType type)
     {
         switch (type)
         {
-            case SpawnPointType.Player:
+            case PlayerManager.PlayerType.Light:
                 return _tilemapFloors.cellBounds.min + _tilemapFloors.cellSize / 2f;
-            case SpawnPointType.Ghost:
-                return new Vector3(0.5f, 0.5f, 0f);
+            case PlayerManager.PlayerType.Shadow:
+                return new Vector3(-0.5f, -0.5f, 0f);
         }
         return Vector3.zero;
     }
@@ -81,9 +75,24 @@ public class Grid : MonoBehaviour
         _coins.Clear();
         SpawnCoins();
 
-        // Reset player (temp by CoinCollector)
-        var player = FindFirstObjectByType<CoinCollector>().gameObject;
-        player.transform.position = GetSpawnPoint(SpawnPointType.Player);
-        player.GetComponent<PlayerController>().Movement.Stop();
+        ResetPlayer(PlayerManager.PlayerType.Light);
+        ResetPlayer(PlayerManager.PlayerType.Shadow);
+    }
+
+    private void ResetPlayer(PlayerManager.PlayerType playerType)
+    {
+        var player = GameManager.Instance.PlayerManager.GetPlayerOfType(playerType);
+        player.transform.position = GetSpawnPoint(playerType);
+
+        if(playerType == PlayerManager.PlayerType.Light)
+        {
+            player.GetComponentInChildren<LightPlayerController>().Movement.Stop();
+        }
+        if (playerType == PlayerManager.PlayerType.Shadow)
+        {
+            player.GetComponentInChildren<ShadowPlayerController>().Movement.Stop();
+        }
+
+
     }
 }

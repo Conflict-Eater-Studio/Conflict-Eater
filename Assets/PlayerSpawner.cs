@@ -27,25 +27,40 @@ public class PlayerSpawner : MonoBehaviour
     {
         var renderer = input.GetComponent<Renderer>();
 
+        string childName = input.playerIndex == 0 ? "LightAnchor" : "ShadowAnchor";
+        GameObject child = new GameObject(childName);
+        child.transform.SetParent(input.transform);
+        child.transform.localPosition = Vector3.zero;
+        child.AddComponent<CircleCollider2D>();
+        child.GetComponent<CircleCollider2D>().radius = 0.45f;
+
         if (input.playerIndex == 0)
         {
-            Debug.Log("Player 1: PlayerController");
-            input.transform.position = _grid.GetSpawnPoint(Grid.SpawnPointType.Player);
+            Debug.Log("Player 1: LightPlayerController");
+            input.name = "LightControllerRoot";
+
+            input.transform.position = _grid.GetSpawnPoint(PlayerManager.PlayerType.Light);
             renderer.material.color = Color.yellow;
             input.gameObject.tag = "PlayerLight";
-            input.GetComponent<CoinCollector>().SetInfoText(infoText);
+            child.AddComponent<LightPlayerController>();
+            child.AddComponent<CoinCollector>();
+            child.GetComponent<CoinCollector>().SetInfoText(infoText);
+
+            GameManager.Instance.PlayerManager.AddPlayer(input.gameObject, PlayerManager.PlayerType.Light);
         }
         if (input.playerIndex == 1)
         {
-            input.name = "Ghost_1";
-            input.transform.position = _grid.GetSpawnPoint(Grid.SpawnPointType.Ghost);
+            Debug.Log("Player 2: ShadowPlayerController");
+            input.name = "ShadowControllerRoot";
+
+            input.transform.position = _grid.GetSpawnPoint(PlayerManager.PlayerType.Shadow);
+            renderer.material.color = Color.darkBlue;
             input.gameObject.tag = "PlayerShadow";
-            Destroy(input.GetComponent<CoinCollector>());
 
-            var ghostController = input.gameObject.AddComponent<GhostController>();
-            ghostController.SetGhostPrefab(ghostPrefab);
+            var ghostController = child.gameObject.AddComponent<ShadowPlayerController>();
+            //ghostController.SetGhostPrefab(ghostPrefab);
 
-            Debug.Log("Player 2: EnemyController");
+            GameManager.Instance.PlayerManager.AddPlayer(input.gameObject, PlayerManager.PlayerType.Shadow);
         }
     }
 }

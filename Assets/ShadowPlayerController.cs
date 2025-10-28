@@ -1,14 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class GhostController : MonoBehaviour
+public class ShadowPlayerController : MonoBehaviour
 {
     [SerializeField] private GameObject ghostPrefab; 
     [SerializeField] private int totalGhosts = 4;     
     [SerializeField] private float spawnDelay = 1f;
-    private PlayerInput playerInput;
 
     private List<GameObject> ghosts = new List<GameObject>();
     private int activeGhostIndex = 0;
@@ -19,19 +19,53 @@ public class GhostController : MonoBehaviour
 
     [SerializeField] private float maxSwitchDistance = 10f;
 
+    private const string MoveActionName = "Move";
+
+    private Rigidbody2D _rb;
+    private Vector2 _moveInput;
+    private Movement _movement;
+    private PlayerInput _playerInput;
+    public Movement Movement => _movement;
+
+    [Tooltip("Movement speed in units per second")]
+    [SerializeField] protected float _speed = 5f;
+    [Tooltip("How close to .5 before applying queued dir")]
+    [SerializeField] private float _centerThreshold = 0.15f;
+    [Tooltip("How fast to snap to center when switching axis (multiplier of normal speed)")]
+    [SerializeField] private float _snapSpeedMultiplier = 1.5f;
+
+    private Grid _grid;
+
     private void Start()
     {
-        ghosts.Add(this.gameObject);
+        _rb = GetComponentInParent<Rigidbody2D>();
+        _grid = FindFirstObjectByType<Grid>();
+        _movement = new Movement(_rb, transform, _grid, _speed, _centerThreshold, _snapSpeedMultiplier);
 
-        playerInput = GetComponent<PlayerInput>();
-        if (playerInput != null)
+        _playerInput = GetComponentInParent<PlayerInput>();
+        if (_playerInput)
         {
-            playerInput.actions["GhostSwitch"].performed += OnSwitch;
+            InputAction moveAction = _playerInput.actions[MoveActionName];
+            moveAction.performed += OnMove;
         }
 
         SetGhostColors();
 
-        StartCoroutine(SpawnRemainingGhosts());
+        //StartCoroutine(SpawnRemainingGhosts());
+    }
+
+    public virtual void OnMove(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            _moveInput = context.ReadValue<Vector2>();
+            _movement.OnMove(_moveInput);
+        }
+    }
+
+    protected virtual void FixedUpdate()
+    {
+        _movement.FixedTick();
     }
 
     public void SetGhostPrefab(GameObject prefab)
@@ -48,7 +82,7 @@ public class GhostController : MonoBehaviour
             GameObject ghost = Instantiate(ghostPrefab, Vector3.zero, Quaternion.identity);
             ghost.name = $"Ghost_{i + 1}";
 
-            ghost.GetComponent<PlayerController>().enabled = false;
+            ghost.GetComponent<LightPlayerController>().enabled = false;
             Destroy(ghost.GetComponent<CoinCollector>());
 
             ghosts.Add(ghost);
@@ -70,7 +104,7 @@ public class GhostController : MonoBehaviour
         canSwitch = false;
 
         GameObject currentGhost = ghosts[activeGhostIndex];
-        currentGhost.GetComponent<PlayerController>().enabled = false;
+        currentGhost.GetComponent<LightPlayerController>().enabled = false;
 
         int closestIndex = activeGhostIndex;
         float closestDistance = maxSwitchDistance;
@@ -90,13 +124,13 @@ public class GhostController : MonoBehaviour
         if (closestIndex != activeGhostIndex)
         {
             activeGhostIndex = closestIndex;
-            ghosts[activeGhostIndex].GetComponent<PlayerController>().enabled = true;
+            ghosts[activeGhostIndex].GetComponent<LightPlayerController>().enabled = true;
 
             Debug.Log($"Switched to ghost #{activeGhostIndex + 1}");
         }
         else
         {
-            ghosts[activeGhostIndex].GetComponent<PlayerController>().enabled = true;
+            ghosts[activeGhostIndex].GetComponent<LightPlayerController>().enabled = true;
             Debug.Log("No ghost in range to switch to");
         }
 
@@ -115,6 +149,15 @@ public class GhostController : MonoBehaviour
             {
                 sr.color = (i == activeGhostIndex) ? activeColor : inactiveColor;
             }
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (_playerInput != null)
+        {
+            var moveAction = _playerInput.actions[MoveActionName];
+            moveAction.performed -= OnMove;
         }
     }
 }
