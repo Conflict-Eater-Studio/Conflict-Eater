@@ -12,9 +12,9 @@ public class OnMatchStartEventArgs : EventArgs {
 }
 public class Timer : MonoBehaviour {
     [Tooltip( "Match duration in seconds" )]
-    [SerializeField] private float _matchDuration;
+    [SerializeField] private float _matchDurationSeconds = 300f;
     [Tooltip( "Round duration in seconds" )]
-    [SerializeField] private float _roundMaxDuration;
+    [SerializeField] private float _roundDurationSeconds = 10f;
     
     public event EventHandler<OnMatchStartEventArgs> OnMatchStart;
     public event EventHandler OnRoundEnd;
@@ -23,15 +23,14 @@ public class Timer : MonoBehaviour {
     private float _roundStartTime;
     
     private void Update() {
-        TimeSpan timeLeft = TimeSpan.FromSeconds((_roundStartTime + _roundMaxDuration) - Time.time);
-        if (timeLeft.TotalSeconds <= 0) {
+        if (Time.time >= _roundStartTime + _roundDurationSeconds) {
             OnRoundEnd?.Invoke(this, EventArgs.Empty);
             _roundStartTime = Time.time;
         }
     }   
-    public void Start() {
+    public void StartTimer() {
         _matchStartTime = Time.time;
         _roundStartTime = Time.time;
-        OnMatchStart?.Invoke(this, new OnMatchStartEventArgs(_matchStartTime, _matchDuration, _roundMaxDuration)); 
+        OnMatchStart?.Invoke(this, new OnMatchStartEventArgs(_matchStartTime, _matchDurationSeconds, _roundDurationSeconds)); 
     }
 }

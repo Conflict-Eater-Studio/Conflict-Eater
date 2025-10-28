@@ -3,7 +3,7 @@ using System.Reflection;
 using TMPro;
 using UnityEngine;
 
-public static class TimerUIExtensions {
+public static class Extensions {
     public static void SetText(this TMP_Text text, string value) {
         text.text = value;
     }
