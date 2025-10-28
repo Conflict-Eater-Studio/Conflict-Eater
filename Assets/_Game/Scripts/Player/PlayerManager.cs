@@ -50,22 +50,6 @@ public class PlayerManager
         return null;
     }
 
-    public void Dev()
-    {
-        foreach (var player in GameManager.Instance.PlayerManager.GetPlayers())
-        {
-            foreach (var device in player.Input.devices)
-            {
-                if (device is Gamepad gamepad)
-                {
-                    // 🔹 Wyświetlenie fizycznego portu / indexu w Gamepad.all
-                    int gamepadIndex = Array.IndexOf(Gamepad.all.ToArray(), gamepad);
-                    Debug.Log($"{player.Type} sterowany przez Gamepad #{gamepadIndex} ({gamepad.displayName})");
-                }
-            }
-        }
-    }
-
     public void SwapPlayerGamepads(PlayerType typeA, PlayerType typeB)
     {
         var playerA = _players.Find(p => p.Type == typeA);
