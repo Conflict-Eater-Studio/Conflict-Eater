@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 3764261226422265446}
   - component: {fileID: 4872231706367318677}
   - component: {fileID: 7473066534210367277}
+  - component: {fileID: 4783637964262382544}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -30,8 +31,8 @@ Transform:
   m_GameObject: {fileID: 4482556574938180535}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -8.55, y: 0, z: 0}
-  m_LocalScale: {x: 10, y: 10, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -77,6 +78,10 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 0e8443e3-d760-4434-934b-c300840226f2
     m_ActionName: Gameplay/Move
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 44b41169-66a9-4d51-9f50-107b20b20b16
+    m_ActionName: 'Gameplay/GhostSwitch[/DualSenseGamepadHID/buttonWest]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Gameplay
@@ -94,7 +99,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9388c5593bdbbeb469c97c0345c1fa74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  speed: 5
+  _speed: 5
+  _centerThreshold: 0.5
+  _snapSpeedMultiplier: 1.5
 --- !u!212 &3764261226422265446
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -139,10 +146,10 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: -1118452421
+  m_SortingLayer: 3
   m_SortingOrder: 0
-  m_Sprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  m_Sprite: {fileID: -2311659948842064771, guid: b67c4f4991403ce49a90a503d66d63f1, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -188,7 +195,7 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 0.1
+  m_Radius: 0.45
 --- !u!50 &7473066534210367277
 Rigidbody2D:
   serializedVersion: 5
@@ -216,3 +223,15 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
+--- !u!114 &4783637964262382544
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4482556574938180535}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c87f387808d1f64b92c50cee9b64e63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CoinCollector

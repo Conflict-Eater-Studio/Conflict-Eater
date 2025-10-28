@@ -49,6 +49,7 @@ public class GhostController : MonoBehaviour
             ghost.name = $"Ghost_{i + 1}";
 
             ghost.GetComponent<PlayerController>().enabled = false;
+            Destroy(ghost.GetComponent<CoinCollector>());
 
             ghosts.Add(ghost);
 
