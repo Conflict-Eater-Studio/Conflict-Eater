@@ -34,7 +34,9 @@ public class GameManager : Singleton<GameManager> {
     }
 
     private void Update() {
-        TimeSpan timeLeft = TimeSpan.FromSeconds((_roundStartTime + _roundMaxDurationInMinutes * 60) - Time.time);
+        float roundEndTime = _roundStartTime + _roundMaxDurationInMinutes * 60;
+        float timeLeftSeconds = Mathf.Max(0, roundEndTime - Time.time); // nie pozwalamy na ujemne
+        TimeSpan timeLeft = TimeSpan.FromSeconds(timeLeftSeconds);
         if (timeLeft.TotalSeconds <= 0) {
             OnRoundEnd?.Invoke(this, EventArgs.Empty);
             _roundStartTime = Time.time;

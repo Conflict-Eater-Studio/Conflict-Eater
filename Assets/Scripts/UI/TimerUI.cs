@@ -17,7 +17,7 @@ public class TimerUI : MonoBehaviour
     private float _roundStartTime;
     private float _matchDurationInMinutes;
     private float _roundDurationInMinutes;
-    private void Awake() {
+    private void Start() {
         GameManager.Instance.OnMatchStart += TimerUI_OnMatchStart;
         GameManager.Instance.OnRoundEnd += (sender, args) => {
             _roundStartTime = Time.time;
