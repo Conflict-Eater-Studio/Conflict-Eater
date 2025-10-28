@@ -8,8 +8,9 @@ public class PlayerSpawner : MonoBehaviour
     [SerializeField] private GameObject ghostPrefab;
     [SerializeField] private Vector3 playerPosition;
     [SerializeField] private Vector3 ghostPosition;
-    [SerializeField] private TextMeshProUGUI infoText;
-    
+    [SerializeField] private TextMeshProUGUI p1InfoText;
+    [SerializeField] private TextMeshProUGUI p2InfoText;
+
     // Grid ref
     [SerializeField] private Grid _grid;
 
@@ -44,9 +45,9 @@ public class PlayerSpawner : MonoBehaviour
             input.gameObject.tag = "PlayerLight";
             child.AddComponent<LightPlayerController>();
             child.AddComponent<CoinCollector>();
-            child.GetComponent<CoinCollector>().SetInfoText(infoText);
+            child.GetComponent<CoinCollector>().SetInfoText(p1InfoText, p2InfoText);
 
-            GameManager.Instance.PlayerManager.AddPlayer(input.gameObject, PlayerManager.PlayerType.Light);
+            GameManager.Instance.PlayerManager.AddPlayer(input.gameObject, PlayerManager.PlayerType.Light, input);
         }
         if (input.playerIndex == 1)
         {
@@ -58,9 +59,10 @@ public class PlayerSpawner : MonoBehaviour
             input.gameObject.tag = "PlayerShadow";
 
             var ghostController = child.gameObject.AddComponent<ShadowPlayerController>();
+            child.GetComponent<CircleCollider2D>().isTrigger = true;
             //ghostController.SetGhostPrefab(ghostPrefab);
 
-            GameManager.Instance.PlayerManager.AddPlayer(input.gameObject, PlayerManager.PlayerType.Shadow);
+            GameManager.Instance.PlayerManager.AddPlayer(input.gameObject, PlayerManager.PlayerType.Shadow, input);
         }
     }
 }

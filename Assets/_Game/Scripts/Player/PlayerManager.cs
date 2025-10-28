@@ -1,6 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Users;
 
 public class PlayerManager
 {
@@ -9,19 +12,21 @@ public class PlayerManager
     {
         public GameObject PlayerObject;
         public PlayerType Type;
+        public PlayerInput Input;
 
-        public PlayerData(GameObject obj, PlayerType type)
+        public PlayerData(GameObject obj, PlayerType type, PlayerInput input)
         {
             PlayerObject = obj;
             Type = type;
+            Input = input;
         }
     }
 
     private List<PlayerData> _players = new List<PlayerData>();
 
-    public void AddPlayer(GameObject playerObj, PlayerType type)
+    public void AddPlayer(GameObject playerObj, PlayerType type, PlayerInput input)
     {
-        _players.Add(new PlayerData(playerObj, type));
+        _players.Add(new PlayerData(playerObj, type, input));
     }
 
     public void RemovePlayer(GameObject playerObj)
@@ -43,6 +48,43 @@ public class PlayerManager
                 return player.PlayerObject;
         }
         return null;
+    }
+
+    public void Dev()
+    {
+        foreach (var player in GameManager.Instance.PlayerManager.GetPlayers())
+        {
+            foreach (var device in player.Input.devices)
+            {
+                if (device is Gamepad gamepad)
+                {
+                    // 🔹 Wyświetlenie fizycznego portu / indexu w Gamepad.all
+                    int gamepadIndex = Array.IndexOf(Gamepad.all.ToArray(), gamepad);
+                    Debug.Log($"{player.Type} sterowany przez Gamepad #{gamepadIndex} ({gamepad.displayName})");
+                }
+            }
+        }
+    }
+
+    public void SwapPlayerGamepads(PlayerType typeA, PlayerType typeB)
+    {
+        var playerA = _players.Find(p => p.Type == typeA);
+        var playerB = _players.Find(p => p.Type == typeB);
+
+        if (playerA.Input == null || playerB.Input == null)
+            return;
+
+        Gamepad padA = playerA.Input.devices.FirstOrDefault(d => d is Gamepad) as Gamepad;
+        Gamepad padB = playerB.Input.devices.FirstOrDefault(d => d is Gamepad) as Gamepad;
+
+        if (padA == null || padB == null)
+            return;
+
+        playerA.Input.user.UnpairDevice(padA);
+        playerB.Input.user.UnpairDevice(padB);
+
+        InputUser.PerformPairingWithDevice(padB, playerA.Input.user);
+        InputUser.PerformPairingWithDevice(padA, playerB.Input.user);
     }
 
     public enum PlayerType

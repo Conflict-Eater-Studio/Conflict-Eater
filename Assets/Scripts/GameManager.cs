@@ -27,6 +27,15 @@ public class GameManager : Singleton<GameManager> {
     private float _roundStartTime;
 
     public PlayerManager PlayerManager { get; private set; }
+    public Grid Grid { get; private set; }
+
+    public void RegisterGrid(Grid grid)
+    {
+        if (Grid == null)
+        {
+            Grid = grid;
+        }
+    }
 
     private void Awake()
     {

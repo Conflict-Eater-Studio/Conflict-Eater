@@ -16,11 +16,22 @@ public class Grid : MonoBehaviour
 
     void Start()
     {
+        GameManager.Instance.RegisterGrid(this);
         SpawnCoins();
     }
 
     void Update()
     {
+        if (_coins.Count > 0 && _coins.All(c => c == null))
+        {
+            Debug.Log("Wszystkie monety zebrane!");
+            OnAllCoinsCollected();
+        }
+    }
+
+    private void OnAllCoinsCollected()
+    {
+        ResetMapState();
     }
 
     public Vector3 GetSpawnPoint(PlayerManager.PlayerType type)

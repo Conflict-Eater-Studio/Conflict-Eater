@@ -47,6 +47,8 @@ public class ShadowPlayerController : MonoBehaviour
         {
             InputAction moveAction = _playerInput.actions[MoveActionName];
             moveAction.performed += OnMove;
+
+            _playerInput.actions["GhostSwitch"].performed += OnSwitch;
         }
 
         SetGhostColors();
@@ -95,7 +97,7 @@ public class ShadowPlayerController : MonoBehaviour
     {
         if (context.performed && canSwitch && ghosts.Count > 0)
         {
-            StartCoroutine(SwitchGhost());
+            //StartCoroutine(SwitchGhost());
         }
     }
 
@@ -152,6 +154,17 @@ public class ShadowPlayerController : MonoBehaviour
         }
     }
 
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("PlayerLight"))
+        {
+            GameManager.Instance.Grid.ResetMapState();
+            GameManager.Instance.PlayerManager.SwapPlayerGamepads(PlayerManager.PlayerType.Light, PlayerManager.PlayerType.Shadow);
+
+            collision.GetComponentInChildren<CoinCollector>().ToggleActivePlayer();
+        }
+    }
+
     private void OnDestroy()
     {
         if (_playerInput != null)
@@ -160,4 +173,6 @@ public class ShadowPlayerController : MonoBehaviour
             moveAction.performed -= OnMove;
         }
     }
+
+
 }
