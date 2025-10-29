@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public class Timer : MonoBehaviour {
+public class Match : MonoBehaviour {
     [Tooltip( "Match duration in seconds" )]
     [SerializeField] private float _matchDurationSeconds = 300f;
     [Tooltip( "Round duration in seconds" )]
@@ -20,7 +20,7 @@ public class Timer : MonoBehaviour {
     private void Update() {
         if (_pauseTime > 0) return; 
         if(Time.time >= _matchStartTime + _matchDurationSeconds) {
-            OnMatchEnd?.Invoke(this, EventArgs.Empty);
+            End();             
             return;
         }
         if (Time.time >= _roundStartTime + _roundDurationSeconds) {
@@ -29,23 +29,25 @@ public class Timer : MonoBehaviour {
         }
    
     }   
-    public void StartTimer() {
+    public void Run() {
         _matchStartTime = Time.time;
         _roundStartTime = Time.time;
         OnMatchStart?.Invoke(this, new OnMatchStartEventArgs(_matchDurationSeconds, _roundDurationSeconds)); 
     }
-    public void PauseTimer() {
+    public void Pause() {
         _pauseTime = Time.time;
         OnMatchPause?.Invoke(this, EventArgs.Empty);
     }
-    public void ResumeTimer() {
+    public void Resume() {
         float diff = Time.time - _pauseTime;
         _matchStartTime += diff;
         _roundStartTime += diff;
         _pauseTime = 0;
         OnMatchResume?.Invoke(this, EventArgs.Empty);
     }
-
+    public void End() {
+        OnMatchEnd?.Invoke(this, EventArgs.Empty);
+    }
     public void EndRound() {
         _roundStartTime = Time.time;
         OnRoundEnd?.Invoke(this, EventArgs.Empty);

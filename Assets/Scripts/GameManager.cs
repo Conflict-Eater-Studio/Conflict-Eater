@@ -8,15 +8,15 @@ public enum GameState {
 public class GameManager : Singleton<GameManager> {
 
     [SerializeField] private GameState _gameState = GameState.Running;
-    [SerializeField] public Timer Timer;
+    [SerializeField] public Match Timer;
     [SerializeField] public RoleSwapper RoleSwapper;
     private void Awake() {
         if (Timer == null) {
-            if (TryGetComponent(typeof(Timer), out Component compenent)) {
-                Timer = compenent as Timer;
+            if (TryGetComponent(typeof(Match), out Component compenent)) {
+                Timer = compenent as Match;
             }
             else {
-                Timer = FindAnyObjectByType<Timer>();
+                Timer = FindAnyObjectByType<Match>();
             }
         }
     }
