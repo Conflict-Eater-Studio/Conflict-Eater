@@ -45,7 +45,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f1fbd90239e84b4bb7cd5a90f73d154, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  Timer: {fileID: 0}
+  _gameState: 1
+  Timer: {fileID: 704244929295975110}
   RoleSwapper: {fileID: 0}
 --- !u!114 &704244929295975110
 MonoBehaviour:
@@ -59,5 +60,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d560c974cac678b488612c45172adb0b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  _matchDurationSeconds: 300
+  _matchDurationSeconds: 10
   _roundDurationSeconds: 10

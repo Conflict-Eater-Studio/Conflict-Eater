@@ -1,8 +1,12 @@
+using System;
 using UnityEngine;
 
 public class RoleSwapper : MonoBehaviour
 {
-    public void Swap() {
+    private void Awake() {
+        GameManager.Instance.Timer.OnRoundEnd += Swap;
+    }
+    private void Swap(object sender, EventArgs e) {
         Debug.Log("Swap");
     }
 }
