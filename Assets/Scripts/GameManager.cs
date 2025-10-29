@@ -1,8 +1,13 @@
 using System;
 using UnityEngine;
 
+public enum GameState {
+    Pause,
+    Running
+}
 public class GameManager : Singleton<GameManager> {
 
+    [SerializeField] private GameState _gameState = GameState.Running;
     [SerializeField] public Timer Timer;
     [SerializeField] public RoleSwapper RoleSwapper;
     private void Awake() {
@@ -16,4 +21,3 @@ public class GameManager : Singleton<GameManager> {
         }
     }
 }
-//TODO: FIX THE ROUND TIMER INSTEAD showing n seconds its show n - 1 seconds

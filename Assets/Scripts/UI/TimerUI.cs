@@ -15,24 +15,48 @@ public class TimerUI : MonoBehaviour
     [SerializeField] TMP_Text _roundTimeLeftText;
     [SerializeField] Slider _matchSlider;
     [SerializeField] Slider _roundSlider;
-    
+
     private float _matchStartTime; 
     private float _roundStartTime;
     private float _matchDurationSeconds;
     private float _roundDurationSeconds;
+
+    private float _pauseTime = 0;
+
+    private bool _isEnded;
     private void Awake() {
         GameManager.Instance.Timer.OnMatchStart += TimerUI_OnMatchStart;
         GameManager.Instance.Timer.OnRoundEnd += (sender, args) => {
             _roundStartTime = Time.time;
         };
+        GameManager.Instance.Timer.OnMatchEnd += (sender, args) =>
+        {
+            _isEnded = true;
+            Debug.Log("Match End");
+        };
+        GameManager.Instance.Timer.OnMatchPause += (sender, args) =>
+        {
+            _pauseTime = Time.time;
+        };
+        GameManager.Instance.Timer.OnMatchResume += (sender, args) =>
+        {
+            float diff = Time.time - _pauseTime;
+            _matchStartTime += diff;
+            _roundStartTime += diff;
+            _pauseTime = 0;
+        };
     }
+    
+ 
     private void Update() {
+        if (_pauseTime > 0) return; 
+        if (_isEnded) return;
         float roundTimeLeft = (_roundStartTime + _roundDurationSeconds) - Time.time;
         float roundTimeLeftPercent = roundTimeLeft / _roundDurationSeconds;
         float matchTimeLeft = (_matchStartTime + _matchDurationSeconds) - Time.time;
         float matchTimeLeftPercent = matchTimeLeft / _matchDurationSeconds;
-        if(matchTimeLeft <= 0) return;
-        if(roundTimeLeft <= 0) return;
+        if (matchTimeLeft <= 0) return;
+        if (roundTimeLeft <= 0) return;
         _roundSlider.value = roundTimeLeftPercent;
         _matchSlider.value = matchTimeLeftPercent;
         
@@ -47,8 +71,8 @@ public class TimerUI : MonoBehaviour
     }
 
     private void TimerUI_OnMatchStart(object sender, OnMatchStartEventArgs e) {
-        _matchStartTime = e.MatchStartTime;
-        _roundStartTime = e.MatchStartTime;
+        _matchStartTime = Time.time;
+        _roundStartTime = Time.time;
         _matchDurationSeconds = e.MatchDuration;
         _roundDurationSeconds = e.RoundDuration;
         UpdateTimerDisplay();
