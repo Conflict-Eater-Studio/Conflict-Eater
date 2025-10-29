@@ -53,6 +53,8 @@ public class ShadowPlayerController : MonoBehaviour
 
         SetGhostColors();
 
+
+
         //StartCoroutine(SpawnRemainingGhosts());
     }
 
@@ -162,6 +164,8 @@ public class ShadowPlayerController : MonoBehaviour
             GameManager.Instance.PlayerManager.SwapPlayerGamepads(PlayerManager.PlayerType.Light, PlayerManager.PlayerType.Shadow);
 
             collision.GetComponentInChildren<CoinCollector>().ToggleActivePlayer();
+
+            GameManager.Instance.Timer.EndRound();
         }
     }
 

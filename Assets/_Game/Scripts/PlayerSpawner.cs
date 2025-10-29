@@ -63,6 +63,8 @@ public class PlayerSpawner : MonoBehaviour
             //ghostController.SetGhostPrefab(ghostPrefab);
 
             GameManager.Instance.PlayerManager.AddPlayer(input.gameObject, PlayerManager.PlayerType.Shadow, input);
+
+            GameManager.Instance.Timer.Run();
         }
     }
 }

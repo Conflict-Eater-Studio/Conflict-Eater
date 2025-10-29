@@ -18,13 +18,20 @@ public class Grid : MonoBehaviour
     {
         GameManager.Instance.RegisterGrid(this);
         SpawnCoins();
+
+        GameManager.Instance.Timer.OnRoundEnd += OnRoundEnd;
+    }
+
+    private void OnRoundEnd(object sender, EventArgs e)
+    {
+        Debug.Log(sender.ToString());
+        ResetMapState();
     }
 
     void Update()
     {
         if (_coins.Count > 0 && _coins.All(c => c == null))
         {
-            Debug.Log("Wszystkie monety zebrane!");
             OnAllCoinsCollected();
         }
     }
@@ -105,5 +112,10 @@ public class Grid : MonoBehaviour
         }
 
 
+    }
+
+    private void OnDestroy()
+    {
+        GameManager.Instance.Timer.OnRoundEnd-=OnRoundEnd;
     }
 }

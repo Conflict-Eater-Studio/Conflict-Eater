@@ -18,17 +18,8 @@ public class GameManager : Singleton<GameManager>
     [SerializeField] private float _matchDurationInMinutes;
     [SerializeField] private float _roundMaxDurationInMinutes;
 
-    public event EventHandler<OnMatchStartEventArgs> OnMatchStart;
-    public event EventHandler OnRoundEnd;
-
-    private float _matchStartTime;
-    private float _roundStartTime;
-
     public PlayerManager PlayerManager { get; private set; }
     public Grid Grid { get; private set; }
-
-    [SerializeField] public Timer Timer;
-    [SerializeField] public RoleSwapper RoleSwapper;
 
     public void RegisterGrid(Grid grid)
     {
@@ -42,29 +33,14 @@ public class GameManager : Singleton<GameManager>
     {
         PlayerManager = new PlayerManager();
 
-        if (Timer == null)
-        {
-            if (TryGetComponent(typeof(Timer), out Component compenent))
-            {
-                Timer = compenent as Timer;
-            }
-            else
-            {
-                Timer = FindAnyObjectByType<Timer>();
-            }
-        }
+        Timer.OnRoundEnd += OnRoundEnd;
     }
 
-    private void Update()
+    private void OnRoundEnd(object sender, EventArgs e)
     {
-        float roundEndTime = _roundStartTime + _roundMaxDurationInMinutes * 60;
-        float timeLeftSeconds = Mathf.Max(0, roundEndTime - Time.time); // nie pozwalamy na ujemne
-        TimeSpan timeLeft = TimeSpan.FromSeconds(timeLeftSeconds);
-        if (timeLeft.TotalSeconds <= 0)
-        {
-            OnRoundEnd?.Invoke(this, EventArgs.Empty);
-            _roundStartTime = Time.time;
-
-        }
+        PlayerManager.SwapPlayerGamepads(PlayerManager.PlayerType.Light, PlayerManager.PlayerType.Shadow);
+        
+        GameObject lightPlayer = PlayerManager.GetPlayerOfType(PlayerManager.PlayerType.Light);
+        lightPlayer.GetComponentInChildren<CoinCollector>().ToggleActivePlayer();
     }
 }
