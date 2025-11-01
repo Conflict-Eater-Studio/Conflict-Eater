@@ -393,7 +393,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3992267007662837414, guid: bf93e0d707747e8409d83fd20f11d0a4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2144398526}
   m_SourcePrefab: {fileID: 100100000, guid: bf93e0d707747e8409d83fd20f11d0a4, type: 3}
 --- !u!1001 &405540223
 PrefabInstance:
@@ -21118,6 +21121,25 @@ TilemapCollider2D:
   m_MaximumTileChangeCount: 1000
   m_ExtrusionFactor: 0
   m_UseDelaunayMesh: 0
+--- !u!1 &2144398522 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3992267007662837414, guid: bf93e0d707747e8409d83fd20f11d0a4, type: 3}
+  m_PrefabInstance: {fileID: 401607470}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2144398526
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2144398522}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b18b5cf42de929045bf38603f71475dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameScoreUI
+  _p1Score: {fileID: 1687595320}
+  _p2Score: {fileID: 299223018}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
