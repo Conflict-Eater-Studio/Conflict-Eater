@@ -12,6 +12,12 @@ public class Movement
     private readonly Grid _grid;
 
     private float _speed;
+    private float _speedMult = 1f;
+    public float SpeedMult
+    {
+        get => _speedMult;
+        set => _speedMult = value;
+    }
     private float _centerThreshold;
     private float _snapSpeedMultiplier;
 
@@ -82,7 +88,7 @@ public class Movement
     {
         Vector2 currentPos = _rb.position;
 
-        Vector2 baseMovement = _moveDirection * _speed * Time.fixedDeltaTime;
+        Vector2 baseMovement = _moveDirection * _speed * _speedMult * Time.fixedDeltaTime;
 
         if (_queuedDirection != Vector2.zero && _moveDirection != Vector2.zero)
         {

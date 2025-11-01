@@ -6,15 +6,15 @@ using UnityEngine.InputSystem;
 
 public class ShadowPlayerController : MonoBehaviour
 {
-    [SerializeField] private GameObject ghostPrefab; 
-    [SerializeField] private int totalGhosts = 4;     
+    [SerializeField] private GameObject ghostPrefab;
+    [SerializeField] private int totalGhosts = 4;
     [SerializeField] private float spawnDelay = 1f;
 
     private List<GameObject> ghosts = new List<GameObject>();
     private int activeGhostIndex = 0;
     private bool canSwitch = true;
 
-    private Color inactiveColor = new Color(0.5f, 0.5f, 1f, 0.5f); 
+    private Color inactiveColor = new Color(0.5f, 0.5f, 1f, 0.5f);
     private Color activeColor = Color.darkBlue;
 
     [SerializeField] private float maxSwitchDistance = 10f;
@@ -33,6 +33,8 @@ public class ShadowPlayerController : MonoBehaviour
     [SerializeField] private float _centerThreshold = 0.15f;
     [Tooltip("How fast to snap to center when switching axis (multiplier of normal speed)")]
     [SerializeField] private float _snapSpeedMultiplier = 1.5f;
+    [Tooltip("Speed penalty multiplier when on light tiles")]
+    [SerializeField] private float _lightTileSpeedPenalityMultiplier = 0.75f;
 
     private Grid _grid;
 
@@ -70,6 +72,17 @@ public class ShadowPlayerController : MonoBehaviour
     protected virtual void FixedUpdate()
     {
         _movement.FixedTick();
+
+        if (GameManager.Instance.Grid.IsLightTile(
+            Grid.WorldToCell(transform.position, Grid.TilemapType.Light)
+        ))
+        {
+            _movement.SpeedMult = _lightTileSpeedPenalityMultiplier;
+        }
+        else
+        {
+            _movement.SpeedMult = 1f;
+        }
     }
 
     public void SetGhostPrefab(GameObject prefab)
@@ -87,7 +100,7 @@ public class ShadowPlayerController : MonoBehaviour
             ghost.name = $"Ghost_{i + 1}";
 
             ghost.GetComponent<LightPlayerController>().enabled = false;
-            Destroy(ghost.GetComponent<CoinCollector>());
+            // Destroy(ghost.GetComponent<GameScore>());
 
             ghosts.Add(ghost);
 
@@ -160,11 +173,8 @@ public class ShadowPlayerController : MonoBehaviour
     {
         if (collision.CompareTag("PlayerLight"))
         {
-            GameManager.Instance.Grid.ResetMapState();
-            GameManager.Instance.PlayerManager.SwapPlayerGamepads(PlayerManager.PlayerType.Light, PlayerManager.PlayerType.Shadow);
-
-            collision.GetComponentInChildren<CoinCollector>().ToggleActivePlayer();
-
+            // NOTE: Only end the round
+            // Controller and score swapping is handled in GameManager.OnRoundEnd
             GameManager.Instance.Timer.EndRound();
         }
     }

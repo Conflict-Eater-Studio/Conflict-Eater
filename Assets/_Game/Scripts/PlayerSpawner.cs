@@ -44,8 +44,8 @@ public class PlayerSpawner : MonoBehaviour
             renderer.material.color = Color.yellow;
             input.gameObject.tag = "PlayerLight";
             child.AddComponent<LightPlayerController>();
-            child.AddComponent<CoinCollector>();
-            child.GetComponent<CoinCollector>().SetInfoText(p1InfoText, p2InfoText);
+            // child.AddComponent<GameScore>();
+            // child.GetComponent<GameScore>().SetInfoText(p1InfoText, p2InfoText);
 
             GameManager.Instance.PlayerManager.AddPlayer(input.gameObject, PlayerManager.PlayerType.Light, input);
         }

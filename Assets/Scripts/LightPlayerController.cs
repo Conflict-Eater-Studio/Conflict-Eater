@@ -17,7 +17,7 @@ public class LightPlayerController : MonoBehaviour
     public Movement Movement => _movement;
 
     [Tooltip("Movement speed in units per second")]
-    [SerializeField] protected float _speed = 5f;
+    [SerializeField] protected float _speed = 10f;
     [Tooltip("How close to .5 before applying queued dir")]
     [SerializeField] private float _centerThreshold = 0.15f;
     [Tooltip("How fast to snap to center when switching axis (multiplier of normal speed)")]
@@ -51,6 +51,14 @@ public class LightPlayerController : MonoBehaviour
     protected virtual void FixedUpdate()
     {
         _movement.FixedTick();
+        
+        // NOTE: Marking tiles as active (potential issue)
+        // If the player skips over a tile, it won't activate it.
+        // This situation should not happen with proper movement speed and tile size.
+        // Event at low FPS this SHOULD be fine.
+        GameManager.Instance.Grid.SetTileToLight(
+            Grid.WorldToCell(transform.position)
+        );
     }
 
     private void OnDestroy()
@@ -61,4 +69,12 @@ public class LightPlayerController : MonoBehaviour
             moveAction.performed -= OnMove;
         }
     }
+
+  private void OnTriggerEnter2D(Collider2D collision)
+  {
+    if(collision)
+    {
+        Debug.Log(collision);
+    }
+  }
 }

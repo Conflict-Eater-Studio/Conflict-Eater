@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: tilemap-template-32px-grid-dark_47
   m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.Tilemaps.Tile
   m_Sprite: {fileID: 1451277352, guid: 94344fc3e10a07347b2c6e362e032566, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.63887596, g: 1, b: 0, a: 1}
   m_Transform:
     e00: 1
     e01: 0
@@ -32,5 +32,5 @@ MonoBehaviour:
     e32: 0
     e33: 1
   m_InstancedGameObject: {fileID: 0}
-  m_Flags: 1
+  m_Flags: 0
   m_ColliderType: 1
