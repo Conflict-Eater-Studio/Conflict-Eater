@@ -2,15 +2,11 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(CircleCollider2D))]
 public class ShadowController : MonoBehaviour
 {
-    private const string MoveActionName = "Move";
-
-    private Rigidbody2D _rb;
-    private Vector2 _moveInput;
-    private Movement _movement;
-    public Movement Movement => _movement;
-
+    [Header("Movement Settings")]
     [Tooltip("Movement speed in units per second")]
     [SerializeField] protected float _speed = 10.5f;
     [Tooltip("How close to .5 before applying queued dir")]
@@ -20,12 +16,17 @@ public class ShadowController : MonoBehaviour
     [Tooltip("Speed penalty multiplier when on light tiles")]
     [SerializeField] private float _lightTileSpeedPenalityMultiplier = 0.5f;
 
+    private Rigidbody2D _rb;
+    private Vector2 _moveInput;
+    private Movement _movement;
+    public Movement Movement => _movement;
     private Grid _grid;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         _rb = GetComponent<Rigidbody2D>();
+
         _grid = FindFirstObjectByType<Grid>();
         _movement = new Movement(_rb, transform, _grid, _speed, _centerThreshold, _snapSpeedMultiplier);
     }
@@ -50,9 +51,11 @@ public class ShadowController : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
-    void Update()
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        
+        if (collision.CompareTag("PlayerLight"))
+        {
+            GameManager.Instance.Timer.EndRound();
+        }
     }
 }

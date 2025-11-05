@@ -6,98 +6,135 @@ using UnityEngine.InputSystem;
 
 public class ShadowPlayerController : MonoBehaviour
 {
-    [SerializeField] private GameObject ghostPrefab;
-    [SerializeField] private int totalGhosts = 4;
-    [SerializeField] private float spawnDelay = 1f;
+    private const string MoveActionName = "Move";
+    private const string SwitchActionName = "GhostSwitch";
 
-    private List<GameObject> ghosts = new List<GameObject>();
-    private int activeGhostIndex = 0;
-    private bool canSwitch = true;
+    [Header("Shadow Settings")]
+    [SerializeField] private GameObject _shadowPrefab;
+    [SerializeField] private int _shadowCount = 4;
+    [SerializeField] private float _spawnDelay = 1f;
+    [SerializeField] private float _maxSwitchDistance = 10f;
 
-    private Color inactiveColor = new Color(0.5f, 0.5f, 1f, 0.5f);
-    private Color activeColor = Color.darkBlue;
+    [Header("Visual Settings")]
+    [SerializeField] private Color _activeColor = Color.blue;
+    [SerializeField] private Color _inactiveColor = new Color(0.5f, 0.5f, 1f, 0.5f);
 
-    [SerializeField] private float maxSwitchDistance = 10f;
-
+    private readonly List<GameObject> _shadows = new();
     private PlayerInput _playerInput;
+    private int _activeShadowIndex;
+    private bool _canSwitch = true;
 
+    #region Unity Lifecycle
     private void Start()
     {
         _playerInput = GetComponentInParent<PlayerInput>();
-        if (_playerInput)
-        {
-            _playerInput.actions["GhostSwitch"].performed += OnSwitch;
 
-            _playerInput.actions["Move"].performed += OnMove;
-            _playerInput.actions["Move"].canceled += OnMove;
+        if (_playerInput != null)
+        {
+            _playerInput.actions[SwitchActionName].performed += OnSwitch;
+            _playerInput.actions[MoveActionName].performed += OnMove;
         }
 
-        SetGhostColors();
-
-        StartCoroutine(SpawnRemainingGhosts());
+        GameManager.Instance.Timer.OnRoundEnd += HandleRoundEnd;
+        StartCoroutine(SpawnShadows());
     }
 
+    private void OnDestroy()
+    {
+        if (_playerInput != null)
+        {
+            _playerInput.actions[MoveActionName].performed -= OnMove;
+            _playerInput.actions[SwitchActionName].performed -= OnSwitch;
+        }
+
+        if (GameManager.Instance != null)
+            GameManager.Instance.Timer.OnRoundEnd -= HandleRoundEnd;
+    }
+    #endregion
+
+    #region Input Handling
     private void OnMove(InputAction.CallbackContext context)
     {
-        if (ghosts.Count == 0) return;
+        if (_shadows.Count == 0) return;
 
-        Vector2 move = context.ReadValue<Vector2>();
-        var activeGhost = ghosts[activeGhostIndex];
-        activeGhost.GetComponent<ShadowController>().Move(move);
+        Vector2 moveInput = context.ReadValue<Vector2>();
+        var activeGhost = _shadows[_activeShadowIndex];
+        activeGhost.GetComponent<ShadowController>().Move(moveInput);
     }
 
-    public void SetGhostPrefab(GameObject prefab)
+    private void OnSwitch(InputAction.CallbackContext context)
     {
-        ghostPrefab = prefab;
+        if (!_canSwitch || _shadows.Count == 0) return;
+        StartCoroutine(SwitchGhostCoroutine());
     }
 
-    private IEnumerator SpawnRemainingGhosts()
+    #endregion
+
+    #region Spawning Logic
+
+    public void SetShadowPrefab(GameObject gameObject)
     {
-        for (int i = 0; i < 1; i++)
+        _shadowPrefab = gameObject;
+    }
+
+    private IEnumerator SpawnShadows()
+    {
+        for (int i = 0; i < _shadowCount; i++)
         {
-            GameObject ghost = Instantiate(ghostPrefab, Vector3.zero, Quaternion.identity, gameObject.transform);
+            var ghost = Instantiate(_shadowPrefab, Vector3.zero, Quaternion.identity, transform);
             ghost.name = $"Ghost_{i + 1}";
 
-            if(i!=0)
-            {
-                ghost.GetComponent<ShadowController>().enabled = false;
-                ghost.GetComponent<PlayerInput>().enabled = false;
-            }
+            bool isActive = (i == 0);
+            SetGhostState(ghost, isActive);
 
-            ghosts.Add(ghost);
-
+            _shadows.Add(ghost);
             SetGhostColors();
 
-            yield return new WaitForSeconds(spawnDelay);
+            yield return new WaitForSeconds(_spawnDelay);
         }
     }
 
-    public void OnSwitch(InputAction.CallbackContext context)
+    private void SetGhostState(GameObject ghost, bool isActive)
     {
-        if (context.performed && canSwitch && ghosts.Count > 0)
+        var controller = ghost.GetComponent<ShadowController>();
+        var input = ghost.GetComponent<PlayerInput>();
+        var rb = ghost.GetComponent<Rigidbody2D>();
+
+        if (controller != null) controller.enabled = isActive;
+        if (input != null) input.enabled = isActive;
+        if (rb != null) rb.bodyType = isActive ? RigidbodyType2D.Dynamic : RigidbodyType2D.Kinematic;
+    }
+
+    private void SetGhostColors()
+    {
+        for (int i = 0; i < _shadows.Count; i++)
         {
-            StartCoroutine(SwitchGhost());
+            var sr = _shadows[i].GetComponent<SpriteRenderer>();
+            if (sr == null) continue;
+
+            sr.color = (i == _activeShadowIndex) ? _activeColor : _inactiveColor;
         }
     }
 
-    private IEnumerator SwitchGhost()
+    #endregion
+
+    #region Switching Logic
+
+    private IEnumerator SwitchGhostCoroutine()
     {
-        canSwitch = false;
+        _canSwitch = false;
 
-        GameObject currentGhost = ghosts[activeGhostIndex];
+        var currentGhost = _shadows[_activeShadowIndex];
+        SetGhostState(currentGhost, false);
 
-        currentGhost.GetComponent<ShadowController>().enabled = false;
-        currentGhost.GetComponent<PlayerInput>().enabled = false;
-        currentGhost.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Kinematic;
+        int closestIndex = _activeShadowIndex;
+        float closestDistance = _maxSwitchDistance;
 
-        int closestIndex = activeGhostIndex;
-        float closestDistance = maxSwitchDistance;
-
-        for (int i = 0; i < ghosts.Count; i++)
+        for (int i = 0; i < _shadows.Count; i++)
         {
-            if (i == activeGhostIndex) continue;
+            if (i == _activeShadowIndex) continue;
 
-            float distance = Vector3.Distance(currentGhost.transform.position, ghosts[i].transform.position);
+            float distance = Vector3.Distance(currentGhost.transform.position, _shadows[i].transform.position);
             if (distance < closestDistance)
             {
                 closestDistance = distance;
@@ -105,63 +142,48 @@ public class ShadowPlayerController : MonoBehaviour
             }
         }
 
-        if (closestIndex != activeGhostIndex)
+        if (closestIndex != _activeShadowIndex)
         {
-            activeGhostIndex = closestIndex;
-
-            GameObject shadow = ghosts[activeGhostIndex];
-            shadow.GetComponent<ShadowController>().enabled = true;
-            shadow.GetComponent<PlayerInput>().enabled = true;
-            shadow.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Dynamic;
-
-            Debug.Log($"Switched to ghost #{activeGhostIndex + 1}");
+            _activeShadowIndex = closestIndex;
+            Debug.Log($"Switched to ghost #{_activeShadowIndex + 1}");
         }
         else
         {
-            currentGhost.GetComponent<ShadowController>().enabled = true;
-            currentGhost.GetComponent<PlayerInput>().enabled = true;
-            currentGhost.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Dynamic;
-
             Debug.Log("No ghost in range to switch to");
         }
 
+        SetGhostState(_shadows[_activeShadowIndex], true);
         SetGhostColors();
 
         yield return new WaitForSeconds(0.3f);
-        canSwitch = true;
+        _canSwitch = true;
     }
 
-    private void SetGhostColors()
+    #endregion
+
+    #region Round Reset
+
+    private void HandleRoundEnd(object sender, System.EventArgs e)
     {
-        for (int i = 0; i < ghosts.Count; i++)
+        StopAllCoroutines();
+
+        foreach (var ghost in _shadows)
         {
-            SpriteRenderer sr = ghosts[i].GetComponent<SpriteRenderer>();
-            if (sr != null)
-            {
-                sr.color = (i == activeGhostIndex) ? activeColor : inactiveColor;
-            }
+            if (ghost != null)
+                Destroy(ghost);
         }
+
+        _shadows.Clear();
+        _activeShadowIndex = 0;
+
+        StartCoroutine(RespawnAfterDelay(0.25f));
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    private IEnumerator RespawnAfterDelay(float delay)
     {
-        if (collision.CompareTag("PlayerLight"))
-        {
-            // NOTE: Only end the round
-            // Controller and score swapping is handled in GameManager.OnRoundEnd
-            GameManager.Instance.Timer.EndRound();
-        }
+        yield return new WaitForSeconds(delay);
+        StartCoroutine(SpawnShadows());
     }
 
-    private void OnDestroy()
-    {
-        if (_playerInput != null)
-        {
-            _playerInput.actions["Move"].performed -= OnMove;
-            _playerInput.actions["Move"].canceled -= OnMove;
-            _playerInput.actions["GhostSwitch"].performed -= OnSwitch;
-        }
-    }
-
-
+    #endregion
 }
