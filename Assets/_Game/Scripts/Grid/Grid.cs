@@ -60,6 +60,7 @@ public class Grid : MonoBehaviour
     private void OnRoundEnd(object sender, EventArgs e)
     {
         ResetMapState();
+        GameManager.Instance.PlayerManager.SwapPlayerGamepads(PlayerManager.PlayerType.Light, PlayerManager.PlayerType.Shadow);
     }
 
     private void Update()

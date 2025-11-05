@@ -28,13 +28,13 @@ public class ShadowPlayerController : MonoBehaviour
     public Movement Movement => _movement;
 
     [Tooltip("Movement speed in units per second")]
-    [SerializeField] protected float _speed = 5f;
+    [SerializeField] protected float _speed = 10.5f;
     [Tooltip("How close to .5 before applying queued dir")]
     [SerializeField] private float _centerThreshold = 0.15f;
     [Tooltip("How fast to snap to center when switching axis (multiplier of normal speed)")]
     [SerializeField] private float _snapSpeedMultiplier = 1.5f;
     [Tooltip("Speed penalty multiplier when on light tiles")]
-    [SerializeField] private float _lightTileSpeedPenalityMultiplier = 0.75f;
+    [SerializeField] private float _lightTileSpeedPenalityMultiplier = 0.5f;
 
     private Grid _grid;
 
