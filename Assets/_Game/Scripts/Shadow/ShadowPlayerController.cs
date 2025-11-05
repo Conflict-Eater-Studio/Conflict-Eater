@@ -19,70 +19,31 @@ public class ShadowPlayerController : MonoBehaviour
 
     [SerializeField] private float maxSwitchDistance = 10f;
 
-    private const string MoveActionName = "Move";
-
-    private Rigidbody2D _rb;
-    private Vector2 _moveInput;
-    private Movement _movement;
     private PlayerInput _playerInput;
-    public Movement Movement => _movement;
-
-    [Tooltip("Movement speed in units per second")]
-    [SerializeField] protected float _speed = 10.5f;
-    [Tooltip("How close to .5 before applying queued dir")]
-    [SerializeField] private float _centerThreshold = 0.15f;
-    [Tooltip("How fast to snap to center when switching axis (multiplier of normal speed)")]
-    [SerializeField] private float _snapSpeedMultiplier = 1.5f;
-    [Tooltip("Speed penalty multiplier when on light tiles")]
-    [SerializeField] private float _lightTileSpeedPenalityMultiplier = 0.5f;
-
-    private Grid _grid;
 
     private void Start()
     {
-        _rb = GetComponentInParent<Rigidbody2D>();
-        _grid = FindFirstObjectByType<Grid>();
-        _movement = new Movement(_rb, transform, _grid, _speed, _centerThreshold, _snapSpeedMultiplier);
-
         _playerInput = GetComponentInParent<PlayerInput>();
         if (_playerInput)
         {
-            InputAction moveAction = _playerInput.actions[MoveActionName];
-            moveAction.performed += OnMove;
-
             _playerInput.actions["GhostSwitch"].performed += OnSwitch;
+
+            _playerInput.actions["Move"].performed += OnMove;
+            _playerInput.actions["Move"].canceled += OnMove;
         }
 
         SetGhostColors();
 
-
-
-        //StartCoroutine(SpawnRemainingGhosts());
+        StartCoroutine(SpawnRemainingGhosts());
     }
 
-    public virtual void OnMove(InputAction.CallbackContext context)
+    private void OnMove(InputAction.CallbackContext context)
     {
-        if (context.performed)
-        {
-            _moveInput = context.ReadValue<Vector2>();
-            _movement.OnMove(_moveInput);
-        }
-    }
+        if (ghosts.Count == 0) return;
 
-    protected virtual void FixedUpdate()
-    {
-        _movement.FixedTick();
-
-        if (GameManager.Instance.Grid.IsLightTile(
-            Grid.WorldToCell(transform.position, Grid.TilemapType.Light)
-        ))
-        {
-            _movement.SpeedMult = _lightTileSpeedPenalityMultiplier;
-        }
-        else
-        {
-            _movement.SpeedMult = 1f;
-        }
+        Vector2 move = context.ReadValue<Vector2>();
+        var activeGhost = ghosts[activeGhostIndex];
+        activeGhost.GetComponent<ShadowController>().Move(move);
     }
 
     public void SetGhostPrefab(GameObject prefab)
@@ -92,19 +53,22 @@ public class ShadowPlayerController : MonoBehaviour
 
     private IEnumerator SpawnRemainingGhosts()
     {
-        for (int i = 1; i < totalGhosts; i++)
+        for (int i = 0; i < 1; i++)
         {
-            yield return new WaitForSeconds(spawnDelay);
-
-            GameObject ghost = Instantiate(ghostPrefab, Vector3.zero, Quaternion.identity);
+            GameObject ghost = Instantiate(ghostPrefab, Vector3.zero, Quaternion.identity, gameObject.transform);
             ghost.name = $"Ghost_{i + 1}";
 
-            ghost.GetComponent<LightPlayerController>().enabled = false;
-            // Destroy(ghost.GetComponent<GameScore>());
+            if(i!=0)
+            {
+                ghost.GetComponent<ShadowController>().enabled = false;
+                ghost.GetComponent<PlayerInput>().enabled = false;
+            }
 
             ghosts.Add(ghost);
 
             SetGhostColors();
+
+            yield return new WaitForSeconds(spawnDelay);
         }
     }
 
@@ -112,7 +76,7 @@ public class ShadowPlayerController : MonoBehaviour
     {
         if (context.performed && canSwitch && ghosts.Count > 0)
         {
-            //StartCoroutine(SwitchGhost());
+            StartCoroutine(SwitchGhost());
         }
     }
 
@@ -121,7 +85,10 @@ public class ShadowPlayerController : MonoBehaviour
         canSwitch = false;
 
         GameObject currentGhost = ghosts[activeGhostIndex];
-        currentGhost.GetComponent<LightPlayerController>().enabled = false;
+
+        currentGhost.GetComponent<ShadowController>().enabled = false;
+        currentGhost.GetComponent<PlayerInput>().enabled = false;
+        currentGhost.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Kinematic;
 
         int closestIndex = activeGhostIndex;
         float closestDistance = maxSwitchDistance;
@@ -141,13 +108,20 @@ public class ShadowPlayerController : MonoBehaviour
         if (closestIndex != activeGhostIndex)
         {
             activeGhostIndex = closestIndex;
-            ghosts[activeGhostIndex].GetComponent<LightPlayerController>().enabled = true;
+
+            GameObject shadow = ghosts[activeGhostIndex];
+            shadow.GetComponent<ShadowController>().enabled = true;
+            shadow.GetComponent<PlayerInput>().enabled = true;
+            shadow.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Dynamic;
 
             Debug.Log($"Switched to ghost #{activeGhostIndex + 1}");
         }
         else
         {
-            ghosts[activeGhostIndex].GetComponent<LightPlayerController>().enabled = true;
+            currentGhost.GetComponent<ShadowController>().enabled = true;
+            currentGhost.GetComponent<PlayerInput>().enabled = true;
+            currentGhost.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Dynamic;
+
             Debug.Log("No ghost in range to switch to");
         }
 
@@ -183,8 +157,9 @@ public class ShadowPlayerController : MonoBehaviour
     {
         if (_playerInput != null)
         {
-            var moveAction = _playerInput.actions[MoveActionName];
-            moveAction.performed -= OnMove;
+            _playerInput.actions["Move"].performed -= OnMove;
+            _playerInput.actions["Move"].canceled -= OnMove;
+            _playerInput.actions["GhostSwitch"].performed -= OnSwitch;
         }
     }
 

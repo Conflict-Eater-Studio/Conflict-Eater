@@ -26,6 +26,8 @@ public class PlayerSpawner : MonoBehaviour
 
     private void OnPlayerJoined(PlayerInput input)
     {
+        if (input.playerIndex > 1) return;
+
         var renderer = input.GetComponent<Renderer>();
 
         string childName = input.playerIndex == 0 ? "LightAnchor" : "ShadowAnchor";
@@ -55,12 +57,12 @@ public class PlayerSpawner : MonoBehaviour
             input.name = "ShadowControllerRoot";
 
             input.transform.position = _grid.GetSpawnPoint(PlayerManager.PlayerType.Shadow);
-            renderer.material.color = Color.darkBlue;
+            Destroy(renderer);
             input.gameObject.tag = "PlayerShadow";
 
             var ghostController = child.gameObject.AddComponent<ShadowPlayerController>();
             child.GetComponent<CircleCollider2D>().isTrigger = true;
-            //ghostController.SetGhostPrefab(ghostPrefab);
+            ghostController.SetGhostPrefab(ghostPrefab);
 
             GameManager.Instance.PlayerManager.AddPlayer(input.gameObject, PlayerManager.PlayerType.Shadow, input);
 

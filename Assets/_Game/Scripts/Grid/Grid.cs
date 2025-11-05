@@ -60,7 +60,6 @@ public class Grid : MonoBehaviour
     private void OnRoundEnd(object sender, EventArgs e)
     {
         ResetMapState();
-        GameManager.Instance.PlayerManager.SwapPlayerGamepads(PlayerManager.PlayerType.Light, PlayerManager.PlayerType.Shadow);
     }
 
     private void Update()
@@ -186,7 +185,7 @@ public class Grid : MonoBehaviour
         }
         if (playerType == PlayerManager.PlayerType.Shadow)
         {
-            player.GetComponentInChildren<ShadowPlayerController>().Movement.Stop();
+            //player.GetComponentInChildren<ShadowPlayerController>().Movement.Stop();
         }
     }
 

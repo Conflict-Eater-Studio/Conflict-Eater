@@ -9126,7 +9126,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerSpawner
   playerInputManager: {fileID: 677362488}
-  ghostPrefab: {fileID: 4482556574938180535, guid: 70c7229264fb3854fbaeef86a06fd05c, type: 3}
+  ghostPrefab: {fileID: 2683791842499567046, guid: b63d17c292a097745bb3b63f862c6809, type: 3}
   playerPosition: {x: -15, y: -7, z: 0}
   ghostPosition: {x: -0.5, y: -0.5, z: 0}
   p1InfoText: {fileID: 1687595320}
