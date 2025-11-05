@@ -9125,13 +9125,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f75be617b780324ca7ac6e03c6a628a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerSpawner
-  playerInputManager: {fileID: 677362488}
-  ghostPrefab: {fileID: 2683791842499567046, guid: b63d17c292a097745bb3b63f862c6809, type: 3}
-  playerPosition: {x: -15, y: -7, z: 0}
-  ghostPosition: {x: -0.5, y: -0.5, z: 0}
-  p1InfoText: {fileID: 1687595320}
-  p2InfoText: {fileID: 299223018}
+  _playerInputManager: {fileID: 677362488}
   _grid: {fileID: 222033378}
+  _ghostPrefab: {fileID: 2683791842499567046, guid: b63d17c292a097745bb3b63f862c6809, type: 3}
+  _playerPosition: {x: 0, y: 0, z: 0}
+  _ghostPosition: {x: 0, y: 0, z: 0}
+  _p1InfoText: {fileID: 1687595320}
+  _p2InfoText: {fileID: 299223018}
 --- !u!224 &1399039356 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4855716966897974970, guid: a87313ca3e627124fae1e004646f0298, type: 3}
