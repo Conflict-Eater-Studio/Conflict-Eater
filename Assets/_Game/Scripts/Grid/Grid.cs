@@ -83,7 +83,7 @@ public class Grid : MonoBehaviour
             case PlayerManager.PlayerType.Light:
                 return _tilemapFloors.cellBounds.min + _tilemapFloors.cellSize / 2f;
             case PlayerManager.PlayerType.Shadow:
-                return new Vector3(-0.5f, -0.5f, 0f);
+                return new Vector3(-1.5f, -1.5f, 0f);
         }
         return Vector3.zero;
     }

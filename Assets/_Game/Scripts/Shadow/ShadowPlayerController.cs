@@ -12,7 +12,7 @@ public class ShadowPlayerController : MonoBehaviour
     [Header("Shadow Settings")]
     [SerializeField] private GameObject _shadowPrefab;
     [SerializeField] private int _shadowCount = 4;
-    [SerializeField] private float _spawnDelay = 1f;
+    [SerializeField] private float _spawnDelay = 2f;
     [SerializeField] private float _maxSwitchDistance = 10f;
 
     [Header("Visual Settings")]
@@ -81,28 +81,20 @@ public class ShadowPlayerController : MonoBehaviour
     {
         for (int i = 0; i < _shadowCount; i++)
         {
-            var ghost = Instantiate(_shadowPrefab, Vector3.zero, Quaternion.identity, transform);
+            var spawnPosition = new Vector3(-0.5f, -0.5f, 0f);
+            var ghost = Instantiate(_shadowPrefab, spawnPosition, Quaternion.identity);
+            ghost.transform.SetParent(transform);
             ghost.name = $"Ghost_{i + 1}";
 
             bool isActive = (i == 0);
-            SetGhostState(ghost, isActive);
+            var controller = ghost.GetComponent<ShadowController>();
+            controller.SetActiveControl(isActive);
 
             _shadows.Add(ghost);
             SetGhostColors();
 
             yield return new WaitForSeconds(_spawnDelay);
         }
-    }
-
-    private void SetGhostState(GameObject ghost, bool isActive)
-    {
-        var controller = ghost.GetComponent<ShadowController>();
-        var input = ghost.GetComponent<PlayerInput>();
-        var rb = ghost.GetComponent<Rigidbody2D>();
-
-        if (controller != null) controller.enabled = isActive;
-        if (input != null) input.enabled = isActive;
-        if (rb != null) rb.bodyType = isActive ? RigidbodyType2D.Dynamic : RigidbodyType2D.Kinematic;
     }
 
     private void SetGhostColors()
@@ -119,13 +111,12 @@ public class ShadowPlayerController : MonoBehaviour
     #endregion
 
     #region Switching Logic
-
     private IEnumerator SwitchGhostCoroutine()
     {
         _canSwitch = false;
 
         var currentGhost = _shadows[_activeShadowIndex];
-        SetGhostState(currentGhost, false);
+        currentGhost.GetComponent<ShadowController>().SetActiveControl(false);
 
         int closestIndex = _activeShadowIndex;
         float closestDistance = _maxSwitchDistance;
@@ -152,7 +143,7 @@ public class ShadowPlayerController : MonoBehaviour
             Debug.Log("No ghost in range to switch to");
         }
 
-        SetGhostState(_shadows[_activeShadowIndex], true);
+        _shadows[_activeShadowIndex].GetComponent<ShadowController>().SetActiveControl(true);
         SetGhostColors();
 
         yield return new WaitForSeconds(0.3f);

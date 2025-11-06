@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 7481903126405274262}
   - component: {fileID: -6833806685901029725}
   - component: {fileID: 6009927817446827661}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: GhostPrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -31,7 +31,7 @@ Transform:
   m_GameObject: {fileID: 2683791842499567046}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -14.04661, y: -7.5971, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -224,6 +224,8 @@ MonoBehaviour:
   _centerThreshold: 0.15
   _snapSpeedMultiplier: 1.5
   _lightTileSpeedPenalityMultiplier: 0.5
+  _enableAIMovement: 1
+  _directionChangeDelay: 0.5
 --- !u!58 &6009927817446827661
 CircleCollider2D:
   m_ObjectHideFlags: 0

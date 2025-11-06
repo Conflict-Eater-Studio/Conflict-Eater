@@ -15,40 +15,105 @@ public class ShadowController : MonoBehaviour
     [SerializeField] private float _snapSpeedMultiplier = 1.5f;
     [Tooltip("Speed penalty multiplier when on light tiles")]
     [SerializeField] private float _lightTileSpeedPenalityMultiplier = 0.5f;
+    [Tooltip("Speed penalty multiplier when the ghost is inactive (AI-controlled)")]
+    [SerializeField] private float _inactiveGhostSpeedMultiplier = 0.7f;
 
     private Rigidbody2D _rb;
-    private Vector2 _moveInput;
     private Movement _movement;
     public Movement Movement => _movement;
     private Grid _grid;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    [Header("AI Settings")]
+    [Tooltip("Enable AI movement when this ghost is inactive")]
+    [SerializeField] private bool _enableAIMovement = true;
+
+    [Tooltip("Delay (in seconds) before AI picks a new random direction after hitting a wall")]
+    [SerializeField] private float _directionChangeDelay = 0.5f;
+
+    private bool _isActive = true;
+    private Vector2 _aiDirection = Vector2.zero;
+    private float _aiChangeTimer = 0.5f;
+    private int _aiMoveCount = 0;
+
+    void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
 
         _grid = FindFirstObjectByType<Grid>();
         _movement = new Movement(_rb, transform, _grid, _speed, _centerThreshold, _snapSpeedMultiplier);
     }
+
     public void Move(Vector2 moveInput)
     {
         _movement.OnMove(moveInput);
     }
 
-    protected virtual void FixedUpdate()
+    public void SetActiveControl(bool isActive)
     {
+        _isActive = isActive;
+
+        if (!_isActive && _enableAIMovement)
+        {
+            PickRandomDirection();
+        }
+    }
+
+    protected void FixedUpdate()
+    {
+        if (!_isActive && _enableAIMovement)
+        {
+            HandleAIMovement();
+        }
+
         _movement.FixedTick();
 
-        if (GameManager.Instance.Grid.IsLightTile(
-            Grid.WorldToCell(transform.position, Grid.TilemapType.Light)
-        ))
+        float speedMult = 1f;
+
+        if (GameManager.Instance.Grid.IsLightTile(Grid.WorldToCell(transform.position, Grid.TilemapType.Light)))
         {
-            _movement.SpeedMult = _lightTileSpeedPenalityMultiplier;
+            speedMult *= _lightTileSpeedPenalityMultiplier;
+        }
+
+        if (!_isActive)
+        {
+            speedMult *= _inactiveGhostSpeedMultiplier;
+        }
+
+        _movement.SpeedMult = speedMult;
+    }
+
+    private void HandleAIMovement()
+    {
+        _aiChangeTimer -= Time.fixedDeltaTime;
+        if (_aiChangeTimer <= 0f)
+        {
+            PickRandomDirection();
+        }
+
+        _movement.OnMove(_aiDirection);
+    }
+
+    private void PickRandomDirection()
+    {
+        _aiMoveCount++;
+
+        if (_aiMoveCount == 1)
+        {
+            _aiDirection = Vector2.up;
+        }
+        else if (_aiMoveCount == 2)
+        {
+            float sign = Random.value > 0.5f ? 1f : -1f;
+            _aiDirection = new Vector2(sign, 0f);
         }
         else
         {
-            _movement.SpeedMult = 1f;
+            int axis = Random.Range(0, 2);
+            float sign = Random.value > 0.5f ? 1f : -1f;
+            _aiDirection = axis == 0 ? new Vector2(sign, 0f) : new Vector2(0f, sign);
         }
+
+        _aiChangeTimer = _directionChangeDelay;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)

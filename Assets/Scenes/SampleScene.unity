@@ -341,11 +341,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 704244929295975110, guid: bf93e0d707747e8409d83fd20f11d0a4, type: 3}
       propertyPath: _matchDurationSeconds
-      value: 20
+      value: 600
       objectReference: {fileID: 0}
     - target: {fileID: 704244929295975110, guid: bf93e0d707747e8409d83fd20f11d0a4, type: 3}
       propertyPath: _roundDurationSeconds
-      value: 5
+      value: 60
       objectReference: {fileID: 0}
     - target: {fileID: 3096004135653304541, guid: bf93e0d707747e8409d83fd20f11d0a4, type: 3}
       propertyPath: _winnerText
