@@ -42,4 +42,24 @@ public class GameScore
             _p2Score++;
         }
     }
+
+    public PlayerType? GetWinnerType()
+    {
+        if (_p1Score > _p2Score)
+            return PlayerType.P1;
+        else if (_p2Score > _p1Score)
+            return PlayerType.P2;
+        else
+            return null;
+    }
+
+    public string GetWinnerText()
+    {
+        if (_p1Score > _p2Score)
+            return "Player 1 wins!";
+        else if (_p2Score > _p1Score)
+            return "Player 2 wins!";
+        else
+            return "It's a draw!";
+    }
 }

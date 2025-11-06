@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 using static GameScore;
 
 public enum GameState
@@ -13,10 +15,12 @@ public class GameManager : Singleton<GameManager>
 {
     [SerializeField] private GameState _gameState = GameState.Running;
     [SerializeField] public Match Timer;
-    [SerializeField] public RoleSwapper RoleSwapper;
 
     [SerializeField] private float _matchDurationInMinutes;
     [SerializeField] private float _roundMaxDurationInMinutes;
+
+    [SerializeField] private GameObject _endGamePanel;
+    [SerializeField] private TextMeshProUGUI _winnerText;
 
     public PlayerManager PlayerManager { get; private set; }
     public Grid Grid { get; private set; }
@@ -37,6 +41,13 @@ public class GameManager : Singleton<GameManager>
         PlayerManager = new PlayerManager();
 
         Timer.OnRoundEnd += OnRoundEnd;
+        Timer.OnMatchEnd += OnMatchEnd;
+    }
+
+    private void OnMatchEnd(object sender, EventArgs e)
+    {
+        _endGamePanel.SetActive(true);
+        _winnerText.SetText(Score.GetWinnerText());
     }
 
     private void OnRoundEnd(object sender, EventArgs e)
