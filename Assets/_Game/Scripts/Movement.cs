@@ -7,6 +7,11 @@ using UnityEngine;
 /// </summary>
 public class Movement
 {
+    private enum SnapAxis
+    {
+        X, Y
+    }
+
     private readonly Rigidbody2D _rb;
     private readonly Transform _transformRef;
     private readonly Grid _grid;
@@ -21,16 +26,24 @@ public class Movement
     private float _centerThreshold;
     private float _snapSpeedMultiplier;
 
+    // Intent / input filtering
+    private float _inputDeadzone = 0.15f;
+    private float _axisSwitchHysteresis = 1.15f;
+    private SnapAxis? _lastDominantAxis = null;
+
     private Vector2 _moveDirection = Vector2.zero;
     private Vector2 _queuedDirection = Vector2.zero;
 
+    // Time [s] before player can change direction on the same axis
+    private float _minDirectionTime = .05f;
+    private float _timeSinceDirectionStart = 0f;
+
     // Snapping state when switching axis
     private bool _isSnapping = false;
-    // 0 = x axis snapping, 1 = y axis snapping
-    private int _snapAxis = 0;
+    private SnapAxis _snapAxis = SnapAxis.X;
     private float _snapTarget = 0f;
 
-    public Movement(Rigidbody2D rb, Transform transformRef, Grid grid, float speed, float centerThreshold = 0.06f, float snapSpeedMultiplier = 1.5f)
+    public Movement(Rigidbody2D rb, Transform transformRef, Grid grid, float speed, float centerThreshold = 0.06f, float snapSpeedMultiplier = 1.5f, float minDirectionTime = .05f)
     {
         _rb = rb;
         _transformRef = transformRef;
@@ -38,11 +51,13 @@ public class Movement
         _speed = speed;
         _centerThreshold = centerThreshold;
         _snapSpeedMultiplier = snapSpeedMultiplier;
+        _minDirectionTime = minDirectionTime;
     }
 
     // Getters
     public Vector2 MoveDirection => _moveDirection;
     public Vector2 QueuedDirection => _queuedDirection;
+    public float MinDirectionTime { get => _minDirectionTime; set => _minDirectionTime = value; }
 
     /// <summary>
     /// Call with raw move input (e.g. from Input System). Uses the same axis-snapping/queuing logic
@@ -50,34 +65,63 @@ public class Movement
     /// </summary>
     public void OnMove(Vector2 moveInput)
     {
-        Vector2 dir = Vector2.zero;
-        if (Mathf.Abs(moveInput.x) >= Mathf.Abs(moveInput.y))
-            dir = new Vector2(Mathf.Sign(moveInput.x), 0f);
+        // Deadzone
+        Vector2 raw = moveInput;
+        if (raw.magnitude < _inputDeadzone)
+            raw = Vector2.zero;
+
+        float absX = Mathf.Abs(raw.x);
+        float absY = Mathf.Abs(raw.y);
+
+        // Determine dominant axis with hysteresis to capture player intent
+        SnapAxis dominant;
+        if (absX > absY * _axisSwitchHysteresis)
+            dominant = SnapAxis.X;
+        else if (absY > absX * _axisSwitchHysteresis)
+            dominant = SnapAxis.Y;
+        else if (_lastDominantAxis.HasValue)
+            dominant = _lastDominantAxis.Value; // keep previous intent when ambiguous
         else
-            dir = new Vector2(0f, Mathf.Sign(moveInput.y));
+            dominant = (absX >= absY) ? SnapAxis.X : SnapAxis.Y;
 
-        Vector3Int nextCell = new Vector3Int(
-            Mathf.FloorToInt(_transformRef.position.x + dir.x),
-            Mathf.FloorToInt(_transformRef.position.y + dir.y),
-            0
-        );
+        _lastDominantAxis = dominant;
 
-        if (_grid.IsWalkable(nextCell))
+        Vector2 dir = Vector2.zero;
+        if (dominant == SnapAxis.X && absX > 0f)
+            dir = new Vector2(Mathf.Sign(raw.x), 0f);
+        else if (dominant == SnapAxis.Y && absY > 0f)
+            dir = new Vector2(0f, Mathf.Sign(raw.y));
+
+        // Input below deadzone => no new request
+        if (raw == Vector2.zero)
+        {
+            return;
+        }
+
+        Vector3Int nextCell = Grid.WorldToCell(_rb.position + dir);
+        bool canMoveNow = _grid.IsWalkable(nextCell);
+
+        if (canMoveNow)
         {
             if (_moveDirection == Vector2.zero)
             {
                 _moveDirection = dir;
                 _queuedDirection = Vector2.zero;
+
+                _timeSinceDirectionStart = 0f;
             }
             else if ((_moveDirection.x != 0 && dir.x != 0) || (_moveDirection.y != 0 && dir.y != 0))
             {
-                _moveDirection = dir;
-                _queuedDirection = Vector2.zero;
+                _queuedDirection = dir;
             }
             else
             {
                 _queuedDirection = dir;
             }
+        }
+        else
+        {
+            _queuedDirection = dir;
         }
     }
 
@@ -89,6 +133,17 @@ public class Movement
         Vector2 currentPos = _rb.position;
 
         Vector2 baseMovement = _moveDirection * _speed * _speedMult * Time.fixedDeltaTime;
+
+        bool wallAhead = false;
+        if (_moveDirection != Vector2.zero)
+        {
+            Vector3Int curCell = Grid.WorldToCell(_rb.position);
+            Vector3Int neighbor = curCell + new Vector3Int((int)_moveDirection.x, (int)_moveDirection.y, 0);
+            if (!_grid.IsWalkable(neighbor))
+            {
+                wallAhead = true;
+            }
+        }
 
         if (_queuedDirection != Vector2.zero && _moveDirection != Vector2.zero)
         {
@@ -106,32 +161,35 @@ public class Movement
 
             if (centered)
             {
-                Vector3Int nextCell = new Vector3Int(
-                    Mathf.FloorToInt(_transformRef.position.x + _queuedDirection.x),
-                    Mathf.FloorToInt(_transformRef.position.y + _queuedDirection.y),
-                    0
-                );
+                Vector3Int nextCell = Grid.WorldToCell(_rb.position + _queuedDirection);
 
                 if (_grid.IsWalkable(nextCell))
                 {
-                    if (Mathf.Abs(_queuedDirection.x) > 0f)
-                    {
-                        _snapAxis = 1; // snap y
-                        _snapTarget = Mathf.Floor(currentPos.y) + 0.5f;
-                    }
-                    else
-                    {
-                        _snapAxis = 0; // snap x
-                        _snapTarget = Mathf.Floor(currentPos.x) + 0.5f;
-                    }
+                    bool minTimeOk = _timeSinceDirectionStart >= _minDirectionTime;
+                    bool sameAxis = (Mathf.Abs(_moveDirection.x) > 0f && Mathf.Abs(_queuedDirection.x) > 0f) || (Mathf.Abs(_moveDirection.y) > 0f && Mathf.Abs(_queuedDirection.y) > 0f);
 
-                    _isSnapping = true;
-                    _moveDirection = _queuedDirection;
-                    _queuedDirection = Vector2.zero;
-                }
-                else
-                {
-                    _queuedDirection = Vector2.zero;
+                    if ((!sameAxis) || minTimeOk || wallAhead)
+                    {
+                        if (Mathf.Abs(_queuedDirection.x) > 0f)
+                        {
+                            _snapAxis = SnapAxis.Y;
+                            _snapTarget = Mathf.Floor(currentPos.y) + 0.5f;
+                        }
+                        else
+                        {
+                            _snapAxis = SnapAxis.X;
+                            _snapTarget = Mathf.Floor(currentPos.x) + 0.5f;
+                        }
+
+                        _isSnapping = true;
+
+                        var prevAxis = (Mathf.Abs(_moveDirection.x) > 0f) ? SnapAxis.X : SnapAxis.Y;
+                        _moveDirection = _queuedDirection;
+
+                        _timeSinceDirectionStart = 0f;
+
+                        _queuedDirection = Vector2.zero;
+                    }
                 }
             }
         }
@@ -141,24 +199,25 @@ public class Movement
         if (_isSnapping)
         {
             float snapSpeed = _speed * _snapSpeedMultiplier * Time.fixedDeltaTime;
-            if (_snapAxis == 0)
+            if (_snapAxis == SnapAxis.X)
             {
-                // snap x coordinate toward target
                 nextPos.x = Mathf.MoveTowards(currentPos.x, _snapTarget, snapSpeed);
             }
             else
             {
-                // snap y coordinate toward target
                 nextPos.y = Mathf.MoveTowards(currentPos.y, _snapTarget, snapSpeed);
             }
 
-            if (Mathf.Abs((_snapAxis == 0 ? nextPos.x : nextPos.y) - _snapTarget) <= 0.001f)
+            if (Mathf.Abs((_snapAxis == SnapAxis.X ? nextPos.x : nextPos.y) - _snapTarget) <= 0.001f)
             {
                 _isSnapping = false;
             }
         }
 
         _rb.MovePosition(nextPos);
+
+        if (_moveDirection != Vector2.zero)
+            _timeSinceDirectionStart += Time.fixedDeltaTime;
     }
 
     public void SetSpeed(float newSpeed) => _speed = newSpeed;
