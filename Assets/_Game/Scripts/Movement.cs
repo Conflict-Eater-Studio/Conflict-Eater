@@ -1,9 +1,9 @@
+using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
-/// Reusable movement helper that encapsulates the movement/snapping/queue logic.
-/// This is a plain class (not a MonoBehaviour). Instantiate it from controllers and call
-/// OnMove(...) for input and FixedTick() from FixedUpdate.
+/// Movement processing with hysteresis and dual-thresholds.
 /// </summary>
 public class Movement
 {
@@ -26,24 +26,23 @@ public class Movement
     private float _centerThreshold;
     private float _snapSpeedMultiplier;
 
-    // Intent / input filtering
-    private float _inputDeadzone = 0.15f;
-    private float _axisSwitchHysteresis = 1.15f;
-    private SnapAxis? _lastDominantAxis = null;
-
     private Vector2 _moveDirection = Vector2.zero;
+    private bool isDirectionLocked = false;
+
+    // Minimum stick magnitude to initially activate or switch direction
+    private float activationThreshold = 0.65f;
+    // Stick must drop below this to consider it 'released' (but keeps moving)
+    private float deactivationThreshold = 0.2f;
+    // Higher threshold required to switch to a different direction
+    private float switchDirectionThreshold = 0.8f;
+
     private Vector2 _queuedDirection = Vector2.zero;
 
-    // Time [s] before player can change direction on the same axis
-    private float _minDirectionTime = .05f;
-    private float _timeSinceDirectionStart = 0f;
-
-    // Snapping state when switching axis
     private bool _isSnapping = false;
     private SnapAxis _snapAxis = SnapAxis.X;
     private float _snapTarget = 0f;
 
-    public Movement(Rigidbody2D rb, Transform transformRef, Grid grid, float speed, float centerThreshold = 0.06f, float snapSpeedMultiplier = 1.5f, float minDirectionTime = .05f)
+    public Movement(Rigidbody2D rb, Transform transformRef, Grid grid, float speed, float centerThreshold = 0.06f, float snapSpeedMultiplier = 1.5f)
     {
         _rb = rb;
         _transformRef = transformRef;
@@ -51,77 +50,59 @@ public class Movement
         _speed = speed;
         _centerThreshold = centerThreshold;
         _snapSpeedMultiplier = snapSpeedMultiplier;
-        _minDirectionTime = minDirectionTime;
     }
 
     // Getters
     public Vector2 MoveDirection => _moveDirection;
     public Vector2 QueuedDirection => _queuedDirection;
-    public float MinDirectionTime { get => _minDirectionTime; set => _minDirectionTime = value; }
 
     /// <summary>
-    /// Call with raw move input (e.g. from Input System). Uses the same axis-snapping/queuing logic
-    /// that was previously in PlayerController.
+    /// Movement processing with hysteresis and dual-thresholds.
     /// </summary>
-    public void OnMove(Vector2 moveInput)
+    public void OnMove(Vector2 stick)
     {
-        // Deadzone
-        Vector2 raw = moveInput;
-        if (raw.magnitude < _inputDeadzone)
-            raw = Vector2.zero;
+        float absX = Mathf.Abs(stick.x);
+        float absY = Mathf.Abs(stick.y);
+        float maxAxis = Mathf.Max(absX, absY);
 
-        float absX = Mathf.Abs(raw.x);
-        float absY = Mathf.Abs(raw.y);
-
-        // Determine dominant axis with hysteresis to capture player intent
-        SnapAxis dominant;
-        if (absX > absY * _axisSwitchHysteresis)
-            dominant = SnapAxis.X;
-        else if (absY > absX * _axisSwitchHysteresis)
-            dominant = SnapAxis.Y;
-        else if (_lastDominantAxis.HasValue)
-            dominant = _lastDominantAxis.Value; // keep previous intent when ambiguous
-        else
-            dominant = (absX >= absY) ? SnapAxis.X : SnapAxis.Y;
-
-        _lastDominantAxis = dominant;
-
-        Vector2 dir = Vector2.zero;
-        if (dominant == SnapAxis.X && absX > 0f)
-            dir = new Vector2(Mathf.Sign(raw.x), 0f);
-        else if (dominant == SnapAxis.Y && absY > 0f)
-            dir = new Vector2(0f, Mathf.Sign(raw.y));
-
-        // Input below deadzone => no new request
-        if (raw == Vector2.zero)
+        if (isDirectionLocked && maxAxis < deactivationThreshold)
         {
+            isDirectionLocked = false;
+            _queuedDirection = Vector2.zero;
             return;
         }
 
-        Vector3Int nextCell = Grid.WorldToCell(_rb.position + dir);
-        bool canMoveNow = _grid.IsWalkable(nextCell);
-
-        if (canMoveNow)
+        if (maxAxis < activationThreshold)
         {
-            if (_moveDirection == Vector2.zero)
-            {
-                _moveDirection = dir;
-                _queuedDirection = Vector2.zero;
+            _queuedDirection = Vector2.zero;
+            return;
+        }
 
-                _timeSinceDirectionStart = 0f;
-            }
-            else if ((_moveDirection.x != 0 && dir.x != 0) || (_moveDirection.y != 0 && dir.y != 0))
-            {
-                _queuedDirection = dir;
-            }
-            else
-            {
-                _queuedDirection = dir;
-            }
+        Vector2 newDirection;
+
+        if (absX > absY)
+        {
+            newDirection = new Vector2(stick.x > 0 ? 1 : -1, 0);
         }
         else
         {
-            _queuedDirection = dir;
+            newDirection = new Vector2(0, stick.y > 0 ? 1 : -1);
+        }
+
+        if (!isDirectionLocked)
+        {
+            _queuedDirection = newDirection;
+            isDirectionLocked = true;
+        }
+        else
+        {
+            if (newDirection != _moveDirection)
+            {
+                if (maxAxis >= switchDirectionThreshold)
+                {
+                    _queuedDirection = newDirection;
+                }
+            }
         }
     }
 
@@ -131,13 +112,59 @@ public class Movement
     public void FixedTick()
     {
         Vector2 currentPos = _rb.position;
-
         Vector2 baseMovement = _moveDirection * _speed * _speedMult * Time.fixedDeltaTime;
+        Vector3Int curCell = default;
+
+        Vector3Int queuedNeighbor = Vector3Int.zero;
+        if (_queuedDirection != Vector2.zero)
+        {
+            curCell = Grid.WorldToCell(currentPos);
+            queuedNeighbor = curCell + new Vector3Int((int)_queuedDirection.x, (int)_queuedDirection.y, 0);
+        }
+
+        // Helper
+        bool WillCrossMiddleInTwoTicks()
+        {
+            if (_moveDirection == Vector2.zero) return false;
+
+            if (Mathf.Abs(_moveDirection.x) > 0f)
+            {
+                float frac = currentPos.x - Mathf.Floor(currentPos.x);
+                float projectedPos = currentPos.x + _moveDirection.x * _speed * _speedMult * Time.fixedDeltaTime * 2f;
+                float projectedFrac = projectedPos - Mathf.Floor(projectedPos);
+
+                if ((_moveDirection.x > 0f && frac < 0.5f && projectedFrac >= 0.5f)
+                    || (_moveDirection.x < 0f && frac > 0.5f && projectedFrac <= 0.5f))
+                    return true;
+            }
+            else if (Mathf.Abs(_moveDirection.y) > 0f)
+            {
+                float frac = currentPos.y - Mathf.Floor(currentPos.y);
+                float projectedPos = currentPos.y + _moveDirection.y * _speed * _speedMult * Time.fixedDeltaTime * 2f;
+                float projectedFrac = projectedPos - Mathf.Floor(projectedPos);
+
+                if ((_moveDirection.y > 0f && frac < 0.5f && projectedFrac >= 0.5f)
+                    || (_moveDirection.y < 0f && frac > 0.5f && projectedFrac <= 0.5f))
+                    return true;
+            }
+
+            return false;
+        }
+
+        bool canPreSwitch = _moveDirection != _queuedDirection
+                            && _queuedDirection != Vector2.zero
+                            && _grid.IsWalkable(queuedNeighbor)
+                            && (_moveDirection == Vector2.zero || WillCrossMiddleInTwoTicks());
+
+        if (canPreSwitch)
+        {
+            _moveDirection = _queuedDirection;
+        }
 
         bool wallAhead = false;
         if (_moveDirection != Vector2.zero)
         {
-            Vector3Int curCell = Grid.WorldToCell(_rb.position);
+            curCell = Grid.WorldToCell(_rb.position);
             Vector3Int neighbor = curCell + new Vector3Int((int)_moveDirection.x, (int)_moveDirection.y, 0);
             if (!_grid.IsWalkable(neighbor))
             {
@@ -165,10 +192,9 @@ public class Movement
 
                 if (_grid.IsWalkable(nextCell))
                 {
-                    bool minTimeOk = _timeSinceDirectionStart >= _minDirectionTime;
                     bool sameAxis = (Mathf.Abs(_moveDirection.x) > 0f && Mathf.Abs(_queuedDirection.x) > 0f) || (Mathf.Abs(_moveDirection.y) > 0f && Mathf.Abs(_queuedDirection.y) > 0f);
 
-                    if ((!sameAxis) || minTimeOk || wallAhead)
+                    if ((!sameAxis) || wallAhead)
                     {
                         if (Mathf.Abs(_queuedDirection.x) > 0f)
                         {
@@ -182,12 +208,7 @@ public class Movement
                         }
 
                         _isSnapping = true;
-
-                        var prevAxis = (Mathf.Abs(_moveDirection.x) > 0f) ? SnapAxis.X : SnapAxis.Y;
                         _moveDirection = _queuedDirection;
-
-                        _timeSinceDirectionStart = 0f;
-
                         _queuedDirection = Vector2.zero;
                     }
                 }
@@ -215,12 +236,10 @@ public class Movement
         }
 
         _rb.MovePosition(nextPos);
-
-        if (_moveDirection != Vector2.zero)
-            _timeSinceDirectionStart += Time.fixedDeltaTime;
     }
 
     public void SetSpeed(float newSpeed) => _speed = newSpeed;
+
     public void Stop()
     {
         _moveDirection = Vector2.zero;
