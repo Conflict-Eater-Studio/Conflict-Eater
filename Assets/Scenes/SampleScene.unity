@@ -185,17 +185,26 @@ MonoBehaviour:
   _lightTile: {fileID: 11400000, guid: 304d9e46b3adef4489ee2705217184e0, type: 2}
   _lightExclusion:
   - {x: -2, y: 0}
-  - {x: -1, y: 0}
-  - {x: -1, y: 1}
-  - {x: 0, y: 0}
-  - {x: 0, y: -1}
-  - {x: 0, y: -2}
-  - {x: -1, y: -2}
-  - {x: -1, y: -1}
   - {x: -2, y: -1}
   - {x: -2, y: -2}
-  _lightSpawnCell: {x: 15, y: -1, z: 0}
-  _shadowSpawnCell: {x: -1, y: -1, z: 0}
+  - {x: -1, y: 0}
+  - {x: -1, y: -1}
+  - {x: -1, y: -2}
+  - {x: 0, y: -2}
+  - {x: 0, y: -1}
+  - {x: 0, y: 0}
+  - {x: -1, y: 1}
+  _lightSpawnCells:
+  - {x: -17, y: 8}
+  - {x: 15, y: 8}
+  - {x: 15, y: -10}
+  - {x: -17, y: -10}
+  _shadowSpawnCell: {x: -1, y: -1}
+  _powerUpSpawnCells:
+  - {x: -1, y: -10}
+  - {x: -1, y: 8}
+  - {x: -15, y: -1}
+  - {x: 13, y: -1}
 --- !u!1 &299223016
 GameObject:
   m_ObjectHideFlags: 0
