@@ -6,6 +6,15 @@ using UnityEngine.Tilemaps;
 
 public class Grid : MonoBehaviour
 {
+    public enum SpawnPointType
+    {
+        Light,
+        Shadow,
+        PowerUp,
+        PowerUpRandom,
+        LightRandom,
+    }
+
     public enum TilemapType
     {
         Walls,
@@ -35,6 +44,18 @@ public class Grid : MonoBehaviour
     [Tooltip("List of floor tile coordinates that are excluded from lighting")]
     [SerializeField]
     private List<Vector2Int> _lightExclusion = new List<Vector2Int>();
+
+    [Tooltip("Spawn points for Light player (cell coordinates)")]
+    [SerializeField]
+    private List<Vector2Int> _lightSpawnCells = new List<Vector2Int>();
+
+    [Tooltip("Spawn point for Shadow player (cell coordinates)")]
+    [SerializeField]
+    private Vector2Int _shadowSpawnCell = new Vector2Int(-2, -2);
+
+    [Tooltip("Spawn points for Power-Up (cell coordinates)")]
+    [SerializeField]
+    private List<Vector2Int> _powerUpSpawnCells = new List<Vector2Int>();
 
     private int _maxLitTiles = 0;
     private int _litTileCount = 0;
@@ -81,16 +102,108 @@ public class Grid : MonoBehaviour
     /// </summary>
     /// <param name="type">Player type</param>
     /// <returns>The spawn point for the given player type.</returns>
+    [Obsolete("Use GetSpawnPoint(Grid.SpawnPointType type) instead.")]
     public Vector3 GetSpawnPoint(PlayerManager.PlayerType type)
     {
         switch (type)
         {
             case PlayerManager.PlayerType.Light:
-                return _tilemapFloors.cellBounds.min + _tilemapFloors.cellSize / 2f;
+                if (_lightSpawnCells.Count > 0)
+                {
+                    Vector2Int spawnCell = _lightSpawnCells[0];
+                    return _tilemapFloors.GetCellCenterWorld(
+                        new Vector3Int(spawnCell.x, spawnCell.y, 0)
+                    );
+                }
+                break;
             case PlayerManager.PlayerType.Shadow:
-                return new Vector3(-1.5f, -1.5f, 0f);
+                return _tilemapFloors.GetCellCenterWorld(
+                    new Vector3Int(_shadowSpawnCell.x, _shadowSpawnCell.y, 0)
+                );
         }
         return Vector3.zero;
+    }
+
+    /// <summary>
+    /// Returns the spawn point for the given spawn point type.
+    /// </summary>
+    /// <param name="type">Spawn point type</param>
+    /// <returns>The spawn point for the given spawn point type.</returns>
+    public Vector2 GetSpawnPoint(SpawnPointType type)
+    {
+        switch (type)
+        {
+            case SpawnPointType.Light:
+                if (_lightSpawnCells.Count > 0)
+                {
+                    Vector2Int spawnCell = _lightSpawnCells[0];
+                    return _tilemapFloors.GetCellCenterWorld(
+                        new Vector3Int(spawnCell.x, spawnCell.y, 0)
+                    );
+                }
+                break;
+            case SpawnPointType.Shadow:
+                return _tilemapFloors.GetCellCenterWorld(
+                    new Vector3Int(_shadowSpawnCell.x, _shadowSpawnCell.y, 0)
+                );
+            case SpawnPointType.PowerUp:
+                if (_powerUpSpawnCells.Count > 0)
+                {
+                    Vector2Int spawnCell = _powerUpSpawnCells[0];
+                    return _tilemapFloors.GetCellCenterWorld(
+                        new Vector3Int(spawnCell.x, spawnCell.y, 0)
+                    );
+                }
+                break;
+            case SpawnPointType.PowerUpRandom:
+                if (_powerUpSpawnCells.Count > 0)
+                {
+                    int randomIndex = UnityEngine.Random.Range(0, _powerUpSpawnCells.Count);
+                    Vector2Int spawnCell = _powerUpSpawnCells[randomIndex];
+                    return _tilemapFloors.GetCellCenterWorld(
+                        new Vector3Int(spawnCell.x, spawnCell.y, 0)
+                    );
+                }
+                break;
+            case SpawnPointType.LightRandom:
+                if (_lightSpawnCells.Count > 0)
+                {
+                    int randomIndex = UnityEngine.Random.Range(0, _lightSpawnCells.Count);
+                    Vector2Int spawnCell = _lightSpawnCells[randomIndex];
+                    return _tilemapFloors.GetCellCenterWorld(
+                        new Vector3Int(spawnCell.x, spawnCell.y, 0)
+                    );
+                }
+                break;
+        }
+        return Vector3.zero;
+    }
+
+    /// <summary>
+    /// Sets the spawn point for the given player type.
+    /// </summary>
+    /// <param name="type">Player type</param>
+    /// <param name="cellPosition">Cell position for spawn point</param>
+    [Obsolete("Spawn points are now arrays. Use the editor to manage spawn points.")]
+    public void SetSpawnPoint(PlayerManager.PlayerType type, Vector3Int cellPosition)
+    {
+        Vector2Int coord = new Vector2Int(cellPosition.x, cellPosition.y);
+        switch (type)
+        {
+            case PlayerManager.PlayerType.Light:
+                if (_lightSpawnCells.Count == 0)
+                {
+                    _lightSpawnCells.Add(coord);
+                }
+                else
+                {
+                    _lightSpawnCells[0] = coord;
+                }
+                break;
+            case PlayerManager.PlayerType.Shadow:
+                _shadowSpawnCell = coord;
+                break;
+        }
     }
 
     /// <summary>
@@ -169,8 +282,8 @@ public class Grid : MonoBehaviour
     public void ResetMapState()
     {
         ClearLightTiles();
-        ResetPlayer(PlayerManager.PlayerType.Light);
-        ResetPlayer(PlayerManager.PlayerType.Shadow);
+        ResetPlayer(PlayerManager.PlayerType.Light, SpawnPointType.LightRandom);
+        ResetPlayer(PlayerManager.PlayerType.Shadow, SpawnPointType.Shadow);
     }
 
     // NOTE: Move to player manager?
@@ -179,18 +292,15 @@ public class Grid : MonoBehaviour
     /// Stops player movement.
     /// </summary>
     /// <param name="playerType">Player type to reset</param>
-    private void ResetPlayer(PlayerManager.PlayerType playerType)
+    /// <param name="spawnPointType">Spawn point type to reset</param>
+    private void ResetPlayer(PlayerManager.PlayerType playerType, SpawnPointType spawnPointType)
     {
         var player = GameManager.Instance.PlayerManager.GetPlayerOfType(playerType);
-        player.transform.position = GetSpawnPoint(playerType);
+        player.transform.position = GetSpawnPoint(spawnPointType);
 
         if (playerType == PlayerManager.PlayerType.Light)
         {
             player.GetComponentInChildren<LightPlayerController>().Movement.Stop();
-        }
-        if (playerType == PlayerManager.PlayerType.Shadow)
-        {
-            //player.GetComponentInChildren<ShadowPlayerController>().Movement.Stop();
         }
     }
 

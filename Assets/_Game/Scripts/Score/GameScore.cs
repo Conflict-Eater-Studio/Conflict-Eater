@@ -6,7 +6,7 @@ public class GameScore
     public enum PlayerType
     {
         P1,
-        P2
+        P2,
     }
 
     private PlayerType _activePlayer = PlayerType.P1;
