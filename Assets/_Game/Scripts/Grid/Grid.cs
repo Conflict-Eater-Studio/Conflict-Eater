@@ -10,24 +10,31 @@ public class Grid : MonoBehaviour
     {
         Walls,
         Floors,
-        Light
+        Light,
     }
 
     public event EventHandler OnNewLightTile;
     public event EventHandler OnAllLightTiles;
 
     [Tooltip("Tilemap for walls")]
-    [SerializeField] private Tilemap _tilemapWalls;
+    [SerializeField]
+    private Tilemap _tilemapWalls;
+
     [Tooltip("Tilemap for floors")]
-    [SerializeField] private Tilemap _tilemapFloors;
+    [SerializeField]
+    private Tilemap _tilemapFloors;
+
     [Tooltip("Tilemap for lighted floors")]
-    [SerializeField] private Tilemap _tilemapLight;
+    [SerializeField]
+    private Tilemap _tilemapLight;
 
     [Tooltip("Tile used to indicate lighted floor")]
-    [SerializeField] private TileBase _lightTile;
+    [SerializeField]
+    private TileBase _lightTile;
 
     [Tooltip("List of floor tile coordinates that are excluded from lighting")]
-    [SerializeField] private List<Vector2Int> _lightExclusion = new List<Vector2Int>();
+    [SerializeField]
+    private List<Vector2Int> _lightExclusion = new List<Vector2Int>();
 
     private int _maxLitTiles = 0;
     private int _litTileCount = 0;
@@ -62,9 +69,7 @@ public class Grid : MonoBehaviour
         ResetMapState();
     }
 
-    private void Update()
-    {
-    }
+    private void Update() { }
 
     private void OnDestroy()
     {
@@ -195,7 +200,10 @@ public class Grid : MonoBehaviour
     /// <param name="worldPosition">World position</param>
     /// <param name="tilemapType">Tilemap type</param>
     /// <returns>Cell position</returns>
-    public static Vector3Int WorldToCell(Vector3 worldPosition, TilemapType tilemapType = TilemapType.Floors)
+    public static Vector3Int WorldToCell(
+        Vector3 worldPosition,
+        TilemapType tilemapType = TilemapType.Floors
+    )
     {
         Tilemap tilemap = null;
         switch (tilemapType)
@@ -211,5 +219,26 @@ public class Grid : MonoBehaviour
                 break;
         }
         return tilemap.WorldToCell(worldPosition);
+    }
+
+    public static Vector3 GetCellCenterWorld(
+        Vector3Int cellPosition,
+        TilemapType tilemapType = TilemapType.Floors
+    )
+    {
+        Tilemap tilemap = null;
+        switch (tilemapType)
+        {
+            case TilemapType.Walls:
+                tilemap = GameManager.Instance.Grid._tilemapWalls;
+                break;
+            case TilemapType.Floors:
+                tilemap = GameManager.Instance.Grid._tilemapFloors;
+                break;
+            case TilemapType.Light:
+                tilemap = GameManager.Instance.Grid._tilemapLight;
+                break;
+        }
+        return tilemap.GetCellCenterWorld(cellPosition);
     }
 }
