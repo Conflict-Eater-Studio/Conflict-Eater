@@ -98,8 +98,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9388c5593bdbbeb469c97c0345c1fa74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  _speed: 10
-  _centerThreshold: 0.5
+  _speed: 20
+  _centerThreshold: 0.06
   _snapSpeedMultiplier: 1.5
 --- !u!212 &3764261226422265446
 SpriteRenderer:

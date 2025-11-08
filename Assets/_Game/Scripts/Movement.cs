@@ -1,6 +1,3 @@
-using System;
-using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
@@ -8,37 +5,40 @@ using UnityEngine;
 /// </summary>
 public class Movement
 {
+    #region Constants and enums
+    private const float CELL_CENTER_OFFSET = 0.5f;
+    private const float SNAP_COMPLETE_TOLERANCE = 0.000001f;
+    private const float WALL_STOP_TOLERANCE = 0.001f;
+
     private enum SnapAxis
     {
         X,
         Y,
     }
+    #endregion
 
+    #region Fields
     private readonly Rigidbody2D _rb;
     private readonly Transform _transformRef;
     private readonly Grid _grid;
 
     private float _speed;
     private float _speedMult = 1f;
-    public float SpeedMult
-    {
-        get => _speedMult;
-        set => _speedMult = value;
-    }
+    public float SpeedMult { get; set; } = 1f;
     private float _centerThreshold;
     private float _snapSpeedMultiplier;
 
     private Vector2 _moveDirection = Vector2.zero;
-    private bool isDirectionLocked = false;
+    private bool _isDirectionLocked = false;
 
     // Minimum stick magnitude to initially activate or switch direction
-    private float activationThreshold = 0.65f;
+    private float _activationThreshold = 0.65f;
 
     // Stick must drop below this to consider it 'released' (but keeps moving)
-    private float deactivationThreshold = 0.2f;
+    private float _deactivationThreshold = 0.2f;
 
     // Higher threshold required to switch to a different direction
-    private float switchDirectionThreshold = 0.8f;
+    private float _switchDirectionThreshold = 0.8f;
 
     // Stores the current controller stick input state
     private Vector2 _currentStickInput = Vector2.zero;
@@ -48,7 +48,9 @@ public class Movement
     private bool _isSnapping = false;
     private SnapAxis _snapAxis = SnapAxis.X;
     private float _snapTarget = 0f;
+    #endregion
 
+    #region Construction & Properties
     public Movement(
         Rigidbody2D rb,
         Transform transformRef,
@@ -66,10 +68,11 @@ public class Movement
         _snapSpeedMultiplier = snapSpeedMultiplier;
     }
 
-    // Getters
     public Vector2 MoveDirection => _moveDirection;
     public Vector2 QueuedDirection => _queuedDirection;
+    #endregion
 
+    #region Public API
     /// <summary>
     /// Movement processing with hysteresis and dual-thresholds.
     /// </summary>
@@ -82,40 +85,31 @@ public class Movement
         float absY = Mathf.Abs(stick.y);
         float maxAxis = Mathf.Max(absX, absY);
 
-        if (isDirectionLocked && maxAxis < deactivationThreshold)
+        if (_isDirectionLocked && maxAxis < _deactivationThreshold)
         {
-            isDirectionLocked = false;
+            _isDirectionLocked = false;
             _queuedDirection = Vector2.zero;
             return;
         }
 
-        if (maxAxis < activationThreshold)
+        if (maxAxis < _activationThreshold)
         {
             _queuedDirection = Vector2.zero;
             return;
         }
 
-        Vector2 newDirection;
+        Vector2 newDirection = CalculateDirectionFromStick(stick);
 
-        if (absX > absY)
-        {
-            newDirection = new Vector2(stick.x > 0 ? 1 : -1, 0);
-        }
-        else
-        {
-            newDirection = new Vector2(0, stick.y > 0 ? 1 : -1);
-        }
-
-        if (!isDirectionLocked)
+        if (!_isDirectionLocked)
         {
             _queuedDirection = newDirection;
-            isDirectionLocked = true;
+            _isDirectionLocked = true;
         }
         else
         {
             if (newDirection != _moveDirection)
             {
-                if (maxAxis >= switchDirectionThreshold)
+                if (maxAxis >= _switchDirectionThreshold)
                 {
                     _queuedDirection = newDirection;
                 }
@@ -142,7 +136,9 @@ public class Movement
         // Apply movement
         _rb.MovePosition(nextPos);
     }
+    #endregion
 
+    #region Direction queue handling
     /// <summary>
     /// Attempts to switch to queued direction if conditions are met.
     /// If no queued direction but stick is held, re-evaluate the stick input.
@@ -157,61 +153,89 @@ public class Movement
         if (_queuedDirection == Vector2.zero || _queuedDirection == _moveDirection)
             return;
 
-        Vector3Int curCell = Grid.WorldToCell(currentPos);
-        Vector3Int queuedNeighbor =
-            curCell + new Vector3Int((int)_queuedDirection.x, (int)_queuedDirection.y, 0);
-
-        if (!_grid.IsWalkable(queuedNeighbor))
-        {
-            _queuedDirection = Vector2.zero;
-
-            if (_moveDirection == Vector2.zero)
-            {
-                ReEvaluateStickInput();
-            }
-            return;
-        }
-
+        // Allow immediate direction change if not moving or will cross center soon
         if (_moveDirection == Vector2.zero || WillCrossMiddleInTwoTicks(currentPos))
         {
+            // Check if queued direction is walkable from current cell
+            Vector3Int curCell = Grid.WorldToCell(currentPos);
+            Vector3Int queuedNeighbor =
+                curCell + new Vector3Int((int)_queuedDirection.x, (int)_queuedDirection.y, 0);
+
+            if (!_grid.IsWalkable(queuedNeighbor))
+            {
+                _queuedDirection = Vector2.zero;
+
+                // Moved into wall, re-evaluate stick input
+                if (_moveDirection == Vector2.zero)
+                {
+                    ReEvaluateStickInput();
+                }
+                return;
+            }
+
             _moveDirection = _queuedDirection;
             return;
         }
 
+        // Check if we're approaching an intersection where we can turn
         if (IsCenteredOnCurrentAxis(currentPos) || WillCrossCenterThisTick(currentPos))
         {
+            // Check if queued direction will be walkable from the intersection cell
+            Vector3Int intersectionCell = Grid.WorldToCell(currentPos);
+            Vector3Int queuedNeighbor =
+                intersectionCell
+                + new Vector3Int((int)_queuedDirection.x, (int)_queuedDirection.y, 0);
+
+            if (!_grid.IsWalkable(queuedNeighbor))
+            {
+                // Can't turn here, clear the queue but keep moving forward
+                _queuedDirection = Vector2.zero;
+                return;
+            }
+
             InitiateDirectionChange(currentPos);
         }
     }
+    #endregion
 
+    #region Input evaluation & direction calculation
     /// <summary>
     /// Re-evaluates the current stick input to generate a queued direction.
     /// Used when _queuedDirection was cleared but stick is still held.
     /// </summary>
     private void ReEvaluateStickInput()
     {
-        float absX = Mathf.Abs(_currentStickInput.x);
-        float absY = Mathf.Abs(_currentStickInput.y);
-        float maxAxis = Mathf.Max(absX, absY);
+        float maxAxis = Mathf.Max(Mathf.Abs(_currentStickInput.x), Mathf.Abs(_currentStickInput.y));
 
         // Only re-evaluate if stick is above activation threshold
-        if (maxAxis < activationThreshold)
+        if (maxAxis < _activationThreshold)
             return;
 
-        Vector2 newDirection;
+        Vector2 newDirection = CalculateDirectionFromStick(_currentStickInput);
+        _queuedDirection = newDirection;
+        _isDirectionLocked = true;
+    }
+
+    /// <summary>
+    /// Calculates the primary direction from stick input (cardinal directions only).
+    /// </summary>
+    private Vector2 CalculateDirectionFromStick(Vector2 stick)
+    {
+        float absX = Mathf.Abs(stick.x);
+        float absY = Mathf.Abs(stick.y);
 
         if (absX > absY)
         {
-            newDirection = new Vector2(_currentStickInput.x > 0 ? 1 : -1, 0);
+            return new Vector2(stick.x > 0 ? 1 : -1, 0);
         }
         else
         {
-            newDirection = new Vector2(0, _currentStickInput.y > 0 ? 1 : -1);
+            return new Vector2(0, stick.y > 0 ? 1 : -1);
         }
-
-        _queuedDirection = newDirection;
     }
+    #endregion
 
+    #region Collision & movement calculation
     /// <summary>
     /// Checks if moving in current direction will hit a wall.
     /// </summary>
@@ -229,6 +253,7 @@ public class Movement
 
     /// <summary>
     /// Calculates the next position based on current movement and snapping state.
+    /// Prevents forward movement while snapping to avoid corner cutting.
     /// </summary>
     private Vector2 CalculateNextPosition(Vector2 currentPos, bool wallAhead)
     {
@@ -238,12 +263,13 @@ public class Movement
         {
             nextPos = StopAtCellCenter(currentPos);
         }
-        else if (_moveDirection != Vector2.zero)
+        else if (_moveDirection != Vector2.zero && !_isSnapping)
         {
+            // Only move forward when NOT snapping (prevents corner cutting)
             nextPos += _moveDirection * _speed * _speedMult * Time.fixedDeltaTime;
         }
 
-        // ALWAYS enforce axis locking
+        // ALWAYS enforce axis locking (handles snapping movement)
         nextPos = EnforceAxisLocking(nextPos);
 
         return nextPos;
@@ -261,10 +287,10 @@ public class Movement
 
         Vector2 lockedPos = position;
 
-        if (Mathf.Abs(_moveDirection.x) > 0f)
+        if (IsMovingHorizontally())
         {
             // Moving horizontally, lock Y to center
-            float targetY = Mathf.Floor(position.y) + 0.5f;
+            float targetY = Mathf.Floor(position.y) + CELL_CENTER_OFFSET;
 
             if (_isSnapping && _snapAxis == SnapAxis.Y)
             {
@@ -272,7 +298,7 @@ public class Movement
                 float snapSpeed = _speed * _snapSpeedMultiplier * Time.fixedDeltaTime;
                 lockedPos.y = Mathf.MoveTowards(position.y, targetY, snapSpeed);
 
-                if (Mathf.Abs(lockedPos.y - targetY) <= 0.001f)
+                if (Mathf.Abs(lockedPos.y - targetY) <= WALL_STOP_TOLERANCE)
                 {
                     lockedPos.y = targetY;
                     _isSnapping = false;
@@ -284,10 +310,10 @@ public class Movement
                 lockedPos.y = targetY;
             }
         }
-        else if (Mathf.Abs(_moveDirection.y) > 0f)
+        else if (IsMovingVertically())
         {
             // Moving vertically, lock X to center
-            float targetX = Mathf.Floor(position.x) + 0.5f;
+            float targetX = Mathf.Floor(position.x) + CELL_CENTER_OFFSET;
 
             if (_isSnapping && _snapAxis == SnapAxis.X)
             {
@@ -295,7 +321,7 @@ public class Movement
                 float snapSpeed = _speed * _snapSpeedMultiplier * Time.fixedDeltaTime;
                 lockedPos.x = Mathf.MoveTowards(position.x, targetX, snapSpeed);
 
-                if (Mathf.Abs(lockedPos.x - targetX) <= 0.001f)
+                if (Mathf.Abs(lockedPos.x - targetX) <= WALL_STOP_TOLERANCE)
                 {
                     lockedPos.x = targetX;
                     _isSnapping = false;
@@ -324,7 +350,7 @@ public class Movement
         Vector2 nextPos = Vector2.MoveTowards(currentPos, targetCenter, moveAmount);
 
         // If we're at or very close to center, snap exactly and clear move direction
-        if (Vector2.Distance(nextPos, targetCenter) <= 0.001f)
+        if ((nextPos - targetCenter).sqrMagnitude <= SNAP_COMPLETE_TOLERANCE)
         {
             nextPos = targetCenter;
             _moveDirection = Vector2.zero;
@@ -335,6 +361,7 @@ public class Movement
 
     /// <summary>
     /// Initiates a direction change by setting up snapping for the perpendicular axis.
+    /// Clamps position to prevent corner cutting.
     /// </summary>
     private void InitiateDirectionChange(Vector2 currentPos)
     {
@@ -348,17 +375,31 @@ public class Movement
         }
         else
         {
+            // Clamp to current cell center to prevent corner cutting
+            Vector2 clampedPos = currentPos;
+            if (IsMovingHorizontally())
+            {
+                // Was moving horizontally, clamp X to current cell center
+                clampedPos.x = Mathf.Floor(currentPos.x) + CELL_CENTER_OFFSET;
+            }
+            else if (IsMovingVertically())
+            {
+                // Was moving vertically, clamp Y to current cell center
+                clampedPos.y = Mathf.Floor(currentPos.y) + CELL_CENTER_OFFSET;
+            }
+            _rb.position = clampedPos;
+
             if (Mathf.Abs(_queuedDirection.x) > 0f)
             {
                 // New direction is horizontal, snap Y axis
                 _snapAxis = SnapAxis.Y;
-                _snapTarget = Mathf.Floor(currentPos.y) + 0.5f;
+                _snapTarget = Mathf.Floor(clampedPos.y) + CELL_CENTER_OFFSET;
             }
             else
             {
                 // New direction is vertical, snap X axis
                 _snapAxis = SnapAxis.X;
-                _snapTarget = Mathf.Floor(currentPos.x) + 0.5f;
+                _snapTarget = Mathf.Floor(clampedPos.x) + CELL_CENTER_OFFSET;
             }
 
             _isSnapping = true;
@@ -366,23 +407,25 @@ public class Movement
             _queuedDirection = Vector2.zero;
         }
     }
+    #endregion
 
+    #region Centering & crossing checks
     /// <summary>
     /// Checks if the player is centered on the axis perpendicular to current movement.
     /// </summary>
     private bool IsCenteredOnCurrentAxis(Vector2 currentPos)
     {
-        if (Mathf.Abs(_moveDirection.x) > 0f)
+        if (IsMovingHorizontally())
         {
             // Moving horizontally, check Y centering
             float frac = currentPos.y - Mathf.Floor(currentPos.y);
-            return Mathf.Abs(frac - 0.5f) <= _centerThreshold;
+            return Mathf.Abs(frac - CELL_CENTER_OFFSET) <= _centerThreshold;
         }
-        else if (Mathf.Abs(_moveDirection.y) > 0f)
+        else if (IsMovingVertically())
         {
             // Moving vertically, check X centering
             float frac = currentPos.x - Mathf.Floor(currentPos.x);
-            return Mathf.Abs(frac - 0.5f) <= _centerThreshold;
+            return Mathf.Abs(frac - CELL_CENTER_OFFSET) <= _centerThreshold;
         }
 
         return false;
@@ -393,32 +436,47 @@ public class Movement
     /// </summary>
     private bool WillCrossCenterThisTick(Vector2 currentPos)
     {
-        Vector2 baseMovement = _moveDirection * _speed * _speedMult * Time.fixedDeltaTime;
-        Vector2 projectedPos = currentPos + baseMovement;
+        float moveAmount = _speed * _speedMult * Time.fixedDeltaTime;
 
-        if (Mathf.Abs(_moveDirection.x) > 0f)
+        if (IsMovingHorizontally())
         {
-            // Moving horizontally, check Y crossing
-            float frac = currentPos.y - Mathf.Floor(currentPos.y);
-            float projFrac = projectedPos.y - Mathf.Floor(projectedPos.y);
+            // Moving horizontally, check X crossing (center at integer.5)
+            float frac = currentPos.x - Mathf.Floor(currentPos.x);
+            float projFrac = frac + (_moveDirection.x > 0 ? moveAmount : -moveAmount);
 
             // Check if we cross 0.5
             if (
-                (_moveDirection.y >= 0f && frac < 0.5f && projFrac >= 0.5f)
-                || (_moveDirection.y < 0f && frac > 0.5f && projFrac <= 0.5f)
+                (
+                    _moveDirection.x > 0f
+                    && frac < CELL_CENTER_OFFSET
+                    && projFrac >= CELL_CENTER_OFFSET
+                )
+                || (
+                    _moveDirection.x < 0f
+                    && frac > CELL_CENTER_OFFSET
+                    && projFrac <= CELL_CENTER_OFFSET
+                )
             )
                 return true;
         }
-        else if (Mathf.Abs(_moveDirection.y) > 0f)
+        else if (IsMovingVertically())
         {
-            // Moving vertically, check X crossing
-            float frac = currentPos.x - Mathf.Floor(currentPos.x);
-            float projFrac = projectedPos.x - Mathf.Floor(projectedPos.x);
+            // Moving vertically, check Y crossing (center at integer.5)
+            float frac = currentPos.y - Mathf.Floor(currentPos.y);
+            float projFrac = frac + (_moveDirection.y > 0 ? moveAmount : -moveAmount);
 
             // Check if we cross 0.5
             if (
-                (_moveDirection.x >= 0f && frac < 0.5f && projFrac >= 0.5f)
-                || (_moveDirection.x < 0f && frac > 0.5f && projFrac <= 0.5f)
+                (
+                    _moveDirection.y > 0f
+                    && frac < CELL_CENTER_OFFSET
+                    && projFrac >= CELL_CENTER_OFFSET
+                )
+                || (
+                    _moveDirection.y < 0f
+                    && frac > CELL_CENTER_OFFSET
+                    && projFrac <= CELL_CENTER_OFFSET
+                )
             )
                 return true;
         }
@@ -437,34 +495,52 @@ public class Movement
 
         float doubleMovement = _speed * _speedMult * Time.fixedDeltaTime * 2f;
 
-        if (Mathf.Abs(_moveDirection.x) > 0f)
+        if (IsMovingHorizontally())
         {
             float frac = currentPos.x - Mathf.Floor(currentPos.x);
             float projectedPos = currentPos.x + _moveDirection.x * doubleMovement;
             float projectedFrac = projectedPos - Mathf.Floor(projectedPos);
 
             if (
-                (_moveDirection.x > 0f && frac < 0.5f && projectedFrac >= 0.5f)
-                || (_moveDirection.x < 0f && frac > 0.5f && projectedFrac <= 0.5f)
+                (
+                    _moveDirection.x > 0f
+                    && frac < CELL_CENTER_OFFSET
+                    && projectedFrac >= CELL_CENTER_OFFSET
+                )
+                || (
+                    _moveDirection.x < 0f
+                    && frac > CELL_CENTER_OFFSET
+                    && projectedFrac <= CELL_CENTER_OFFSET
+                )
             )
                 return true;
         }
-        else if (Mathf.Abs(_moveDirection.y) > 0f)
+        else if (IsMovingVertically())
         {
             float frac = currentPos.y - Mathf.Floor(currentPos.y);
             float projectedPos = currentPos.y + _moveDirection.y * doubleMovement;
             float projectedFrac = projectedPos - Mathf.Floor(projectedPos);
 
             if (
-                (_moveDirection.y > 0f && frac < 0.5f && projectedFrac >= 0.5f)
-                || (_moveDirection.y < 0f && frac > 0.5f && projectedFrac <= 0.5f)
+                (
+                    _moveDirection.y > 0f
+                    && frac < CELL_CENTER_OFFSET
+                    && projectedFrac >= CELL_CENTER_OFFSET
+                )
+                || (
+                    _moveDirection.y < 0f
+                    && frac > CELL_CENTER_OFFSET
+                    && projectedFrac <= CELL_CENTER_OFFSET
+                )
             )
                 return true;
         }
 
         return false;
     }
+    #endregion
 
+    #region Utilities
     /// <summary>
     /// Checks if two directions are on the same axis.
     /// </summary>
@@ -474,8 +550,27 @@ public class Movement
             || (Mathf.Abs(dir1.y) > 0f && Mathf.Abs(dir2.y) > 0f);
     }
 
+    /// <summary>
+    /// Helper to check if moving horizontally (reduces repeated Mathf.Abs calls).
+    /// </summary>
+    private bool IsMovingHorizontally() => Mathf.Abs(_moveDirection.x) > 0f;
+
+    /// <summary>
+    /// Helper to check if moving vertically (reduces repeated Mathf.Abs calls).
+    /// </summary>
+    private bool IsMovingVertically() => Mathf.Abs(_moveDirection.y) > 0f;
+    #endregion
+
+    #region Public setters
+    /// <summary>
+    /// Sets the movement speed.
+    /// </summary>
+    /// <param name="newSpeed">New speed value.</param>
     public void SetSpeed(float newSpeed) => _speed = newSpeed;
 
+    /// <summary>
+    /// Stops all movement immediately.
+    /// </summary>
     public void Stop()
     {
         _moveDirection = Vector2.zero;
@@ -483,4 +578,5 @@ public class Movement
         _currentStickInput = Vector2.zero;
         _isSnapping = false;
     }
+    #endregion
 }
