@@ -15,16 +15,16 @@ MonoBehaviour:
   SFX:
     SoundScore:
       Guid:
-        Data1: 0
-        Data2: 0
-        Data3: 0
-        Data4: 0
-      Path: 
+        Data1: -2103559546
+        Data2: 1083866524
+        Data3: -1872893294
+        Data4: -1971939753
+      Path: event:/SFX/Lamp/Lamp
   BGM:
     BGM8Bit:
       Guid:
-        Data1: 0
-        Data2: 0
-        Data3: 0
-        Data4: 0
-      Path: 
+        Data1: 1819243192
+        Data2: 1337894302
+        Data3: -1098012519
+        Data4: 2067689381
+      Path: event:/BGM/Soundtrack
