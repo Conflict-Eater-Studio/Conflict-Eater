@@ -97,3 +97,42 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+# FMOD generated files
+# Never ignore DLLs in the FMOD subfolder.
+!/[Aa]ssets/Plugins/FMOD/**/lib/*
+
+# Don't ignore images and gizmos used by FMOD in the Unity Editor.
+!/[Aa]ssets/Gizmos/FMOD/*
+!/[Aa]ssets/Editor Default Resources/FMOD/*
+
+# Ignore the Cache folder since it is updated locally.
+/[Aa]ssets/Plugins/FMOD/Cache/*
+
+# Ignore bank files in the StreamingAssets folder.
+/[Aa]ssets/StreamingAssets/FMOD/*
+
+# If the source bank files are kept outside of the StreamingAssets folder then these can be ignored.
+# Log files can be ignored.
+fmod_editor.log
+
+# FMOD Studio project folder (FMODProject)
+# Keep the .fspro and project metadata under source control, but ignore caches,
+# user workspaces, temporary files and the internal Build/ folder. Built banks
+# should live in Unity's StreamingAssets (tracked) instead of FMODProject/Build.
+!/FMODProject/*.fspro
+!/FMODProject/Metadata/
+
+# Ignore FMOD project outputs and local-only files
+/FMODProject/Build/
+/FMODProject/.cache/
+/FMODProject/.unsaved/
+/FMODProject/.user/
+/FMODProject/*.log
+/FMODProject/*.backup
+/FMODProject/*.tmp
+/FMODProject/*.autosave
+/FMODProject/**/Metadata/*.user.xml
+
+# Ignore temporary files in the Unity FMOD folder
+/Assets/StreamingAssets/FMOD/*.tmp
