@@ -88,7 +88,11 @@ public class ShadowPlayerController : MonoBehaviour
 
             bool isActive = (i == 0);
             var controller = ghost.GetComponent<ShadowController>();
-            controller.SetActiveControl(isActive);
+
+            if (isActive)
+                controller.SetState(new ShadowActiveState());
+            else
+                controller.SetState(new ShadowPatrolState());
 
             _shadows.Add(ghost);
             SetGhostColors();
@@ -116,7 +120,7 @@ public class ShadowPlayerController : MonoBehaviour
         _canSwitch = false;
 
         var currentGhost = _shadows[_activeShadowIndex];
-        currentGhost.GetComponent<ShadowController>().SetActiveControl(false);
+        currentGhost.GetComponent<ShadowController>().SetState(new ShadowPatrolState());
 
         int closestIndex = _activeShadowIndex;
         float closestDistance = _maxSwitchDistance;
@@ -143,7 +147,7 @@ public class ShadowPlayerController : MonoBehaviour
             Debug.Log("No ghost in range to switch to");
         }
 
-        _shadows[_activeShadowIndex].GetComponent<ShadowController>().SetActiveControl(true);
+        _shadows[_activeShadowIndex].GetComponent<ShadowController>().SetState(new ShadowActiveState());
         SetGhostColors();
 
         yield return new WaitForSeconds(0.3f);
