@@ -32,7 +32,7 @@ public class TimerUI : MonoBehaviour
         GameManager.Instance.Timer.OnMatchEnd += (sender, args) =>
         {
             _isEnded = true;
-            Debug.Log("Match End");
+            Debug.Log("Match EndMatch");
         };
         GameManager.Instance.Timer.OnMatchPause += (sender, args) =>
         {
