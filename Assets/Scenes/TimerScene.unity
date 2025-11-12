@@ -856,6 +856,10 @@ PrefabInstance:
       propertyPath: _matchTimeLeftText
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 7556698784073824796, guid: a87313ca3e627124fae1e004646f0298, type: 3}
+      propertyPath: _matchCountdownText
+      value: 
+      objectReference: {fileID: 865161687}
     - target: {fileID: 8080020186565835905, guid: a87313ca3e627124fae1e004646f0298, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -2070,7 +2074,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!43 &1623857583
+--- !u!43 &1586298030
 Mesh:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -14170,7 +14174,7 @@ MonoBehaviour:
     rid: 1187304558530396240
   m_ShadowCastingSource: 2
   m_ShadowMesh:
-    m_Mesh: {fileID: 1623857583}
+    m_Mesh: {fileID: 1586298030}
     m_LocalBounds:
       m_Center: {x: -0.50001526, y: -0.5, z: 0}
       m_Extent: {x: 21.499985, y: 12.5, z: 0}

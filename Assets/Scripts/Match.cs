@@ -31,7 +31,7 @@ public class Match : MonoBehaviour {
     #region Private Fields
 
     private float _matchTime;
-    private float _rountTime;
+    private float _roundTime;
     private float _pauseTime;
     private bool _isGameRunning;
     private bool _isGamePaused;
@@ -43,14 +43,14 @@ public class Match : MonoBehaviour {
         if (!_isGameRunning || _isGamePaused) return;
         
         _matchTime += Time.deltaTime;
-        _rountTime += Time.deltaTime;
+        _roundTime += Time.deltaTime;
         
         if (_matchTime >= _matchDurationSeconds) {
             EndMatch();
             return;
         }
 
-        if (_rountTime >= _roundDurationSeconds) {
+        if (_roundTime >= _roundDurationSeconds) {
             EndRound();
         }
     }
@@ -75,7 +75,7 @@ public class Match : MonoBehaviour {
     private void RunMatch() {
         _isGameRunning = true;
         _matchTime = 0;
-        _rountTime = 0;
+        _roundTime = 0;
         OnRoundStart?.Invoke(this, EventArgs.Empty);
     }
 
@@ -90,6 +90,7 @@ public class Match : MonoBehaviour {
     #region Round Flow
 
     public void EndRound() {
+        _roundTime = 0;
         StartCoroutine(HandleRoundTransition());
     }
 
