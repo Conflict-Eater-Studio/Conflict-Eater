@@ -57,6 +57,17 @@ public class Grid : MonoBehaviour
     [SerializeField]
     private List<Vector2Int> _powerUpSpawnCells = new List<Vector2Int>();
 
+    [System.Serializable]
+    public class ShadowScatterTarget
+    {
+        public ShadowType shadowType;
+        public Vector2Int targetCell;
+    }
+
+    [Tooltip("Target points for ghosts when in Scatter state (cell coordinates)")]
+    [SerializeField]
+    private List<ShadowScatterTarget> _scatterTargets = new List<ShadowScatterTarget>();
+
     private int _maxLitTiles = 0;
     private int _litTileCount = 0;
     public int LitTileCount
@@ -350,5 +361,22 @@ public class Grid : MonoBehaviour
                 break;
         }
         return tilemap.GetCellCenterWorld(cellPosition);
+    }
+
+    /// <summary>
+    /// Returns the first scatter target position for the specified shadow type.
+    /// </summary>
+    /// <param name="type">The ShadowType to search for.</param>
+    /// <returns>The target cell position (Vector2Int) if found, or null if not found.</returns>
+    public Vector2Int? GetScatterTargetByType(ShadowType type)
+    {
+        foreach (var target in _scatterTargets)
+        {
+            if (target.shadowType == type)
+            {
+                return target.targetCell;
+            }
+        }
+        return null;
     }
 }

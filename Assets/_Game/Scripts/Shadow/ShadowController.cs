@@ -1,4 +1,13 @@
+using System;
 using UnityEngine;
+
+public enum ShadowType
+{
+    Blinky, // Red – chases the player directly
+    Pinky,  // Pink – tries to ambush the player from the front
+    Inky,   // Blue – unpredictable, depends on other ghosts
+    Clyde   // Orange – alternates between chasing and retreating
+}
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(CircleCollider2D))]
@@ -25,6 +34,10 @@ public class ShadowController : MonoBehaviour
     public float DirectionChangeDelay => _directionChangeDelay;
     public float LightTilePenalty => _lightTileSpeedPenalityMultiplier;
     public float InactivePenalty => _inactiveGhostSpeedMultiplier;
+
+    [Header("Shadow Identity")]
+    [SerializeField] private ShadowType _shadowType;
+    public ShadowType Type => _shadowType;
 
     void Awake()
     {
@@ -73,5 +86,9 @@ public class ShadowController : MonoBehaviour
     {
         if (collision.CompareTag("PlayerLight"))
             GameManager.Instance.Timer.EndRound();
+    }
+    public void SetShadowType(ShadowType type)
+    {
+        _shadowType = type;
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using static ShadowController;
 
 public class ShadowPlayerController : MonoBehaviour
 {
@@ -86,20 +87,29 @@ public class ShadowPlayerController : MonoBehaviour
             ghost.transform.SetParent(transform);
             ghost.name = $"Ghost_{i + 1}";
 
-            bool isActive = (i == 0);
             var controller = ghost.GetComponent<ShadowController>();
 
+            controller.SetShadowType((ShadowType)(i % 4));
+
+            bool isActive = (i == 0);
+
+            /*
             if (isActive)
                 controller.SetState(new ShadowActiveState());
             else
                 controller.SetState(new ShadowPatrolState());
+            */
+            controller.SetState(new ShadowPatrolState());
 
             _shadows.Add(ghost);
-            SetGhostColors();
+            //SetGhostColors();
+            SetGhostColorsByType();
 
             yield return new WaitForSeconds(_spawnDelay);
         }
     }
+
+
 
     private void SetGhostColors()
     {
@@ -111,6 +121,37 @@ public class ShadowPlayerController : MonoBehaviour
             sr.color = (i == _activeShadowIndex) ? _activeColor : _inactiveColor;
         }
     }
+
+    private void SetGhostColorsByType()
+    {
+        for (int i = 0; i < _shadows.Count; i++)
+        {
+            var sr = _shadows[i].GetComponent<SpriteRenderer>();
+            if (sr == null) continue;
+
+            var controller = _shadows[i].GetComponent<ShadowController>();
+            if (controller == null) continue;
+
+            Color color = controller.Type switch
+            {
+                ShadowType.Blinky => Color.red,
+                ShadowType.Pinky => new Color(1f, 0.6f, 0.8f), 
+                ShadowType.Inky => Color.cyan,
+                ShadowType.Clyde => new Color(1f, 0.6f, 0.2f), 
+                _ => Color.white
+            };
+
+            /*
+            if (i == _activeShadowIndex)
+            {
+                color = _activeColor; 
+            }
+            */
+
+            sr.color = color;
+        }
+    }
+
 
     #endregion
 
