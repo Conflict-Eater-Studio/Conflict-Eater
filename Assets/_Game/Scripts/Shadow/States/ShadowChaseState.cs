@@ -1,8 +1,13 @@
 using System.Linq;
 using UnityEngine;
 
+/// <summary>
+/// Chase behavior for shadows (ghosts) implementing classic Pac-Man style AI.
+/// Each shadow has a unique chase pattern based on its type.
+/// </summary>
 public class ShadowChaseState : IShadowState
 {
+    #region Constants and Fields
     private static readonly Vector2Int[] Directions =
     {
         new(0, 1),   
@@ -16,7 +21,9 @@ public class ShadowChaseState : IShadowState
     private Vector3Int _currentCell;
 
     private ShadowType _type;
+    #endregion
 
+    #region IShadowState Implementation
     public void Enter(ShadowController shadow)
     {
         _moveTimer = 0f;
@@ -29,7 +36,7 @@ public class ShadowChaseState : IShadowState
 
     public void Exit(ShadowController shadow)
     {
-
+        // Currently no exit logic
     }
 
     public void Update(ShadowController shadow)
@@ -54,6 +61,12 @@ public class ShadowChaseState : IShadowState
         }
     }
 
+    #endregion
+
+    #region Target Cell Calculation
+    /// <summary>
+    /// Calculates the AI target cell depending on shadow type.
+    /// </summary>
     private Vector2Int CalculateTargetCell(ShadowController shadow)
     {
         switch (shadow.Type)
@@ -77,6 +90,7 @@ public class ShadowChaseState : IShadowState
 
     private Vector2Int CalculateTargetCellForBlinky()
     {
+        // Blinky directly chases the player
         Vector3Int playerPos = Grid.WorldToCell(GameManager.Instance.PlayerManager.GetPlayerOfType(PlayerManager.PlayerType.Light).transform.position);
         Vector2Int target = new Vector2Int(playerPos.x, playerPos.y);
         return target;
@@ -84,6 +98,7 @@ public class ShadowChaseState : IShadowState
 
     private Vector2Int CalculateTargetCellForPinky()
     {
+        // Pinky tries to ambush the player 4 tiles ahead
         var playerGO = GameManager.Instance.PlayerManager.GetPlayerOfType(PlayerManager.PlayerType.Light);
         Vector3Int playerCell = Grid.WorldToCell(playerGO.transform.position);
 
@@ -106,6 +121,7 @@ public class ShadowChaseState : IShadowState
 
     private Vector2Int CalculateTargetCellForInky()
     {
+        // Inky depends on both the player and Blinky
         var playerGO = GameManager.Instance.PlayerManager.GetPlayerOfType(PlayerManager.PlayerType.Light);
         Vector3Int playerCell = Grid.WorldToCell(playerGO.transform.position);
 
@@ -134,6 +150,7 @@ public class ShadowChaseState : IShadowState
 
     private Vector2Int CalculateTargetCellForClyde()
     {
+        // Clyde alternates between chasing and scattering
         var playerGO = GameManager.Instance.PlayerManager.GetPlayerOfType(PlayerManager.PlayerType.Light);
         Vector3Int playerCell3D = Grid.WorldToCell(playerGO.transform.position);
         Vector2Int playerCell = new Vector2Int(playerCell3D.x, playerCell3D.y);
@@ -154,7 +171,12 @@ public class ShadowChaseState : IShadowState
             return GameManager.Instance.Grid.GetScatterTargetByType(_type) ?? Vector2Int.zero;
         }
     }
+    #endregion
 
+    #region Direction Selection
+    /// <summary>
+    /// Chooses the optimal direction to move based on target cell, avoiding reversing.
+    /// </summary>
     private Vector2Int ChooseBestDirection(Grid grid, Vector3Int currentCell, Vector2Int currentDirection, Vector2Int targetCell)
     {
         var targetWorldPos = Grid.GetCellCenterWorld(new Vector3Int(targetCell.x, targetCell.y, 0));
@@ -171,6 +193,9 @@ public class ShadowChaseState : IShadowState
             .FirstOrDefault();
     }
 
+    /// <summary>
+    /// Priority for direction tie-breaking: Up > Left > Right > Down
+    /// </summary>
     private static int GetDirectionPriority(Vector2Int direction)
     {
         return direction switch
@@ -182,4 +207,5 @@ public class ShadowChaseState : IShadowState
             _ => int.MaxValue
         };
     }
+    #endregion
 }

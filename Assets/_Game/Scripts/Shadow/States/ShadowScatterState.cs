@@ -2,8 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 
+/// <summary>
+/// State for shadows when they enter scatter mode.
+/// Shadows move towards their scatter target, trying to avoid reversing direction.
+/// </summary>
 public class ShadowScatterState : IShadowState
 {
+    #region Constants and Fields
     private static readonly Vector2Int[] Directions =
     {
         new(0, 1),   
@@ -18,7 +23,9 @@ public class ShadowScatterState : IShadowState
     private Vector2Int _lastDirection;
     private Vector3Int _currentCell;
     private float _moveTimer;
+    #endregion
 
+    #region IShadowState Implementation
     public void Enter(ShadowController shadow)
     {
         _targetCell = GameManager.Instance.Grid.GetScatterTargetByType(shadow.Type) ?? Vector2Int.zero;
@@ -51,7 +58,14 @@ public class ShadowScatterState : IShadowState
         shadow.CurrentDirection = nextDirection;
         shadow.Movement.OnMove(nextDirection);
     }
+    #endregion
 
+    #region Direction Selection
+
+    /// <summary>
+    /// Chooses the best direction to move based on distance to scatter target and walkable tiles.
+    /// Prevents moving directly backwards.
+    /// </summary>
     private Vector2Int ChooseBestDirection(Grid grid, Vector3Int currentCell)
     {
         var targetWorldPos = Grid.GetCellCenterWorld(new Vector3Int(_targetCell.x, _targetCell.y, 0));
@@ -68,6 +82,9 @@ public class ShadowScatterState : IShadowState
             .FirstOrDefault();
     }
 
+    /// <summary>
+    /// Returns a fixed priority for directions to break ties.
+    /// </summary>
     private static int GetDirectionPriority(Vector2Int direction)
     {
         return direction switch
@@ -79,4 +96,6 @@ public class ShadowScatterState : IShadowState
             _ => int.MaxValue
         };
     }
+
+    #endregion
 }

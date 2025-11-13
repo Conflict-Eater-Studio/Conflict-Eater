@@ -109,33 +109,6 @@ public class Grid : MonoBehaviour
     }
 
     /// <summary>
-    /// Returns the spawn point for the given player type.
-    /// </summary>
-    /// <param name="type">Player type</param>
-    /// <returns>The spawn point for the given player type.</returns>
-    [Obsolete("Use GetSpawnPoint(Grid.SpawnPointType type) instead.")]
-    public Vector3 GetSpawnPoint(PlayerManager.PlayerType type)
-    {
-        switch (type)
-        {
-            case PlayerManager.PlayerType.Light:
-                if (_lightSpawnCells.Count > 0)
-                {
-                    Vector2Int spawnCell = _lightSpawnCells[0];
-                    return _tilemapFloors.GetCellCenterWorld(
-                        new Vector3Int(spawnCell.x, spawnCell.y, 0)
-                    );
-                }
-                break;
-            case PlayerManager.PlayerType.Shadow:
-                return _tilemapFloors.GetCellCenterWorld(
-                    new Vector3Int(_shadowSpawnCell.x, _shadowSpawnCell.y, 0)
-                );
-        }
-        return Vector3.zero;
-    }
-
-    /// <summary>
     /// Returns the spawn point for the given spawn point type.
     /// </summary>
     /// <param name="type">Spawn point type</param>

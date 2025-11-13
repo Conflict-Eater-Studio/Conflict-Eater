@@ -4,18 +4,18 @@ using UnityEngine.InputSystem;
 
 public class PlayerSpawner : MonoBehaviour
 {
+    #region Fields
     [Header("References")]
     [SerializeField] private PlayerInputManager _playerInputManager;
     [SerializeField] private Grid _grid;
 
     [Header("Prefabs & Positions")]
     [SerializeField] private GameObject _ghostPrefab;
-    [SerializeField] private Vector3 _playerPosition;
-    [SerializeField] private Vector3 _ghostPosition;
 
     [Header("UI References")]
     [SerializeField] private TextMeshProUGUI _p1InfoText;
     [SerializeField] private TextMeshProUGUI _p2InfoText;
+    #endregion
 
     #region Unity Lifecycle
     private void OnEnable()
@@ -56,7 +56,7 @@ public class PlayerSpawner : MonoBehaviour
         Debug.Log("Player 1 joined as LightPlayerController");
 
         input.name = "LightControllerRoot";
-        input.transform.position = _grid.GetSpawnPoint(PlayerManager.PlayerType.Light);
+        input.transform.position = _grid.GetSpawnPoint(Grid.SpawnPointType.Light);
 
         renderer.material.color = Color.yellow;
         input.gameObject.tag = "PlayerLight";
@@ -77,7 +77,7 @@ public class PlayerSpawner : MonoBehaviour
         Debug.Log("Player 2 joined as ShadowPlayerController");
 
         input.name = "ShadowControllerRoot";
-        input.transform.position = _grid.GetSpawnPoint(PlayerManager.PlayerType.Shadow);
+        input.transform.position = _grid.GetSpawnPoint(Grid.SpawnPointType.Shadow);
 
         Destroy(input.GetComponent<Renderer>());
         Destroy(input.GetComponent<CircleCollider2D>());
