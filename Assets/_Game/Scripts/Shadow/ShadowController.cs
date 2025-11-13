@@ -133,8 +133,17 @@ public class ShadowController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("PlayerLight")) ;
-            //GameManager.Instance.Timer.EndRound();
+        if (collision.CompareTag("PlayerLight"))
+        {
+            if(GameManager.Instance.IsFrightenedShadowState)
+            {
+                gameObject.transform.position = GameManager.Instance.Grid.GetSpawnPoint(Grid.SpawnPointType.Shadow);
+                SetState(new ShadowExitBaseState());
+            } else
+            {
+                GameManager.Instance.Timer.EndRound();
+            }
+        }
     }
 
     #endregion
