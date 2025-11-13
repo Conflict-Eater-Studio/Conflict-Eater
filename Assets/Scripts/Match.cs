@@ -30,27 +30,27 @@ public class Match : MonoBehaviour {
 
     #region Private Fields
 
-    private float _matchTime;
-    private float _roundTime;
-    private float _pauseTime;
-    private bool _isGameRunning;
-    private bool _isGamePaused;
+    public float CountdownRemaining { get; private set; }
+    public float MatchTime { get; private set; }
+    public float RoundTime { get; private set; }
+    public bool IsGameRunning { get; private set; }
+    public bool IsGamePaused { get; private set; }
     #endregion
 
     #region Unity Methods
 
     private void Update() {
-        if (!_isGameRunning || _isGamePaused) return;
+        if (!IsGameRunning || IsGamePaused) return;
         
-        _matchTime += Time.deltaTime;
-        _roundTime += Time.deltaTime;
+        MatchTime += Time.deltaTime;
+        RoundTime += Time.deltaTime;
         
-        if (_matchTime >= _matchDurationSeconds) {
+        if (MatchTime >= _matchDurationSeconds) {
             EndMatch();
             return;
         }
 
-        if (_roundTime >= _roundDurationSeconds) {
+        if (RoundTime >= _roundDurationSeconds) {
             EndRound();
         }
     }
@@ -60,27 +60,28 @@ public class Match : MonoBehaviour {
     #region Match Flow
 
     public void StartMatch() {
-        if (_isGameRunning) return;
+        if (IsGameRunning) return;
         StartCoroutine(StartMatchCountdown(_matchCountdown));
     }
 
     private IEnumerator StartMatchCountdown(float delay) {
         Pause();
-        OnMatchStart?.Invoke(this, new OnMatchStartEventArgs(_matchDurationSeconds, _roundDurationSeconds, _matchCountdown, _roundCountdown));
         yield return RunCountdown(delay);
         Resume();
         RunMatch();
     }
 
     private void RunMatch() {
-        _isGameRunning = true;
-        _matchTime = 0;
-        _roundTime = 0;
+        IsGameRunning = true;
+        MatchTime = 0;
+        RoundTime = 0;
+
+        OnMatchStart?.Invoke(this, new OnMatchStartEventArgs(_matchDurationSeconds, _roundDurationSeconds));
         OnRoundStart?.Invoke(this, EventArgs.Empty);
     }
 
     public void EndMatch() {
-        _isGameRunning = false;
+        IsGameRunning = false;
         OnMatchEnd?.Invoke(this, EventArgs.Empty);
         StopAllCoroutines();
     }
@@ -90,14 +91,14 @@ public class Match : MonoBehaviour {
     #region Round Flow
 
     public void EndRound() {
-        _roundTime = 0;
+        RoundTime = 0;
         StartCoroutine(HandleRoundTransition());
     }
 
     private IEnumerator HandleRoundTransition() {
         Pause();
+        
         OnRoundEnd?.Invoke(this, EventArgs.Empty);
-
         yield return RunCountdown(_roundCountdown);
 
         Resume();
@@ -109,12 +110,12 @@ public class Match : MonoBehaviour {
     #region Pause & Resume
 
     public void Pause() {
-        _isGamePaused = true;
+        IsGamePaused = true;
         OnMatchPause?.Invoke(this, EventArgs.Empty);
     }
 
     public void Resume() {
-        _isGamePaused = false;
+        IsGamePaused = false;
         OnMatchResume?.Invoke(this, EventArgs.Empty);
     }
 
@@ -123,31 +124,25 @@ public class Match : MonoBehaviour {
     #region Countdown Utility
 
     private IEnumerator RunCountdown(float duration) {
-        float remaining = duration;
-        while (remaining > 0f) {
+        CountdownRemaining = duration;
+        while (CountdownRemaining > 0f) {
             yield return new WaitForEndOfFrame();
-            remaining -= Time.deltaTime;
+            CountdownRemaining -= Time.deltaTime;
         }
     }
-
     #endregion
 }
 
 #region Event Args Class
 
 public class OnMatchStartEventArgs : EventArgs {
-    public OnMatchStartEventArgs(float matchDuration, float roundDuration, float matchCountdown, float roundCountdown) {
+    public OnMatchStartEventArgs(float matchDuration, float roundDuration) {
         MatchDuration = matchDuration;
         RoundDuration = roundDuration;
-        MatchCountdown = matchCountdown;
-        RoundCountdown = roundCountdown;
-        
     }
 
     public readonly float MatchDuration;
     public readonly float RoundDuration;
-    public readonly float MatchCountdown;
-    public readonly float RoundCountdown;   
 }
 
 #endregion
