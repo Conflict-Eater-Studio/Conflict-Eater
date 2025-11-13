@@ -13,8 +13,11 @@ public enum ShadowType
 [RequireComponent(typeof(CircleCollider2D))]
 public class ShadowController : MonoBehaviour
 {
+    [SerializeField] private GameObject _directGameObject;
+    [SerializeField] private float _directOffset = 0.37f;
+
     [Header("Movement Settings")]
-    [SerializeField] protected float _speed = 10.5f;
+    [SerializeField] protected float _speed = 3.5f;
     [SerializeField] private float _centerThreshold = 0.15f;
     [SerializeField] private float _snapSpeedMultiplier = 1.5f;
     [SerializeField] private float _lightTileSpeedPenalityMultiplier = 0.5f;
@@ -26,10 +29,20 @@ public class ShadowController : MonoBehaviour
 
     private Rigidbody2D _rb;
     private Movement _movement;
+    private Vector2Int _currentDirection;
+    public Vector2Int CurrentDirection
+    {
+        get => _currentDirection;
+        set {
+            _currentDirection = value;
+            UpdateDirectObjectPosition();
+        }
+    }
+
+
     public Movement Movement => _movement;
     private Grid _grid;
 
-    private IShadowState _currentState;
     public bool EnableAI => _enableAIMovement;
     public float DirectionChangeDelay => _directionChangeDelay;
     public float LightTilePenalty => _lightTileSpeedPenalityMultiplier;
@@ -37,7 +50,16 @@ public class ShadowController : MonoBehaviour
 
     [Header("Shadow Identity")]
     [SerializeField] private ShadowType _shadowType;
+    
     public ShadowType Type => _shadowType;
+
+    private IShadowState _previousState;
+    private IShadowState _currentState;
+    private IShadowState _nextState;
+
+    public IShadowState PreviousState => _previousState;
+    public IShadowState CurrentState => _currentState;
+    public IShadowState NextState => _nextState;
 
     void Awake()
     {
@@ -49,13 +71,35 @@ public class ShadowController : MonoBehaviour
     void Update()
     {
         _currentState?.Update(this);
+
+        if (_nextState != null)
+        {
+            SetState(_nextState);
+            _nextState = null;
+        }
     }
 
     public void SetState(IShadowState newState)
     {
+        if (newState == null)
+            return;
+
+        _previousState = _currentState;
         _currentState?.Exit(this);
+
         _currentState = newState;
         _currentState.Enter(this);
+    }
+    public void QueueNextState(IShadowState next)
+    {
+        _nextState = next;
+    }
+    public void RevertToPreviousState()
+    {
+        if (_previousState != null)
+        {
+            SetState(_previousState);
+        }
     }
 
     public void Move(Vector2 input)
@@ -84,11 +128,37 @@ public class ShadowController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("PlayerLight"))
-            GameManager.Instance.Timer.EndRound();
+        if (collision.CompareTag("PlayerLight")) ;
+            //GameManager.Instance.Timer.EndRound();
     }
     public void SetShadowType(ShadowType type)
     {
         _shadowType = type;
+    }
+
+    private void UpdateDirectObjectPosition()
+    {
+        if (_directGameObject == null)
+            return;
+
+        Vector3 localPos = Vector3.zero;
+
+        switch (_currentDirection)
+        {
+            case var d when d == Vector2Int.up:
+                localPos = new Vector3(0f, _directOffset, 0f);
+                break;
+            case var d when d == Vector2Int.down:
+                localPos = new Vector3(0f, -_directOffset, 0f);
+                break;
+            case var d when d == Vector2Int.left:
+                localPos = new Vector3(-_directOffset, 0f, 0f);
+                break;
+            case var d when d == Vector2Int.right:
+                localPos = new Vector3(_directOffset, 0f, 0f);
+                break;
+        }
+
+        _directGameObject.transform.localPosition = localPos;
     }
 }

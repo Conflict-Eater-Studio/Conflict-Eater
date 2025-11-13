@@ -99,7 +99,7 @@ public class ShadowPlayerController : MonoBehaviour
             else
                 controller.SetState(new ShadowPatrolState());
             */
-            controller.SetState(new ShadowPatrolState());
+            controller.SetState(new ShadowExitBaseState());
 
             _shadows.Add(ghost);
             //SetGhostColors();
