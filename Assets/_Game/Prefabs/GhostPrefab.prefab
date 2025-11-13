@@ -312,11 +312,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShadowController
   _directGameObject: {fileID: 2370331360294826127}
-  _speed: 10.5
+  _directOffset: 0.37
+  _speed: 8.5
   _centerThreshold: 0.15
-  _snapSpeedMultiplier: 1.5
-  _lightTileSpeedPenalityMultiplier: 0.5
-  _inactiveGhostSpeedMultiplier: 0.7
+  _snapSpeedMultiplier: 1
   _enableAIMovement: 1
   _directionChangeDelay: 0.5
   _shadowType: 0

@@ -17,10 +17,9 @@ public class ShadowController : MonoBehaviour
     [SerializeField] private float _directOffset = 0.37f;
 
     [Header("Movement Settings")]
-    [SerializeField] protected float _speed = 0.5f;
+    [SerializeField] protected float _speed = 10.5f;
     [SerializeField] private float _centerThreshold = 0.15f;
-    [SerializeField] private float _snapSpeedMultiplier = 1.0f;
-    [SerializeField] private float _inactiveGhostSpeedMultiplier = 0.7f;
+    [SerializeField] private float _snapSpeedMultiplier = 1.5f;
 
     [Header("AI Settings")]
     [SerializeField] private bool _enableAIMovement = true;
@@ -43,7 +42,6 @@ public class ShadowController : MonoBehaviour
 
     public bool EnableAI => _enableAIMovement;
     public float DirectionChangeDelay => _directionChangeDelay;
-    public float InactivePenalty => _inactiveGhostSpeedMultiplier;
 
     [Header("Shadow Identity")]
     [SerializeField] private ShadowType _shadowType;
