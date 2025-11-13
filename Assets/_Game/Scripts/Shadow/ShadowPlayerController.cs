@@ -13,7 +13,7 @@ public class ShadowPlayerController : MonoBehaviour
     [Header("Shadow Settings")]
     [SerializeField] private GameObject _shadowPrefab;
     [SerializeField] private int _shadowCount = 4;
-    [SerializeField] private float _spawnDelay = 2f;
+    [SerializeField] private float _spawnDelay = 1f;
     [SerializeField] private float _maxSwitchDistance = 10f;
 
     [Header("Visual Settings")]
@@ -21,6 +21,8 @@ public class ShadowPlayerController : MonoBehaviour
     [SerializeField] private Color _inactiveColor = new Color(0.5f, 0.5f, 1f, 0.5f);
 
     private readonly List<GameObject> _shadows = new();
+    public IReadOnlyList<GameObject> Shadows => _shadows;
+
     private PlayerInput _playerInput;
     private int _activeShadowIndex;
     private bool _canSwitch = true;
@@ -109,8 +111,6 @@ public class ShadowPlayerController : MonoBehaviour
         }
     }
 
-
-
     private void SetGhostColors()
     {
         for (int i = 0; i < _shadows.Count; i++)
@@ -161,7 +161,7 @@ public class ShadowPlayerController : MonoBehaviour
         _canSwitch = false;
 
         var currentGhost = _shadows[_activeShadowIndex];
-        currentGhost.GetComponent<ShadowController>().SetState(new ShadowPatrolState());
+        //currentGhost.GetComponent<ShadowController>().SetState(new ShadowPatrolState());
 
         int closestIndex = _activeShadowIndex;
         float closestDistance = _maxSwitchDistance;

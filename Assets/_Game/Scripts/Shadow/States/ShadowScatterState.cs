@@ -12,12 +12,14 @@ public class ShadowScatterState : IShadowState
         new(0, -1)   
     };
 
-    private const float DecisionInterval = 0.1f;
+    private const float DecisionInterval = 0.25f;
+    private const float ScatterDuration = 10f;
 
     private Vector2Int _targetCell;
     private Vector2Int _lastDirection;
     private Vector3Int _currentCell;
     private float _moveTimer;
+    private float _scatterTimer;
 
     public void Enter(ShadowController shadow)
     {
@@ -31,17 +33,30 @@ public class ShadowScatterState : IShadowState
 
     }
 
+
     public void Update(ShadowController shadow)
     {
-        _moveTimer += Time.deltaTime;
+        float deltaTime = Time.deltaTime;
+
+        // Aktualizacja timerów
+        _moveTimer += deltaTime;
+        _scatterTimer += deltaTime;
+
+        // Po 10 sekundach przechodzimy do ChaseState
+        if (_scatterTimer >= ScatterDuration)
+        {
+            shadow.SetState(new ShadowChaseState());
+            return;
+        }
+
+        // Obsługa ruchu co DecisionInterval
         if (_moveTimer < DecisionInterval)
             return;
 
         _moveTimer = 0f;
 
         var grid = GameManager.Instance.Grid;
-        var currentPosition = shadow.transform.position;
-        _currentCell = Grid.WorldToCell(currentPosition);
+        _currentCell = Grid.WorldToCell(shadow.transform.position);
 
         var nextDirection = ChooseBestDirection(grid, _currentCell);
         if (nextDirection == Vector2Int.zero)

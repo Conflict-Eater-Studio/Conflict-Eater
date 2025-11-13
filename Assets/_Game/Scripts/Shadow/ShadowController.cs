@@ -17,10 +17,9 @@ public class ShadowController : MonoBehaviour
     [SerializeField] private float _directOffset = 0.37f;
 
     [Header("Movement Settings")]
-    [SerializeField] protected float _speed = 3.5f;
+    [SerializeField] protected float _speed = 0.5f;
     [SerializeField] private float _centerThreshold = 0.15f;
-    [SerializeField] private float _snapSpeedMultiplier = 1.5f;
-    [SerializeField] private float _lightTileSpeedPenalityMultiplier = 0.5f;
+    [SerializeField] private float _snapSpeedMultiplier = 1.0f;
     [SerializeField] private float _inactiveGhostSpeedMultiplier = 0.7f;
 
     [Header("AI Settings")]
@@ -39,13 +38,11 @@ public class ShadowController : MonoBehaviour
         }
     }
 
-
     public Movement Movement => _movement;
     private Grid _grid;
 
     public bool EnableAI => _enableAIMovement;
     public float DirectionChangeDelay => _directionChangeDelay;
-    public float LightTilePenalty => _lightTileSpeedPenalityMultiplier;
     public float InactivePenalty => _inactiveGhostSpeedMultiplier;
 
     [Header("Shadow Identity")]
@@ -104,7 +101,7 @@ public class ShadowController : MonoBehaviour
 
     public void Move(Vector2 input)
     {
-        _movement.OnMove(input);
+       _movement.OnMove(input);
     }
 
     public void SetColor(Color color)
@@ -120,16 +117,13 @@ public class ShadowController : MonoBehaviour
 
         float speedMult = 1f;
 
-        if (GameManager.Instance.Grid.IsLightTile(Grid.WorldToCell(transform.position, Grid.TilemapType.Light)))
-            speedMult *= _lightTileSpeedPenalityMultiplier;
-
         _movement.SpeedMult = speedMult;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("PlayerLight")) ;
-            //GameManager.Instance.Timer.EndRound();
+        if (collision.CompareTag("PlayerLight")) 
+            GameManager.Instance.Timer.EndRound();
     }
     public void SetShadowType(ShadowType type)
     {
