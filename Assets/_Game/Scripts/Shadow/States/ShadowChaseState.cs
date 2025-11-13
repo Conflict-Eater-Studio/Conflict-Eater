@@ -16,7 +16,7 @@ public class ShadowChaseState : IShadowState
         new(0, -1)   
     };
 
-    private const float DecisionInterval = 0.25f;
+    private const float DecisionInterval = 0.13f;
     private float _moveTimer;
     private Vector3Int _currentCell;
 
@@ -26,6 +26,7 @@ public class ShadowChaseState : IShadowState
     #region IShadowState Implementation
     public void Enter(ShadowController shadow)
     {
+        Debug.Log("Enter Chase State");
         _moveTimer = 0f;
         _type = shadow.Type;
 

@@ -28,6 +28,7 @@ public class ShadowScatterState : IShadowState
     #region IShadowState Implementation
     public void Enter(ShadowController shadow)
     {
+        Debug.Log("Enter Scatter State");
         _targetCell = GameManager.Instance.Grid.GetScatterTargetByType(shadow.Type) ?? Vector2Int.zero;
         _lastDirection = Vector2Int.zero;
         shadow.CurrentDirection = Vector2Int.zero;

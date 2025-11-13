@@ -92,7 +92,7 @@ public class ShadowExitBaseState : IShadowState
         }
         else
         {
-            shadow.SetState(new ShadowScatterState());
+            shadow.ShadowBehaviorCycle.StartBehaviorCycle();
         }
     }
 

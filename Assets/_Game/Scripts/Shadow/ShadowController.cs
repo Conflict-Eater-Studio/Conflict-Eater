@@ -39,6 +39,7 @@ public class ShadowController : MonoBehaviour
     private Rigidbody2D _rb;
     private Movement _movement;
     private Vector2Int _currentDirection;
+    private ShadowBehaviorCycle _shadowBehaviorCycle;
     public Vector2Int CurrentDirection
     {
         get => _currentDirection;
@@ -49,6 +50,7 @@ public class ShadowController : MonoBehaviour
         }
     }
     public Movement Movement => _movement;
+    public ShadowBehaviorCycle ShadowBehaviorCycle => _shadowBehaviorCycle;
     private Grid _grid;
     public bool EnableAI => _enableAIMovement;
     public float DirectionChangeDelay => _directionChangeDelay;
@@ -106,6 +108,7 @@ public class ShadowController : MonoBehaviour
         _rb = GetComponent<Rigidbody2D>();
         _grid = FindFirstObjectByType<Grid>();
         _movement = new Movement(_rb, transform, _grid, _speed, _centerThreshold, _snapSpeedMultiplier);
+        _shadowBehaviorCycle = GetComponent<ShadowBehaviorCycle>();
     }
 
     void Update()
@@ -130,8 +133,8 @@ public class ShadowController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("PlayerLight"))
-            GameManager.Instance.Timer.EndRound();
+        if (collision.CompareTag("PlayerLight")) ;
+            //GameManager.Instance.Timer.EndRound();
     }
 
     #endregion

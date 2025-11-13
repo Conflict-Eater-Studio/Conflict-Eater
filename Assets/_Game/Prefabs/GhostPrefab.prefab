@@ -105,6 +105,7 @@ GameObject:
   - component: {fileID: 7481903126405274262}
   - component: {fileID: -6833806685901029725}
   - component: {fileID: 6009927817446827661}
+  - component: {fileID: 1752572746265143529}
   m_Layer: 6
   m_Name: GhostPrefab
   m_TagString: Untagged
@@ -355,3 +356,15 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.5
+--- !u!114 &1752572746265143529
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2683791842499567046}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474175746c0a2734a908888fd131be6f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShadowBehaviorCycle
