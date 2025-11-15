@@ -24,7 +24,19 @@ public class Movement
 
     private float _speed;
     private float _speedMult = 1f;
-    public float SpeedMult { get; set; } = 1f;
+
+    public float SpeedMult
+    {
+        get
+        {
+            return _speedMult;
+        }
+        set
+        {
+            _speedMult = Mathf.Clamp(value, 0.1f, 10f);
+        }
+    }
+
     private float _centerThreshold;
     private float _snapSpeedMultiplier;
 

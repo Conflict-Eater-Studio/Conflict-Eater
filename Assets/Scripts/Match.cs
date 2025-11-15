@@ -6,7 +6,6 @@ using UnityEngine;
 public class Match : MonoBehaviour {
     #region Inspector Fields
 
-    [Header("Timing Settings")]
     [Tooltip("Countdown before match start")]
     [SerializeField] private float _matchCountdown = 5f;
     [SerializeField] private float _roundCountdown = 3f;

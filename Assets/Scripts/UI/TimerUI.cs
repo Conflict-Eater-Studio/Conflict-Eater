@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class TimerUI : MonoBehaviour
 {
     #region Serialized Fields
+    
     [SerializeField] private Slider _matchSlider;
     [SerializeField] private Slider _roundSlider;
     [SerializeField] private TMP_Text _matchCountdownText;

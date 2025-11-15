@@ -383,7 +383,7 @@ GameObject:
   - component: {fileID: 4855716966897974970}
   - component: {fileID: 7556698784073824796}
   m_Layer: 5
-  m_Name: Timer 1
+  m_Name: Timer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -424,10 +424,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6146bf39b01d3744cb99a130aa786643, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TimerUI
-  _matchTimeLeftText: {fileID: 3180649828185947528}
-  _roundTimeLeftText: {fileID: 6007355473624924366}
   _matchSlider: {fileID: 4901331591288689501}
   _roundSlider: {fileID: 1023408281250263100}
+  _matchCountdownText: {fileID: 6007355473624924366}
 --- !u!1 &3419931929431061080
 GameObject:
   m_ObjectHideFlags: 0

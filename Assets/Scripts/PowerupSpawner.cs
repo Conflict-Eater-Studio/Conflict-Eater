@@ -2,19 +2,16 @@ using UnityEngine;
 
 public class PowerupSpawner : MonoBehaviour
 {
-    
+    [Tooltip("Number of powerups to spawn in game")]
+    [SerializeField] private int _powerupCount = 1;
+    [SerializeField] private GameObject _powerupPrefab;
     [SerializeField] Grid _grid;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start() {
-        PrimitiveType[] powerupTypes = {PrimitiveType.Cube, PrimitiveType.Sphere, PrimitiveType.Capsule};    
-        Vector2 spawnPoint = _grid.GetSpawnPoint(Grid.SpawnPointType.PowerUp);
-        var powerup = GameObject.CreatePrimitive(powerupTypes[Random.Range(0, powerupTypes.Length)]);
-        Instantiate(powerup, spawnPoint, Quaternion.identity);
+        SpawnPowerup();
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+    private void SpawnPowerup() {
+        Vector2 spawnPoint = _grid.GetSpawnPoint(Grid.SpawnPointType.PowerUpRandom);
+        Instantiate(_powerupPrefab, spawnPoint, Quaternion.identity);
     }
+    
 }

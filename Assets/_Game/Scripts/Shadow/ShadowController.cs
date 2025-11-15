@@ -31,6 +31,7 @@ public class ShadowController : MonoBehaviour
     [SerializeField] private float _directionChangeDelay = 0.5f;
 
     private bool _isActive = true;
+    public bool IsActive => _isActive;
     private Vector2 _aiDirection = Vector2.zero;
     private float _aiChangeTimer = 0.5f;
     private int _aiMoveCount = 0;

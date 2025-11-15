@@ -152,6 +152,7 @@ public class ShadowPlayerController : MonoBehaviour
 
     #endregion
 
+    
     #region Round Reset
 
     private void HandleRoundEnd(object sender, System.EventArgs e)
@@ -177,4 +178,9 @@ public class ShadowPlayerController : MonoBehaviour
     }
 
     #endregion
+
+    public ShadowController GetActiveGhostController() {
+        var activeGhost = _shadows[_activeShadowIndex];
+        return activeGhost.GetComponent<ShadowController>();
+    }
 }
