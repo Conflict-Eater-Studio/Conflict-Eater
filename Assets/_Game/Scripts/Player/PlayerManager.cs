@@ -5,14 +5,19 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Users;
 
+/// <summary>
+/// Manages players in the game, including their types, input devices, and swapping gamepads.
+/// </summary>
 public class PlayerManager
 {
+    #region Nested Types
+
     [Serializable]
     public struct PlayerData
     {
-        public GameObject PlayerObject;
-        public PlayerType Type;
-        public PlayerInput Input;
+        public GameObject PlayerObject; 
+        public PlayerType Type;         
+        public PlayerInput Input;       
 
         public PlayerData(GameObject obj, PlayerType type, PlayerInput input)
         {
@@ -22,24 +27,52 @@ public class PlayerManager
         }
     }
 
-    private List<PlayerData> _players = new List<PlayerData>();
+    public enum PlayerType
+    {
+        Light,
+        Shadow
+    }
+    #endregion
 
+    #region Fields
+
+    private List<PlayerData> _players = new List<PlayerData>(); // List of all players
+
+    #endregion
+
+    #region Player Management
+
+    /// <summary>
+    /// Adds a new player to the manager.
+    /// </summary>
     public void AddPlayer(GameObject playerObj, PlayerType type, PlayerInput input)
     {
         _players.Add(new PlayerData(playerObj, type, input));
     }
 
+    /// <summary>
+    /// Removes a player from the manager by their GameObject.
+    /// </summary>
     public void RemovePlayer(GameObject playerObj)
     {
         _players.RemoveAll(p => p.PlayerObject == playerObj);
     }
 
+    /// <summary>
+    /// Returns a list of all players, optionally filtered by type.
+    /// </summary>
     public List<PlayerData> GetPlayers(PlayerType? type = null)
     {
-        if (type == null) return new List<PlayerData>(_players);
+        if (type == null)
+            return new List<PlayerData>(_players);
+
         return _players.FindAll(p => p.Type == type.Value);
     }
 
+    /// <summary>
+    /// Returns the GameObject of the first player with the specified type.
+    /// Returns null if no such player exists.
+    /// </summary>
     public GameObject GetPlayerOfType(PlayerType type)
     {
         foreach (var player in _players)
@@ -50,6 +83,14 @@ public class PlayerManager
         return null;
     }
 
+    #endregion
+
+    #region Input & Gamepad Management
+
+    /// <summary>
+    /// Swaps the gamepads between two players.
+    /// Useful for switching control between Light and Shadow players.
+    /// </summary>
     public void SwapPlayerGamepads(PlayerType typeA, PlayerType typeB)
     {
         var playerA = _players.Find(p => p.Type == typeA);
@@ -71,9 +112,5 @@ public class PlayerManager
         InputUser.PerformPairingWithDevice(padA, playerB.Input.user);
     }
 
-    public enum PlayerType
-    {
-        Light,
-        Shadow
-    }
+    #endregion
 }

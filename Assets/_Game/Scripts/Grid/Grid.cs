@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.EditorTools;
 using UnityEngine;
@@ -57,12 +58,27 @@ public class Grid : MonoBehaviour
     [SerializeField]
     private List<Vector2Int> _powerUpSpawnCells = new List<Vector2Int>();
 
+    [System.Serializable]
+    public class ShadowScatterTarget
+    {
+        public ShadowType shadowType;
+        public Vector2Int targetCell;
+    }
+
+    [Tooltip("Target points for ghosts when in Scatter state (cell coordinates)")]
+    [SerializeField]
+    private List<ShadowScatterTarget> _scatterTargets = new List<ShadowScatterTarget>();
+
     private int _maxLitTiles = 0;
     private int _litTileCount = 0;
     public int LitTileCount
     {
         get { return _litTileCount; }
     }
+
+    [SerializeField] private float _powerUpSpawnInterval = 20f;
+    private Coroutine _powerUpSpawnRoutine;
+    private int _lastSpawnIndex = -1;
 
     private void Awake()
     {
@@ -82,6 +98,9 @@ public class Grid : MonoBehaviour
                 }
             }
         }
+
+        if (_powerUpSpawnRoutine == null)
+            _powerUpSpawnRoutine = StartCoroutine(PowerUpSpawnLoop());
     }
 
     // Reset map state on round end
@@ -95,33 +114,6 @@ public class Grid : MonoBehaviour
     private void OnDestroy()
     {
         GameManager.Instance.Timer.OnRoundEnd -= OnRoundEnd;
-    }
-
-    /// <summary>
-    /// Returns the spawn point for the given player type.
-    /// </summary>
-    /// <param name="type">Player type</param>
-    /// <returns>The spawn point for the given player type.</returns>
-    [Obsolete("Use GetSpawnPoint(Grid.SpawnPointType type) instead.")]
-    public Vector3 GetSpawnPoint(PlayerManager.PlayerType type)
-    {
-        switch (type)
-        {
-            case PlayerManager.PlayerType.Light:
-                if (_lightSpawnCells.Count > 0)
-                {
-                    Vector2Int spawnCell = _lightSpawnCells[0];
-                    return _tilemapFloors.GetCellCenterWorld(
-                        new Vector3Int(spawnCell.x, spawnCell.y, 0)
-                    );
-                }
-                break;
-            case PlayerManager.PlayerType.Shadow:
-                return _tilemapFloors.GetCellCenterWorld(
-                    new Vector3Int(_shadowSpawnCell.x, _shadowSpawnCell.y, 0)
-                );
-        }
-        return Vector3.zero;
     }
 
     /// <summary>
@@ -284,6 +276,12 @@ public class Grid : MonoBehaviour
         ClearLightTiles();
         ResetPlayer(PlayerManager.PlayerType.Light, SpawnPointType.LightRandom);
         ResetPlayer(PlayerManager.PlayerType.Shadow, SpawnPointType.Shadow);
+
+        PowerUp[] powerUps = FindObjectsOfType<PowerUp>();
+        foreach (var powerUp in powerUps)
+        {
+            Destroy(powerUp.gameObject);
+        }
     }
 
     // NOTE: Move to player manager?
@@ -351,4 +349,53 @@ public class Grid : MonoBehaviour
         }
         return tilemap.GetCellCenterWorld(cellPosition);
     }
+
+    /// <summary>
+    /// Returns the first scatter target position for the specified shadow type.
+    /// </summary>
+    /// <param name="type">The ShadowType to search for.</param>
+    /// <returns>The target cell position (Vector2Int) if found, or null if not found.</returns>
+    public Vector2Int? GetScatterTargetByType(ShadowType type)
+    {
+        foreach (var target in _scatterTargets)
+        {
+            if (target.shadowType == type)
+            {
+                return target.targetCell;
+            }
+        }
+        return null;
+    }
+
+    private IEnumerator PowerUpSpawnLoop()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(_powerUpSpawnInterval);
+            SpawnRandomPowerUp();
+        }
+    }
+
+    private void SpawnRandomPowerUp()
+    {
+        if (_powerUpSpawnCells == null || _powerUpSpawnCells.Count == 0)
+            return;
+
+        int randomIndex;
+        do
+        {
+            randomIndex = UnityEngine.Random.Range(0, _powerUpSpawnCells.Count);
+        } while (_powerUpSpawnCells.Count > 1 && randomIndex == _lastSpawnIndex);
+        _lastSpawnIndex = randomIndex;
+
+        Vector2Int spawnCell = _powerUpSpawnCells[randomIndex];
+        Vector3 spawnPosition = _tilemapFloors.GetCellCenterWorld(new Vector3Int(spawnCell.x, spawnCell.y, 0));
+
+        var prefab = GameManager.Instance.PowerUpPrefb;
+        if (prefab == null)
+            return;
+
+        Instantiate(prefab, spawnPosition, Quaternion.identity);
+    }
+
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using static ShadowController;
 
 public class ShadowPlayerController : MonoBehaviour
 {
@@ -12,14 +13,15 @@ public class ShadowPlayerController : MonoBehaviour
     [Header("Shadow Settings")]
     [SerializeField] private GameObject _shadowPrefab;
     [SerializeField] private int _shadowCount = 4;
-    [SerializeField] private float _spawnDelay = 2f;
+    [SerializeField] private float _spawnDelay = 1f;
     [SerializeField] private float _maxSwitchDistance = 10f;
 
     [Header("Visual Settings")]
     [SerializeField] private Color _activeColor = Color.blue;
-    [SerializeField] private Color _inactiveColor = new Color(0.5f, 0.5f, 1f, 0.5f);
 
     private readonly List<GameObject> _shadows = new();
+    public IReadOnlyList<GameObject> Shadows => _shadows;
+
     private PlayerInput _playerInput;
     private int _activeShadowIndex;
     private bool _canSwitch = true;
@@ -86,27 +88,53 @@ public class ShadowPlayerController : MonoBehaviour
             ghost.transform.SetParent(transform);
             ghost.name = $"Ghost_{i + 1}";
 
-            bool isActive = (i == 0);
             var controller = ghost.GetComponent<ShadowController>();
-            controller.SetActiveControl(isActive);
+
+            controller.SetShadowType((ShadowType)(i % 4));
+
+            bool isActive = (i == 0);
+
+            if (isActive)
+                controller.SetState(new ShadowActiveState());
+            else
+                controller.SetState(new ShadowExitBaseState());
+
 
             _shadows.Add(ghost);
-            SetGhostColors();
+            SetGhostColorsByType();
 
             yield return new WaitForSeconds(_spawnDelay);
         }
     }
 
-    private void SetGhostColors()
+    private void SetGhostColorsByType()
     {
         for (int i = 0; i < _shadows.Count; i++)
         {
             var sr = _shadows[i].GetComponent<SpriteRenderer>();
             if (sr == null) continue;
 
-            sr.color = (i == _activeShadowIndex) ? _activeColor : _inactiveColor;
+            var controller = _shadows[i].GetComponent<ShadowController>();
+            if (controller == null) continue;
+
+            Color color = controller.Type switch
+            {
+                ShadowType.Blinky => Color.red,
+                ShadowType.Pinky => new Color(1f, 0.6f, 0.8f), 
+                ShadowType.Inky => Color.cyan,
+                ShadowType.Clyde => new Color(1f, 0.6f, 0.2f), 
+                _ => Color.white
+            };
+
+            if (i == _activeShadowIndex)
+            {
+                color = _activeColor; 
+            }
+
+            sr.color = color;
         }
     }
+
 
     #endregion
 
@@ -116,7 +144,9 @@ public class ShadowPlayerController : MonoBehaviour
         _canSwitch = false;
 
         var currentGhost = _shadows[_activeShadowIndex];
-        currentGhost.GetComponent<ShadowController>().SetActiveControl(false);
+        var currentController = currentGhost.GetComponent<ShadowController>();
+
+        currentController.SetState(new ShadowScatterState());
 
         int closestIndex = _activeShadowIndex;
         float closestDistance = _maxSwitchDistance;
@@ -143,12 +173,15 @@ public class ShadowPlayerController : MonoBehaviour
             Debug.Log("No ghost in range to switch to");
         }
 
-        _shadows[_activeShadowIndex].GetComponent<ShadowController>().SetActiveControl(true);
-        SetGhostColors();
+        var newActiveController = _shadows[_activeShadowIndex].GetComponent<ShadowController>();
+        newActiveController.SetState(new ShadowActiveState());
+
+        SetGhostColorsByType();
 
         yield return new WaitForSeconds(0.3f);
         _canSwitch = true;
     }
+
 
     #endregion
 

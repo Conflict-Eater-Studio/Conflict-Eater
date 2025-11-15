@@ -11,6 +11,7 @@ public class GridEditor : Editor
     private bool _isSelectingLightSpawns = false;
     private bool _isSelectingShadowSpawn = false;
     private bool _isSelectingPowerUpSpawns = false;
+    private bool _isSelectingScatterTargets = false;
 
     // Serialized properties
     private SerializedProperty _tilemapWalls;
@@ -21,6 +22,7 @@ public class GridEditor : Editor
     private SerializedProperty _lightSpawnCells;
     private SerializedProperty _shadowSpawnCell;
     private SerializedProperty _powerUpSpawnCells;
+    private SerializedProperty _scatterTargets;
 
     private void OnEnable()
     {
@@ -35,6 +37,7 @@ public class GridEditor : Editor
         _lightSpawnCells = serializedObject.FindProperty("_lightSpawnCells");
         _shadowSpawnCell = serializedObject.FindProperty("_shadowSpawnCell");
         _powerUpSpawnCells = serializedObject.FindProperty("_powerUpSpawnCells");
+        _scatterTargets = serializedObject.FindProperty("_scatterTargets");
 
         // Subscribe to scene view events
         SceneView.duringSceneGui += OnSceneGUI;
@@ -300,6 +303,47 @@ public class GridEditor : Editor
 
         serializedObject.ApplyModifiedProperties();
 
+        // Scatter Targets Section
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Scatter Targets", EditorStyles.boldLabel);
+        EditorGUILayout.HelpBox(
+            "Target points for ghosts when in Scatter state (cell coordinates).",
+            MessageType.Info
+        );
+
+        EditorGUILayout.BeginHorizontal();
+        GUI.backgroundColor = _isSelectingScatterTargets
+            ? new Color(1f, 0.5f, 0.5f, 1f)
+            : Color.white;
+        if (GUILayout.Button(_isSelectingScatterTargets ? "Stop Selecting Scatter" : "Add/Remove Scatter"))
+        {
+            _isSelectingScatterTargets = !_isSelectingScatterTargets;
+            _isSelectingLightExclusion = false;
+            _isSelectingLightSpawns = false;
+            _isSelectingShadowSpawn = false;
+            _isSelectingPowerUpSpawns = false;
+            SceneView.RepaintAll();
+        }
+        GUI.backgroundColor = Color.white;
+
+        if (GUILayout.Button("Clear All"))
+        {
+            if (EditorUtility.DisplayDialog("Clear Scatter Targets", "Are you sure?", "Yes", "No"))
+            {
+                _scatterTargets.ClearArray();
+                serializedObject.ApplyModifiedProperties();
+                SceneView.RepaintAll();
+            }
+        }
+        EditorGUILayout.EndHorizontal();
+
+        // Show scatter targets list
+        EditorGUI.indentLevel++;
+        EditorGUILayout.PropertyField(_scatterTargets, true);
+        EditorGUI.indentLevel--;
+        EditorGUILayout.LabelField($"Scatter Targets: {_scatterTargets.arraySize}");
+
+
         // Show statistics
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Statistics", EditorStyles.boldLabel);
@@ -321,6 +365,7 @@ public class GridEditor : Editor
             && !_isSelectingLightSpawns
             && !_isSelectingShadowSpawn
             && !_isSelectingPowerUpSpawns
+            && !_isSelectingScatterTargets
         )
             return;
 
@@ -372,6 +417,12 @@ public class GridEditor : Editor
                     TogglePowerUpSpawn(cellPos);
                     e.Use();
                 }
+            }
+
+            if (_isSelectingScatterTargets)
+            {
+                ToggleScatterTarget(cellPos);
+                e.Use();
             }
         }
 
@@ -495,6 +546,47 @@ public class GridEditor : Editor
             _powerUpSpawnCells.InsertArrayElementAtIndex(index);
             _powerUpSpawnCells.GetArrayElementAtIndex(index).vector2IntValue = coord;
             Debug.Log($"Added powerup spawn at {coord}");
+        }
+
+        serializedObject.ApplyModifiedProperties();
+        EditorUtility.SetDirty(target);
+        SceneView.RepaintAll();
+    }
+
+    private void ToggleScatterTarget(Vector3Int cellPos)
+    {
+        Vector2Int coord = new Vector2Int(cellPos.x, cellPos.y);
+
+        serializedObject.Update();
+
+        bool found = false;
+
+        for (int i = 0; i < _scatterTargets.arraySize; i++)
+        {
+            SerializedProperty element = _scatterTargets.GetArrayElementAtIndex(i);
+            SerializedProperty targetCellProp = element.FindPropertyRelative("targetCell");
+
+            if (targetCellProp.vector2IntValue == coord)
+            {
+                _scatterTargets.DeleteArrayElementAtIndex(i);
+                found = true;
+                Debug.Log($"Removed scatter target at {coord}");
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            int index = _scatterTargets.arraySize;
+            _scatterTargets.InsertArrayElementAtIndex(index);
+
+            SerializedProperty newElement = _scatterTargets.GetArrayElementAtIndex(index);
+            newElement.FindPropertyRelative("targetCell").vector2IntValue = coord;
+
+            ShadowType typeToAssign = (ShadowType)(index % 4);
+            newElement.FindPropertyRelative("shadowType").enumValueIndex = (int)typeToAssign;
+
+            Debug.Log($"Added scatter target at {coord} with type {typeToAssign}");
         }
 
         serializedObject.ApplyModifiedProperties();

@@ -25,6 +25,13 @@ public class LightPlayerController : MonoBehaviour
     
     private Grid _grid;
 
+    private Vector2Int _currentDirection = Vector2Int.up;
+    public Vector2Int CurrentDirection
+    {
+        get => _currentDirection;
+        private set => _currentDirection = value;
+    }
+
     protected virtual void Awake()
     {
         _rb = GetComponentInParent<Rigidbody2D>();
@@ -44,6 +51,15 @@ public class LightPlayerController : MonoBehaviour
         if (context.performed)
         {
             _moveInput = context.ReadValue<Vector2>();
+
+            if (_moveInput.magnitude > 0.1f)
+            {
+                if (Mathf.Abs(_moveInput.x) > Mathf.Abs(_moveInput.y))
+                    CurrentDirection = _moveInput.x > 0 ? Vector2Int.right : Vector2Int.left;
+                else
+                    CurrentDirection = _moveInput.y > 0 ? Vector2Int.up : Vector2Int.down;
+            }
+
             _movement.OnMove(_moveInput);
         }
     }

@@ -1,127 +1,220 @@
-using Unity.VisualScripting;
+using System;
 using UnityEngine;
-using UnityEngine.InputSystem;
+
+/// <summary>
+/// Defines the type of shadow/ghost with their behavior patterns.
+/// </summary>
+public enum ShadowType
+{
+    Blinky, // Red – chases the player directly
+    Pinky,  // Pink – tries to ambush the player from the front
+    Inky,   // Blue – unpredictable, depends on other ghosts
+    Clyde   // Orange – alternates between chasing and retreating
+}
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(CircleCollider2D))]
 public class ShadowController : MonoBehaviour
 {
-    [Header("Movement Settings")]
-    [Tooltip("Movement speed in units per second")]
-    [SerializeField] protected float _speed = 10.5f;
-    [Tooltip("How close to .5 before applying queued dir")]
-    [SerializeField] private float _centerThreshold = 0.15f;
-    [Tooltip("How fast to snap to center when switching axis (multiplier of normal speed)")]
-    [SerializeField] private float _snapSpeedMultiplier = 1.5f;
-    [Tooltip("Speed penalty multiplier when on light tiles")]
-    [SerializeField] private float _lightTileSpeedPenalityMultiplier = 0.5f;
-    [Tooltip("Speed penalty multiplier when the ghost is inactive (AI-controlled)")]
-    [SerializeField] private float _inactiveGhostSpeedMultiplier = 0.7f;
+    #region Inspector Fields
+    [Header("Direct Indicator")]
+    [SerializeField] private GameObject _directGameObject;
+    [SerializeField] private float _directOffset = 0.37f;
 
-    private Rigidbody2D _rb;
-    private Movement _movement;
-    public Movement Movement => _movement;
-    private Grid _grid;
+    [Header("Movement Settings")]
+    [SerializeField] protected float _speed = 10.5f;
+    [SerializeField] private float _centerThreshold = 0.15f;
+    [SerializeField] private float _snapSpeedMultiplier = 1.5f;
 
     [Header("AI Settings")]
-    [Tooltip("Enable AI movement when this ghost is inactive")]
     [SerializeField] private bool _enableAIMovement = true;
-
-    [Tooltip("Delay (in seconds) before AI picks a new random direction after hitting a wall")]
     [SerializeField] private float _directionChangeDelay = 0.5f;
 
-    private bool _isActive = true;
-    public bool IsActive => _isActive;
-    private Vector2 _aiDirection = Vector2.zero;
-    private float _aiChangeTimer = 0.5f;
-    private int _aiMoveCount = 0;
+    [Header("Shadow Identity")]
+    [SerializeField] private ShadowType _shadowType;
 
+    #endregion
+
+    #region Properties
+    private Rigidbody2D _rb;
+    private Movement _movement;
+    private Vector2Int _currentDirection;
+    private ShadowBehaviorCycle _shadowBehaviorCycle;
+    public Vector2Int CurrentDirection
+    {
+        get => _currentDirection;
+        set
+        {
+            _currentDirection = value;
+            UpdateDirectObjectPosition();
+        }
+    }
+    public Movement Movement => _movement;
+    public ShadowBehaviorCycle ShadowBehaviorCycle => _shadowBehaviorCycle;
+    private Grid _grid;
+    public bool EnableAI => _enableAIMovement;
+    public float DirectionChangeDelay => _directionChangeDelay;
+    public ShadowType Type => _shadowType;
+    #endregion
+
+    #region State Management
+    private IShadowState _previousState;
+    private IShadowState _currentState;
+    private IShadowState _nextState;
+
+    public IShadowState PreviousState => _previousState;
+    public IShadowState CurrentState => _currentState;
+    public IShadowState NextState => _nextState;
+
+    /// <summary>
+    /// Sets a new state for the shadow.
+    /// </summary>
+    public void SetState(IShadowState newState)
+    {
+        if (newState == null)
+            return;
+
+        _previousState = _currentState;
+        _currentState?.Exit(this);
+
+        _currentState = newState;
+        _currentState.Enter(this);
+    }
+
+    /// <summary>
+    /// Queues the next state to transition to.
+    /// </summary>
+    public void QueueNextState(IShadowState next)
+    {
+        _nextState = next;
+    }
+
+    /// <summary>
+    /// Reverts to the previous state if available.
+    /// </summary>
+    public void RevertToPreviousState()
+    {
+        if (_previousState != null)
+        {
+            SetState(_previousState);
+        }
+    }
+
+    #endregion
+
+    #region Unity Lifecycle
     void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
-
         _grid = FindFirstObjectByType<Grid>();
         _movement = new Movement(_rb, transform, _grid, _speed, _centerThreshold, _snapSpeedMultiplier);
+        _shadowBehaviorCycle = GetComponent<ShadowBehaviorCycle>();
     }
 
-    public void Move(Vector2 moveInput)
+    void Update()
     {
-        _movement.OnMove(moveInput);
-    }
+        _currentState?.Update(this);
 
-    public void SetActiveControl(bool isActive)
-    {
-        _isActive = isActive;
-
-        if (!_isActive && _enableAIMovement)
+        if (_nextState != null)
         {
-            PickRandomDirection();
+            SetState(_nextState);
+            _nextState = null;
         }
     }
 
-    protected void FixedUpdate()
+    public void FixedUpdate()
     {
-        if (!_isActive && _enableAIMovement)
-        {
-            HandleAIMovement();
-        }
-
         _movement.FixedTick();
 
         float speedMult = 1f;
 
-        if (GameManager.Instance.Grid.IsLightTile(Grid.WorldToCell(transform.position, Grid.TilemapType.Light)))
-        {
-            speedMult *= _lightTileSpeedPenalityMultiplier;
-        }
-
-        if (!_isActive)
-        {
-            speedMult *= _inactiveGhostSpeedMultiplier;
-        }
-
         _movement.SpeedMult = speedMult;
-    }
-
-    private void HandleAIMovement()
-    {
-        _aiChangeTimer -= Time.fixedDeltaTime;
-        if (_aiChangeTimer <= 0f)
-        {
-            PickRandomDirection();
-        }
-
-        _movement.OnMove(_aiDirection);
-    }
-
-    private void PickRandomDirection()
-    {
-        _aiMoveCount++;
-
-        if (_aiMoveCount == 1)
-        {
-            _aiDirection = Vector2.up;
-        }
-        else if (_aiMoveCount == 2)
-        {
-            float sign = Random.value > 0.5f ? 1f : -1f;
-            _aiDirection = new Vector2(sign, 0f);
-        }
-        else
-        {
-            int axis = Random.Range(0, 2);
-            float sign = Random.value > 0.5f ? 1f : -1f;
-            _aiDirection = axis == 0 ? new Vector2(sign, 0f) : new Vector2(0f, sign);
-        }
-
-        _aiChangeTimer = _directionChangeDelay;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("PlayerLight"))
         {
-            GameManager.Instance.Timer.EndRound();
+            if(GameManager.Instance.IsFrightenedShadowState)
+            {
+                gameObject.transform.position = GameManager.Instance.Grid.GetSpawnPoint(Grid.SpawnPointType.Shadow);
+                SetState(new ShadowExitBaseState());
+            } else
+            {
+                GameManager.Instance.Timer.EndRound();
+            }
         }
     }
+
+    #endregion
+
+    #region Movement
+    /// <summary>
+    /// Moves the shadow based on input and sets current direction.
+    /// </summary>
+    public void Move(Vector2 input)
+    {
+        Vector2Int newDirection = Vector2Int.zero;
+
+        if (Mathf.Abs(input.x) > Mathf.Abs(input.y))
+            newDirection = input.x > 0 ? Vector2Int.right : Vector2Int.left;
+        else if (Mathf.Abs(input.y) > 0)
+            newDirection = input.y > 0 ? Vector2Int.up : Vector2Int.down;
+
+        if (newDirection != Vector2Int.zero)
+            CurrentDirection = newDirection;
+
+        _movement.OnMove(input);
+    }
+
+    /// <summary>
+    /// Updates the direct indicator's position based on current direction.
+    /// </summary>
+    private void UpdateDirectObjectPosition()
+    {
+        if (_directGameObject == null)
+            return;
+
+        Vector3 localPos = Vector3.zero;
+
+        switch (_currentDirection)
+        {
+            case var d when d == Vector2Int.up:
+                localPos = new Vector3(0f, _directOffset, 0f);
+                break;
+            case var d when d == Vector2Int.down:
+                localPos = new Vector3(0f, -_directOffset, 0f);
+                break;
+            case var d when d == Vector2Int.left:
+                localPos = new Vector3(-_directOffset, 0f, 0f);
+                break;
+            case var d when d == Vector2Int.right:
+                localPos = new Vector3(_directOffset, 0f, 0f);
+                break;
+        }
+
+        _directGameObject.transform.localPosition = localPos;
+    }
+
+    #endregion
+
+    #region Setters
+    /// <summary>
+    /// Sets the shadow's color.
+    /// </summary>
+    public void SetColor(Color color)
+    {
+        var sr = GetComponent<SpriteRenderer>();
+        if (sr != null)
+            sr.color = color;
+    }
+
+    /// <summary>
+    /// Sets the shadow type (Blinky, Pinky, etc.).
+    /// </summary>
+    public void SetShadowType(ShadowType type)
+    {
+        _shadowType = type;
+    }
+    #endregion
 }
