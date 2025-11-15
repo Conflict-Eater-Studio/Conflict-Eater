@@ -6,8 +6,8 @@ public class Powerup : MonoBehaviour
         if (other.gameObject.CompareTag("PlayerLight")) {
             Debug.Log("Light Powerup collected!");
             GameManager.Instance.IsFrightenedShadowState = true;
-            Destroy(this.gameObject);
         }
+            Destroy(this.gameObject);
         if (other.TryGetComponent(typeof(ShadowController), out Component component)) {
             Debug.Log("Shadow Powerup collected!");
             ShadowController _controller = (ShadowController) component;

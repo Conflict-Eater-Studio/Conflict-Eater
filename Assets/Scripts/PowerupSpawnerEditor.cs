@@ -1,4 +1,5 @@
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -20,8 +21,13 @@ public class PowerupSpawnerEditor : Editor
         {
             return new Label("Nie znaleziono pliku UXML!");
         }
-
+        
         var root = new VisualElement();
+        ObjectField field = new ObjectField("Powerup");
+        field.objectType = typeof(GameObject);
+        field.bindingPath = "_powerupPrefab";
+        root.Add(field);
+        
         _visualTree.CloneTree(root);
 
         // Przykład przypięcia pól
