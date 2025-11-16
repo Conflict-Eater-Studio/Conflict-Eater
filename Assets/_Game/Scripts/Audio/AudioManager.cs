@@ -24,7 +24,8 @@ public class AudioManager : MonoBehaviour
         new Dictionary<Guid, EventInstance>();
     private float _masterVolume = 1f;
     private float _sfxVolume = 1f;
-    private float _bgmVolume = 1f;
+    private float _musicVolume = 1f;
+    private float _uiVolume = 1f;
 
     public FMODEvents FMODEvents => _fmodEvents;
     public float MasterVolume
@@ -45,13 +46,22 @@ public class AudioManager : MonoBehaviour
             UpdateSFXVolume();
         }
     }
-    public float BGMVolume
+    public float MusicVolume
     {
-        get => _bgmVolume;
+        get => _musicVolume;
         set
         {
-            _bgmVolume = Mathf.Clamp01(value);
-            UpdateBGMVolume();
+            _musicVolume = Mathf.Clamp01(value);
+            UpdateMusicVolume();
+        }
+    }
+    public float UIVolume
+    {
+        get => _uiVolume;
+        set
+        {
+            _uiVolume = Mathf.Clamp01(value);
+            UpdateUIVolume();
         }
     }
 
@@ -70,14 +80,8 @@ public class AudioManager : MonoBehaviour
         {
             Debug.LogError("AudioManager: FMODEvents ScriptableObject is not assigned!");
         }
-    }
 
-    private void Start()
-    {
-        if (_fmodEvents != null && !_fmodEvents.BGM.BGM8Bit.IsNull)
-        {
-            PlaySound(_fmodEvents.BGM.BGM8Bit);
-        }
+        LoadSettings();
     }
 
     private void OnDestroy()
@@ -303,6 +307,29 @@ public class AudioManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Saves current audio settings
+    /// </summary>
+    public void SaveSettings()
+    {
+        PlayerPrefs.SetFloat("MasterVolume", _masterVolume);
+        PlayerPrefs.SetFloat("SFXVolume", _sfxVolume);
+        PlayerPrefs.SetFloat("MusicVolume", _musicVolume);
+        PlayerPrefs.SetFloat("UIVolume", _uiVolume);
+        PlayerPrefs.Save();
+    }
+
+    /// <summary>
+    /// Loads saved audio settings
+    /// </summary>
+    public void LoadSettings()
+    {
+        MasterVolume = PlayerPrefs.GetFloat("MasterVolume", 1f);
+        SFXVolume = PlayerPrefs.GetFloat("SFXVolume", 1f);
+        MusicVolume = PlayerPrefs.GetFloat("MusicVolume", 1f);
+        UIVolume = PlayerPrefs.GetFloat("UIVolume", 1f);
+    }
+
     private void UpdateMasterVolume()
     {
         RuntimeManager.GetBus("bus:/").setVolume(_masterVolume);
@@ -313,9 +340,14 @@ public class AudioManager : MonoBehaviour
         RuntimeManager.GetBus("bus:/SFX").setVolume(_sfxVolume);
     }
 
-    private void UpdateBGMVolume()
+    private void UpdateMusicVolume()
     {
-        RuntimeManager.GetBus("bus:/BGM").setVolume(_bgmVolume);
+        RuntimeManager.GetBus("bus:/Music").setVolume(_musicVolume);
+    }
+
+    private void UpdateUIVolume()
+    {
+        RuntimeManager.GetBus("bus:/UI").setVolume(_uiVolume);
     }
 
     private void LogDebug(string message)

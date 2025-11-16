@@ -8,7 +8,10 @@ public class FMODEvents : ScriptableObject
     public AudioEvents.SFX SFX;
 
     [Header("Background Music")]
-    public AudioEvents.BGM BGM;
+    public AudioEvents.Music Music;
+
+    [Header("UI")]
+    public AudioEvents.UI UI;
 
     /// <summary>
     /// Validates all event references are assigned
@@ -21,17 +24,19 @@ public class FMODEvents : ScriptableObject
     private void ValidateEventReferences()
     {
         // Check SFX
-        if (SFX != null)
-        {
-            if (SFX.SoundScore.IsNull)
-                Debug.LogWarning($"[FMODEvents] SFX.SoundScore is not assigned in {name}");
-        }
+        if (SFX != null) { }
 
         // Check BGM
-        if (BGM != null)
+        if (Music != null)
         {
-            if (BGM.BGM8Bit.IsNull)
-                Debug.LogWarning($"[FMODEvents] BGM.BGM8Bit is not assigned in {name}");
+            if (Music.Music8Bit.IsNull)
+                Debug.LogWarning($"[FMODEvents] Music.Music8Bit is not assigned in {name}");
+        }
+
+        if (UI != null)
+        {
+            if (UI.Select.IsNull)
+                Debug.LogWarning($"[FMODEvents] UI.UIBtnHover is not assigned in {name}");
         }
     }
 }
@@ -39,16 +44,21 @@ public class FMODEvents : ScriptableObject
 namespace AudioEvents
 {
     [System.Serializable]
-    public class SFX
+    public class SFX { }
+
+    [System.Serializable]
+    public class Music
     {
-        [Tooltip("Sound played when scoring")]
-        public EventReference SoundScore;
+        public EventReference Music8Bit;
     }
 
     [System.Serializable]
-    public class BGM
+    public class UI
     {
-        [Tooltip("8-bit background music")]
-        public EventReference BGM8Bit;
+        public EventReference Select;
+        public EventReference Close;
+        public EventReference Cancel;
+        public EventReference Error;
+        public EventReference Cursor;
     }
 }
