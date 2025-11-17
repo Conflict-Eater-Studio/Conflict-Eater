@@ -239,7 +239,7 @@ public class GridEditor : Editor
         EditorGUI.EndDisabledGroup();
 
         EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Powerup Spawn Points", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField("PowerupCollision Spawn Points", EditorStyles.boldLabel);
         EditorGUILayout.HelpBox(
             "The first spawn point in the list (orange color) is the primary spawn point used for spawning powerups. "
                 + "Additional spawn points are used for random spawning. (yellow color)",
@@ -274,7 +274,7 @@ public class GridEditor : Editor
         {
             if (
                 EditorUtility.DisplayDialog(
-                    "Clear Powerup Spawn Points",
+                    "Clear PowerupCollision Spawn Points",
                     "Are you sure you want to clear all powerup spawn points?",
                     "Yes",
                     "No"
@@ -348,7 +348,7 @@ public class GridEditor : Editor
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Statistics", EditorStyles.boldLabel);
         EditorGUILayout.LabelField($"Light Spawn Points: {_lightSpawnCells.arraySize}");
-        EditorGUILayout.LabelField($"Powerup Spawn Points: {_powerUpSpawnCells.arraySize}");
+        EditorGUILayout.LabelField($"PowerupCollision Spawn Points: {_powerUpSpawnCells.arraySize}");
         EditorGUILayout.LabelField($"Excluded Tiles: {_lightExclusion.arraySize}");
 
         if (Application.isPlaying)
