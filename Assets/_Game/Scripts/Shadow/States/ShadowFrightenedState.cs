@@ -23,7 +23,6 @@ public class ShadowFrightenedState : IShadowState
     private Vector3Int _currentCell;
     private float _moveTimer;
 
-    private Color _originalColor;
     #endregion
 
     #region IShadowState Implementation
@@ -31,12 +30,8 @@ public class ShadowFrightenedState : IShadowState
     {
         Debug.Log("Enter Frightened State");
 
-        var spriteRenderer = shadow.GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
-        {
-            _originalColor = spriteRenderer.color; 
-            spriteRenderer.color = new Color(0f, 0f, 0.6f);
-        }
+        ShadowAppearanceManager shadowAppearanceManager = shadow.gameObject.GetComponent<ShadowAppearanceManager>();
+        shadowAppearanceManager.SetFrightened(true);
 
         if (shadow.CurrentDirection != Vector2Int.zero)
         {
@@ -50,11 +45,9 @@ public class ShadowFrightenedState : IShadowState
 
     public void Exit(ShadowController shadow)
     {
-        var spriteRenderer = shadow.GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.color = _originalColor;
-        }
+        ShadowAppearanceManager shadowAppearanceManager = shadow.gameObject.GetComponent<ShadowAppearanceManager>();
+        shadowAppearanceManager.SetFrightened(false);
+        shadowAppearanceManager.SetNormal();
     }
 
     public void Update(ShadowController shadow)
@@ -90,7 +83,6 @@ public class ShadowFrightenedState : IShadowState
             .Where(dir => grid.IsWalkable(currentCell + (Vector3Int)dir))
             .ToList();
 
-        // Unikamy cofania siê jeœli s¹ inne opcje
         if (validDirections.Count > 1)
         {
             validDirections.Remove(-_lastDirection);

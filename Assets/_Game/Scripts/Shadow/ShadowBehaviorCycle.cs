@@ -12,7 +12,7 @@ public class ShadowBehaviorCycle : MonoBehaviour
     private int _phaseIndex = 0;
     private bool _runningCycle = false;
 
-    [SerializeField] private float frightenedDuration = 5f;
+    [SerializeField] private float frightenedDuration = 20f;
 
     private void Start()
     {
@@ -31,25 +31,31 @@ public class ShadowBehaviorCycle : MonoBehaviour
 
         while (_phaseIndex < _scatterDurations.Length)
         {
-            _controller.SetState(new ShadowScatterState());
-            yield return RunPhase(_scatterDurations[_phaseIndex]);
+            yield return RunPhaseWithInterrupt(
+                new ShadowScatterState(),
+                _scatterDurations[_phaseIndex]
+            );
 
-            _controller.SetState(new ShadowChaseState());
-            yield return RunPhase(_chaseDurations[_phaseIndex]);
+            yield return RunPhaseWithInterrupt(
+                new ShadowChaseState(),
+                _chaseDurations[_phaseIndex]
+            );
 
             _phaseIndex++;
         }
 
-        _controller.SetState(new ShadowChaseState());
+        yield return RunPhaseWithInterrupt(
+            new ShadowChaseState(),
+            Mathf.Infinity
+        );
+
         _runningCycle = false;
     }
 
-    /// <summary>
-    /// Obs³uguje fazê z mo¿liwoœci¹ przerwania przez stan Frightened.
-    /// </summary>
-    private IEnumerator RunPhase(float duration)
+    private IEnumerator RunPhaseWithInterrupt(IShadowState phaseState, float duration)
     {
         float elapsed = 0f;
+        _controller.SetState(phaseState);
 
         while (elapsed < duration)
         {
@@ -63,15 +69,20 @@ public class ShadowBehaviorCycle : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Tymczasowo w³¹cza stan przestraszenia i wstrzymuje cykl.
-    /// </summary>
+
     private IEnumerator HandleFrightenedState()
     {
+        var previousState = _controller.CurrentState;
+
         _controller.SetState(new ShadowFrightenedState());
 
         yield return new WaitForSeconds(frightenedDuration);
 
         GameManager.Instance.IsFrightenedShadowState = false;
+
+        if (previousState != null)
+        {
+            _controller.SetState(previousState);
+        }
     }
 }

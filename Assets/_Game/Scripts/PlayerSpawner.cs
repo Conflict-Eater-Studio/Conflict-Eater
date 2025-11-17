@@ -84,6 +84,8 @@ public class PlayerSpawner : MonoBehaviour
 
         input.gameObject.tag = "PlayerShadow";
 
+        var apperenceManager = child.AddComponent<ShadowAppearanceManager>();
+
         var shadowController = child.AddComponent<ShadowPlayerController>();
         shadowController.SetShadowPrefab(_ghostPrefab);
 

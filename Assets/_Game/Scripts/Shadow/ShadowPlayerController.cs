@@ -16,9 +16,6 @@ public class ShadowPlayerController : MonoBehaviour
     [SerializeField] private float _spawnDelay = 1f;
     [SerializeField] private float _maxSwitchDistance = 10f;
 
-    [Header("Visual Settings")]
-    [SerializeField] private Color _activeColor = Color.blue;
-
     private readonly List<GameObject> _shadows = new();
     public IReadOnlyList<GameObject> Shadows => _shadows;
 
@@ -101,40 +98,25 @@ public class ShadowPlayerController : MonoBehaviour
 
 
             _shadows.Add(ghost);
-            SetGhostColorsByType();
+            UpdateAppearance();
 
             yield return new WaitForSeconds(_spawnDelay);
         }
     }
 
-    private void SetGhostColorsByType()
+    private void UpdateAppearance()
     {
         for (int i = 0; i < _shadows.Count; i++)
         {
-            var sr = _shadows[i].GetComponent<SpriteRenderer>();
-            if (sr == null) continue;
-
             var controller = _shadows[i].GetComponent<ShadowController>();
-            if (controller == null) continue;
-
-            Color color = controller.Type switch
-            {
-                ShadowType.Blinky => Color.red,
-                ShadowType.Pinky => new Color(1f, 0.6f, 0.8f), 
-                ShadowType.Inky => Color.cyan,
-                ShadowType.Clyde => new Color(1f, 0.6f, 0.2f), 
-                _ => Color.white
-            };
+            var appearance = _shadows[i].GetComponent<ShadowAppearanceManager>();
 
             if (i == _activeShadowIndex)
-            {
-                color = _activeColor; 
-            }
-
-            sr.color = color;
+                appearance.SetActive();
+            else
+                appearance.SetNormal();
         }
     }
-
 
     #endregion
 
@@ -176,7 +158,7 @@ public class ShadowPlayerController : MonoBehaviour
         var newActiveController = _shadows[_activeShadowIndex].GetComponent<ShadowController>();
         newActiveController.SetState(new ShadowActiveState());
 
-        SetGhostColorsByType();
+        UpdateAppearance();
 
         yield return new WaitForSeconds(0.3f);
         _canSwitch = true;
@@ -190,6 +172,7 @@ public class ShadowPlayerController : MonoBehaviour
     private void HandleRoundEnd(object sender, System.EventArgs e)
     {
         StopAllCoroutines();
+        GameManager.Instance.IsFrightenedShadowState = false;
 
         foreach (var ghost in _shadows)
         {

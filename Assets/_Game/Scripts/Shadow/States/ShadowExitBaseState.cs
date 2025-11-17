@@ -92,7 +92,14 @@ public class ShadowExitBaseState : IShadowState
         }
         else
         {
-            shadow.ShadowBehaviorCycle.StartBehaviorCycle();
+            if(GameManager.Instance.IsFrightenedShadowState)
+            {
+                shadow.SetState(new ShadowFrightenedState());
+            }
+            else
+            {
+                shadow.ShadowBehaviorCycle.StartBehaviorCycle(); 
+            }    
         }
     }
 

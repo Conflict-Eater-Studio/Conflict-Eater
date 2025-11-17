@@ -106,6 +106,7 @@ GameObject:
   - component: {fileID: -6833806685901029725}
   - component: {fileID: 6009927817446827661}
   - component: {fileID: 1752572746265143529}
+  - component: {fileID: 2552252901711834535}
   m_Layer: 6
   m_Name: GhostPrefab
   m_TagString: Untagged
@@ -368,3 +369,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 474175746c0a2734a908888fd131be6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShadowBehaviorCycle
+  frightenedDuration: 5
+--- !u!114 &2552252901711834535
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2683791842499567046}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9cee6ff5f1f24004a987546dbfb47269, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShadowAppearanceManager
+  bodyRenderer: {fileID: 950135915731450671}
+  eyesRenderer: {fileID: 1227894040874746553}
+  blinkyColor: {r: 1, g: 0, b: 0, a: 1}
+  pinkyColor: {r: 1, g: 0.6, b: 0.9, a: 1}
+  inkyColor: {r: 0, g: 1, b: 1, a: 1}
+  clydeColor: {r: 1, g: 0.7, b: 0.3, a: 1}
+  frightenedColor: {r: 0, g: 0, b: 0.6, a: 1}
+  frightenedBlinkColor: {r: 1, g: 1, b: 1, a: 1}
+  blinkInterval: 0.2
