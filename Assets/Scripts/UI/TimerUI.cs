@@ -78,6 +78,7 @@ public class TimerUI : MonoBehaviour
 
     #region Event Handlers
     private void TimerUI_OnMatchStart(object sender, OnMatchStartEventArgs e) {
+        
         _matchDurationSeconds = e.MatchDuration;
         _roundDurationSeconds = e.RoundDuration;
         _matchSlider.value = 1f;
@@ -103,8 +104,6 @@ public class TimerUI : MonoBehaviour
         _roundSlider.value = Mathf.Clamp01(roundTimeLeft);
         _matchSlider.value = Mathf.Clamp01(matchTimeLeft);
     }
-
-
     
     #endregion
 }

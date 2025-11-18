@@ -33,6 +33,7 @@ public class ShadowPlayerController : MonoBehaviour
     private PlayerInput _playerInput;
     private int _activeShadowIndex;
     private bool _canSwitch = true;
+    private bool _isRoundStarted = false;
 
     #region Unity Lifecycle
     private void Start()
@@ -45,8 +46,14 @@ public class ShadowPlayerController : MonoBehaviour
             _playerInput.actions[MoveActionName].performed += OnMove;
         }
 
+        GameManager.Instance.Timer.OnRoundStart += Timer_OnRoundStart;
         GameManager.Instance.Timer.OnRoundEnd += HandleRoundEnd;
-        StartCoroutine(SpawnShadows());
+        StartCoroutine(SpawnFirstShadow());
+    }
+
+    private void Timer_OnRoundStart(object sender, System.EventArgs e)
+    {
+        _isRoundStarted = true;
     }
 
     private void Update()
@@ -90,8 +97,6 @@ public class ShadowPlayerController : MonoBehaviour
         }
     }
 
-
-
     private void OnDestroy()
     {
         if (_playerInput != null)
@@ -101,13 +106,17 @@ public class ShadowPlayerController : MonoBehaviour
         }
 
         if (GameManager.Instance != null)
+        {
             GameManager.Instance.Timer.OnRoundEnd -= HandleRoundEnd;
+            GameManager.Instance.Timer.OnRoundStart += Timer_OnRoundStart;
+        }
     }
     #endregion
 
     #region Input Handling
     private void OnMove(InputAction.CallbackContext context)
     {
+        if (!_isRoundStarted) return;
         if (_shadows.Count == 0) return;
 
         Vector2 moveInput = context.ReadValue<Vector2>();
@@ -132,9 +141,31 @@ public class ShadowPlayerController : MonoBehaviour
         _shadowPrefab = gameObject;
     }
 
-    private IEnumerator SpawnShadows()
+    private IEnumerator SpawnFirstShadow()
     {
-        for (int i = 0; i < _shadowCount; i++)
+        var spawnPosition = new Vector3(-0.5f, -0.5f, 0f);
+        var ghost = Instantiate(_shadowPrefab, spawnPosition, Quaternion.identity);
+        ghost.transform.SetParent(transform);
+        ghost.name = "Ghost_1";
+
+        var controller = ghost.GetComponent<ShadowController>();
+        controller.SetShadowType(ShadowType.Blinky);
+        controller.IsShadowActive = true;
+
+        _shadows.Add(ghost);
+        _activeShadowIndex = 0;
+        UpdateAppearance();
+
+        yield return new WaitUntil(() => _isRoundStarted);
+
+        controller.SetState(new ShadowExitBaseState());
+
+        StartCoroutine(SpawnRemainingShadows());
+    }
+
+    private IEnumerator SpawnRemainingShadows()
+    {
+        for (int i = 1; i < _shadowCount; i++)
         {
             var spawnPosition = new Vector3(-0.5f, -0.5f, 0f);
             var ghost = Instantiate(_shadowPrefab, spawnPosition, Quaternion.identity);
@@ -142,13 +173,8 @@ public class ShadowPlayerController : MonoBehaviour
             ghost.name = $"Ghost_{i + 1}";
 
             var controller = ghost.GetComponent<ShadowController>();
-
             controller.SetShadowType((ShadowType)(i % 4));
-
-            bool isActive = (i == 0);
-
-            controller.IsShadowActive = isActive;
-
+            controller.IsShadowActive = false;
             controller.SetState(new ShadowExitBaseState());
 
             _shadows.Add(ghost);
@@ -296,6 +322,7 @@ public class ShadowPlayerController : MonoBehaviour
     {
         StopAllCoroutines();
         _canSwitch = true;
+        _isRoundStarted = false;
         GameManager.Instance.IsFrightenedShadowState = false;
 
         foreach (var ghost in _shadows)
@@ -313,7 +340,7 @@ public class ShadowPlayerController : MonoBehaviour
     private IEnumerator RespawnAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
-        StartCoroutine(SpawnShadows());
+        StartCoroutine(SpawnFirstShadow());
     }
 
     #endregion
