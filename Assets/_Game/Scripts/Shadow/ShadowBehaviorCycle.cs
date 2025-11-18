@@ -55,14 +55,14 @@ public class ShadowBehaviorCycle : MonoBehaviour
     private IEnumerator RunPhaseWithInterrupt(IShadowState phaseState, float duration)
     {
         float elapsed = 0f;
-        if (!_controller.IsShadowActive)
+        if (!_controller.IsShadowActive && _controller.CurrentState.State != ShadowState.Eaten)
         {
             _controller.SetState(phaseState);
         }
 
         while (elapsed < duration)
         {
-            if (GameManager.Instance.IsFrightenedShadowState)
+            if (GameManager.Instance.IsFrightenedShadowState && _controller.CurrentState.State != ShadowState.Eaten)
             {
                 yield return StartCoroutine(HandleFrightenedState());
             }
@@ -72,25 +72,27 @@ public class ShadowBehaviorCycle : MonoBehaviour
         }
     }
 
-
     private IEnumerator HandleFrightenedState()
     {
+        if (_controller.CurrentState.State == ShadowState.Eaten)
+            yield break;
+
         IShadowState previousState = null;
 
         if (!_controller.IsShadowActive)
             previousState = _controller.CurrentState;
 
-        if(!_controller.IsShadowActive)
+        if(!_controller.IsShadowActive && _controller.CurrentState.State != ShadowState.Eaten)
             _controller.SetState(new ShadowFrightenedState());
 
         yield return new WaitForSeconds(frightenedDuration);
 
         GameManager.Instance.IsFrightenedShadowState = false;
 
-        if (previousState != null && !_controller.IsShadowActive)
+        if (previousState != null && !_controller.IsShadowActive && _controller.CurrentState.State != ShadowState.Eaten)
         {
             _controller.SetState(previousState);
-        } else if(!_controller.IsShadowActive)
+        } else if(!_controller.IsShadowActive && _controller.CurrentState.State != ShadowState.Eaten)
         {
             _controller.SetState(new ShadowScatterState());
         }

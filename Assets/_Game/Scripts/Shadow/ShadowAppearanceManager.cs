@@ -5,7 +5,6 @@ public class ShadowAppearanceManager : MonoBehaviour
 {
     [Header("Renderers")]
     [SerializeField] private SpriteRenderer bodyRenderer;
-    [SerializeField] private SpriteRenderer eyesRenderer;
 
     [Header("Base Colors")]
     public Color blinkyColor = Color.red;
@@ -22,8 +21,11 @@ public class ShadowAppearanceManager : MonoBehaviour
     public Color frightenedBlinkColor = Color.white;
     public float blinkInterval = 0.2f;
 
-    [Header("NextActiveShadowMarker")]
+    [Header("Next Active Shadow Marker")]
     [SerializeField] private GameObject _nextShadowMarker;
+
+    [Header("Eater Shadow")]
+    [SerializeField] private Collider2D _collider;
 
     private ShadowController controller;
     private Coroutine blinkRoutine;
@@ -48,7 +50,6 @@ public class ShadowAppearanceManager : MonoBehaviour
         CurrentState = VisualState.Normal;
         StopBlinking();
         bodyRenderer.enabled = true;
-        eyesRenderer.enabled = true;
 
         bodyRenderer.color = activeColor;
     }
@@ -58,7 +59,7 @@ public class ShadowAppearanceManager : MonoBehaviour
         CurrentState = VisualState.Normal;
         StopBlinking();
         bodyRenderer.enabled = true;
-        eyesRenderer.enabled = true;
+        _collider.enabled = true;
         bodyRenderer.color = GetBaseColor();
     }
 
@@ -67,14 +68,12 @@ public class ShadowAppearanceManager : MonoBehaviour
         CurrentState = VisualState.ExitingBase;
         StopBlinking();
         bodyRenderer.enabled = true;
-        eyesRenderer.enabled = true;
         bodyRenderer.color = GetBaseColor();
     }
 
     public void SetFrightened(bool blinking = false, bool isActive = false)
     {
         CurrentState = VisualState.Frightened;
-        eyesRenderer.enabled = false;
         bodyRenderer.enabled = true;
 
         bodyRenderer.color = isActive ? frightenedActiveColor : frightenedNormalColor;
@@ -91,7 +90,7 @@ public class ShadowAppearanceManager : MonoBehaviour
         CurrentState = VisualState.Dead;
         StopBlinking();
         bodyRenderer.enabled = false;
-        eyesRenderer.enabled = true;
+        _collider.enabled = false;
     }
 
     public void ActiveNextShadowMarker(bool active)

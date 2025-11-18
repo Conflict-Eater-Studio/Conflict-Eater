@@ -14,6 +14,7 @@ public class GridEditor : Editor
     private bool _isSelectingPowerUpSpawns = false;
     private bool _isSelectingScatterTargets = false;
     private bool _isSelectingshadowBlockedCells = false;
+    private bool _isSelectingHomeTargets = false;
 
     // Serialized properties
     private SerializedProperty _tilemapWalls;
@@ -26,6 +27,7 @@ public class GridEditor : Editor
     private SerializedProperty _powerUpSpawnCells;
     private SerializedProperty _scatterTargets;
     private SerializedProperty _shadowBlockedCells;
+    private SerializedProperty _homeTargets;
 
     private void OnEnable()
     {
@@ -42,6 +44,7 @@ public class GridEditor : Editor
         _powerUpSpawnCells = serializedObject.FindProperty("_powerUpSpawnCells");
         _scatterTargets = serializedObject.FindProperty("_scatterTargets");
         _shadowBlockedCells = serializedObject.FindProperty("_shadowBlockedCells");
+        _homeTargets = serializedObject.FindProperty("_homeTargets");
 
         // Subscribe to scene view events
         SceneView.duringSceneGui += OnSceneGUI;
@@ -398,6 +401,46 @@ public class GridEditor : Editor
         EditorGUILayout.PropertyField(_shadowBlockedCells, true);
         EditorGUI.indentLevel--;
 
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Shadow Home Targets", EditorStyles.boldLabel);
+        EditorGUILayout.HelpBox(
+            "Click on floor tiles in the Scene view to add/remove shadow home targets.",
+            MessageType.Info
+        );
+
+        EditorGUILayout.BeginHorizontal();
+        GUI.backgroundColor = _isSelectingHomeTargets ? new Color(0.8f, 0.5f, 1f, 1f) : Color.white;
+        if (GUILayout.Button(_isSelectingHomeTargets ? "Stop Selecting" : "Add/Remove", GUILayout.Width(EditorGUIUtility.currentViewWidth * 0.5f - 10)))
+        {
+            _isSelectingHomeTargets = !_isSelectingHomeTargets;
+
+            // turn off other modes
+            _isSelectingLightExclusion = false;
+            _isSelectingLightSpawns = false;
+            _isSelectingShadowSpawn = false;
+            _isSelectingPowerUpSpawns = false;
+            _isSelectingScatterTargets = false;
+            _isSelectingshadowBlockedCells = false;
+
+            SceneView.RepaintAll();
+        }
+        GUI.backgroundColor = Color.white;
+
+        if (GUILayout.Button("Clear All", GUILayout.Width(EditorGUIUtility.currentViewWidth * 0.5f - 10)))
+        {
+            if (EditorUtility.DisplayDialog("Clear Shadow Home Targets", "Are you sure you want to clear all shadow home targets?", "Yes", "No"))
+            {
+                _homeTargets.ClearArray();
+                serializedObject.ApplyModifiedProperties();
+                SceneView.RepaintAll();
+            }
+        }
+        EditorGUILayout.EndHorizontal();
+
+        // Show home targets list
+        EditorGUI.indentLevel++;
+        EditorGUILayout.PropertyField(_homeTargets, true);
+        EditorGUI.indentLevel--;
 
         // Show statistics
         EditorGUILayout.Space();
@@ -422,6 +465,7 @@ public class GridEditor : Editor
             && !_isSelectingPowerUpSpawns
             && !_isSelectingScatterTargets
             && !_isSelectingshadowBlockedCells
+            && !_isSelectingHomeTargets
         )
             return;
 
@@ -476,6 +520,11 @@ public class GridEditor : Editor
                 else if (_isSelectingshadowBlockedCells)
                 {
                     ToggleShadowBlocked(cellPos);
+                    e.Use();
+                }
+                else if (_isSelectingHomeTargets)
+                {
+                    ToggleHomeTarget(cellPos);
                     e.Use();
                 }
             }
@@ -680,6 +729,37 @@ public class GridEditor : Editor
             _shadowBlockedCells.InsertArrayElementAtIndex(index);
             _shadowBlockedCells.GetArrayElementAtIndex(index).vector2IntValue = coord;
             Debug.Log($"Added shadow blocked tile at {coord}");
+        }
+
+        serializedObject.ApplyModifiedProperties();
+        EditorUtility.SetDirty(target);
+        SceneView.RepaintAll();
+    }
+
+    private void ToggleHomeTarget(Vector3Int cellPos)
+    {
+        Vector2Int coord = new Vector2Int(cellPos.x, cellPos.y);
+        serializedObject.Update();
+
+        bool found = false;
+        for (int i = 0; i < _homeTargets.arraySize; i++)
+        {
+            SerializedProperty element = _homeTargets.GetArrayElementAtIndex(i);
+            if (element.vector2IntValue == coord)
+            {
+                _homeTargets.DeleteArrayElementAtIndex(i);
+                found = true;
+                Debug.Log($"Removed shadow home target at {coord}");
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            int index = _homeTargets.arraySize;
+            _homeTargets.InsertArrayElementAtIndex(index);
+            _homeTargets.GetArrayElementAtIndex(index).vector2IntValue = coord;
+            Debug.Log($"Added shadow home target at {coord}");
         }
 
         serializedObject.ApplyModifiedProperties();

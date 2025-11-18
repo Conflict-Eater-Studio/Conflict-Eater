@@ -15,6 +15,7 @@ public enum ShadowState
     ExitBase = 3,
     Frightened = 4,
     Scatter = 5,
+    Eaten = 6,
 }
 public interface IShadowState
 {

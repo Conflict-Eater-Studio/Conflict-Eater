@@ -231,6 +231,10 @@ public class ShadowPlayerController : MonoBehaviour
         {
             if (i == _activeShadowIndex) continue;
 
+            var controller = _shadows[i].GetComponent<ShadowController>();
+            if (controller.CurrentState.State == ShadowState.Eaten)
+                continue;
+
             float dist = Vector3.Distance(
                 _shadows[_activeShadowIndex].transform.position,
                 _shadows[i].transform.position);
@@ -271,10 +275,14 @@ public class ShadowPlayerController : MonoBehaviour
         int randomIndex = _activeShadowIndex;
         if (_shadows.Count > 1)
         {
+            int attempts = 0;
             do
             {
                 randomIndex = Random.Range(0, _shadows.Count);
-            } while (randomIndex == _activeShadowIndex);
+                attempts++;
+                if (attempts > 10) break;
+            } while (randomIndex == _activeShadowIndex
+                     || _shadows[randomIndex].GetComponent<ShadowController>().CurrentState.State == ShadowState.Eaten);
         }
 
         _activeShadowIndex = randomIndex;
@@ -297,6 +305,10 @@ public class ShadowPlayerController : MonoBehaviour
         for (int i = 0; i < _shadows.Count; i++)
         {
             if (i == _activeShadowIndex) continue;
+
+            var controller = _shadows[i].GetComponent<ShadowController>();
+            if (controller.CurrentState.State == ShadowState.Eaten)
+                continue;
 
             float d = Vector3.Distance(
                 _shadows[_activeShadowIndex].transform.position,

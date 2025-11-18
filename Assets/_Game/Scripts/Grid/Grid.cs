@@ -62,6 +62,9 @@ public class Grid : MonoBehaviour
     [SerializeField]
     private List<Vector2Int> _shadowBlockedCells = new List<Vector2Int>();
 
+    [Header("Shadow Home Targets")]
+    [SerializeField]
+    private List<Vector2Int> _homeTargets = new List<Vector2Int>();
 
     [System.Serializable]
     public class ShadowScatterTarget
@@ -172,6 +175,7 @@ public class Grid : MonoBehaviour
         }
         return Vector3.zero;
     }
+
     public List<Vector3> GetPowerupSpawnPoints() {
         List<Vector3> spawnPoints = new List<Vector3>();
         for (int i = 0; i < _powerUpSpawnCells.Count; i++) {
@@ -182,6 +186,13 @@ public class Grid : MonoBehaviour
 
         return spawnPoints;
     }
+
+    public List<Vector2Int> GetShadowHomeTargets()
+    {
+        return _homeTargets;
+    }
+
+
     /// <summary>
     /// Sets the spawn point for the given player type.
     /// </summary>
