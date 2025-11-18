@@ -5,8 +5,20 @@ using UnityEngine;
 /// Each state controls how the shadow behaves during the game.
 /// Examples: Chase, Scatter, Frightened, etc.
 /// </summary>
+/// 
+
+public enum ShadowState
+{
+    None = 0,
+    Active = 1,
+    Chase = 2,
+    ExitBase = 3,
+    Frightened = 4,
+    Scatter = 5,
+}
 public interface IShadowState
 {
+    ShadowState State { get; }
     /// <summary>
     /// Called when the shadow enters this state.
     /// Use this to initialize timers, set target directions, or reset variables.

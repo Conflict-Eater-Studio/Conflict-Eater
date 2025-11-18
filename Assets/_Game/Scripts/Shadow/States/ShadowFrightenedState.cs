@@ -8,6 +8,7 @@ using System.Linq;
 /// </summary>
 public class ShadowFrightenedState : IShadowState
 {
+    ShadowState IShadowState.State => ShadowState.Frightened;
     #region Constants and Fields
     private static readonly Vector2Int[] Directions =
     {
@@ -23,20 +24,15 @@ public class ShadowFrightenedState : IShadowState
     private Vector3Int _currentCell;
     private float _moveTimer;
 
-    private Color _originalColor;
     #endregion
 
     #region IShadowState Implementation
     public void Enter(ShadowController shadow)
     {
-        Debug.Log("Enter Frightened State");
+        //Debug.Log("Enter Frightened State: " + shadow.Type);
 
-        var spriteRenderer = shadow.GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
-        {
-            _originalColor = spriteRenderer.color; 
-            spriteRenderer.color = new Color(0f, 0f, 0.6f);
-        }
+        ShadowAppearanceManager shadowAppearanceManager = shadow.gameObject.GetComponent<ShadowAppearanceManager>();
+        shadowAppearanceManager.SetFrightened(true);
 
         if (shadow.CurrentDirection != Vector2Int.zero)
         {
@@ -50,11 +46,10 @@ public class ShadowFrightenedState : IShadowState
 
     public void Exit(ShadowController shadow)
     {
-        var spriteRenderer = shadow.GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.color = _originalColor;
-        }
+        //Debug.Log("FrightenedState Exit: " + shadow.Type);
+        ShadowAppearanceManager shadowAppearanceManager = shadow.gameObject.GetComponent<ShadowAppearanceManager>();
+        shadowAppearanceManager.SetFrightened(false);
+        shadowAppearanceManager.SetNormal();
     }
 
     public void Update(ShadowController shadow)
@@ -87,17 +82,24 @@ public class ShadowFrightenedState : IShadowState
     private Vector2Int ChooseRandomDirection(Grid grid, Vector3Int currentCell)
     {
         var validDirections = Directions
-            .Where(dir => grid.IsWalkable(currentCell + (Vector3Int)dir))
+            .Where(dir => grid.IsWalkableForShadow(currentCell + (Vector3Int)dir))
             .ToList();
 
-        // Unikamy cofania siê jeœli s¹ inne opcje
         if (validDirections.Count > 1)
         {
             validDirections.Remove(-_lastDirection);
         }
 
         if (validDirections.Count == 0)
+        {
+            Vector3Int upCell = currentCell + Vector3Int.up;
+
+            if (grid.IsWalkable(upCell))
+            {
+                return Vector2Int.up;
+            }
             return Vector2Int.zero;
+        }
 
         int randomIndex = Random.Range(0, validDirections.Count);
         return validDirections[randomIndex];

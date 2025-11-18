@@ -1,80 +1,109 @@
-using System;
-using System.Reflection;
+using System.Collections;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
-public static class Extensions {
-    public static void SetText(this TMP_Text text, string value) {
-        text.text = value;
-    }
-}
 public class TimerUI : MonoBehaviour
 {
-    [SerializeField] TMP_Text _matchTimeLeftText;
-    [SerializeField] TMP_Text _roundTimeLeftText;
-    [SerializeField] Slider _matchSlider;
-    [SerializeField] Slider _roundSlider;
+    #region Serialized Fields
+    
+    [SerializeField] private Slider _matchSlider;
+    [SerializeField] private Slider _roundSlider;
+    [SerializeField] private TMP_Text _matchCountdownText;
 
-    private float _matchStartTime; 
-    private float _roundStartTime;
+    #endregion
+
+    #region Private Fields
     private float _matchDurationSeconds;
     private float _roundDurationSeconds;
-
-    private float _pauseTime = 0;
-
-    private bool _isEnded;
-    private void Awake() {
-        GameManager.Instance.Timer.OnMatchStart += TimerUI_OnMatchStart;
-        GameManager.Instance.Timer.OnRoundEnd += (sender, args) => {
-            _roundStartTime = Time.time;
-        };
-        GameManager.Instance.Timer.OnMatchEnd += (sender, args) =>
-        {
-            _isEnded = true;
-            Debug.Log("Match End");
-        };
-        GameManager.Instance.Timer.OnMatchPause += (sender, args) =>
-        {
-            _pauseTime = Time.time;
-        };
-        GameManager.Instance.Timer.OnMatchResume += (sender, args) =>
-        {
-            float diff = Time.time - _pauseTime;
-            _matchStartTime += diff;
-            _roundStartTime += diff;
-            _pauseTime = 0;
-        };
-    }
     
- 
-    private void Update() {
-        if (_pauseTime > 0) return; 
-        if (_isEnded) return;
-        float roundTimeLeft = (_roundStartTime + _roundDurationSeconds) - Time.time;
-        float roundTimeLeftPercent = roundTimeLeft / _roundDurationSeconds;
-        float matchTimeLeft = (_matchStartTime + _matchDurationSeconds) - Time.time;
-        float matchTimeLeftPercent = matchTimeLeft / _matchDurationSeconds;
-        if (matchTimeLeft <= 0) return;
-        if (roundTimeLeft <= 0) return;
-        _roundSlider.value = roundTimeLeftPercent;
-        _matchSlider.value = matchTimeLeftPercent;
-        
-        UpdateTimerDisplay();
-    }
-    private void UpdateTimerDisplay() {
-        TimeSpan matchTimeLeft = TimeSpan.FromSeconds((_matchStartTime + _matchDurationSeconds) - Time.time);
-        TimeSpan roundTimeLeft = TimeSpan.FromSeconds((_roundStartTime + _roundDurationSeconds) - Time.time);
-        if(matchTimeLeft.Seconds < 0 || roundTimeLeft.Seconds < 0) return;
-        _matchTimeLeftText.SetText($"{matchTimeLeft.Minutes:00}:{matchTimeLeft.Seconds:00}");
-        _roundTimeLeftText.SetText($"{roundTimeLeft.TotalMinutes:00}:{roundTimeLeft.TotalSeconds:00}");
+    private float _matchCountdown;
+    private float _roundCountdown;
+    
+    private Match _timer;
+    #endregion
+
+    #region Unity Callbacks
+    private void Awake()
+    {
+        _timer = GameManager.Instance.Timer;
+        if (_timer == null)
+        {
+            Debug.LogError("TimerUI: Timer not initialized.");
+            enabled = false;
+            return;
+        }
+        SubscribeEvents();
     }
 
+    private void OnDestroy()
+    {
+        UnsubscribeEvents();
+    }
+
+    private void Update()
+    {        
+        if (_timer.CountdownRemaining >= 0f) {
+            _matchCountdownText.SetText($"{Mathf.CeilToInt(_timer.CountdownRemaining)}");
+        }
+        else {
+            _matchCountdownText.SetText("");
+        }
+        
+        if (!_timer.IsGameRunning || _timer.IsGamePaused) return;
+
+        UpdateSliders();
+    }
+    #endregion
+
+    
+    #region Event Subscription
+    private void SubscribeEvents()
+    {
+        _timer.OnMatchStart += TimerUI_OnMatchStart;
+        _timer.OnRoundEnd += TimerUI_OnRoundEnd;
+        _timer.OnMatchEnd += TimerUI_OnMatchEnd;
+    }
+
+    private void UnsubscribeEvents()
+    {
+        if (_timer == null) return;
+
+        _timer.OnMatchStart -= TimerUI_OnMatchStart;
+        _timer.OnRoundEnd -= TimerUI_OnRoundEnd;
+        _timer.OnMatchEnd -= TimerUI_OnMatchEnd;
+    }
+    #endregion
+
+    #region Event Handlers
     private void TimerUI_OnMatchStart(object sender, OnMatchStartEventArgs e) {
-        _matchStartTime = Time.time;
-        _roundStartTime = Time.time;
+        
         _matchDurationSeconds = e.MatchDuration;
         _roundDurationSeconds = e.RoundDuration;
-        UpdateTimerDisplay();
+        _matchSlider.value = 1f;
+        _roundSlider.value = 1f;
     }
+
+    private void TimerUI_OnRoundEnd(object sender, System.EventArgs e) {
+        _roundSlider.value = 1f;
+    }
+
+    private void TimerUI_OnMatchEnd(object sender, System.EventArgs e) {
+        _matchCountdownText.SetText("");
+    }
+    
+    #endregion
+
+    #region Private Methods
+    private void UpdateSliders()
+    {
+        float roundTimeLeft = 1f - (_timer.RoundTime / _roundDurationSeconds);
+        float matchTimeLeft = 1f - (_timer.MatchTime / _matchDurationSeconds);
+
+        _roundSlider.value = Mathf.Clamp01(roundTimeLeft);
+        _matchSlider.value = Mathf.Clamp01(matchTimeLeft);
+    }
+    
+    #endregion
 }

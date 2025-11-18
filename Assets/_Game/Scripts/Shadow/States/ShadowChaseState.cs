@@ -7,6 +7,8 @@ using UnityEngine;
 /// </summary>
 public class ShadowChaseState : IShadowState
 {
+    ShadowState IShadowState.State => ShadowState.Chase;
+
     #region Constants and Fields
     private static readonly Vector2Int[] Directions =
     {
@@ -26,7 +28,7 @@ public class ShadowChaseState : IShadowState
     #region IShadowState Implementation
     public void Enter(ShadowController shadow)
     {
-        Debug.Log("Enter Chase State");
+        //Debug.Log("Enter Chase State");
         _moveTimer = 0f;
         _type = shadow.Type;
 

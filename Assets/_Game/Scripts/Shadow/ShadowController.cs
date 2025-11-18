@@ -6,10 +6,10 @@ using UnityEngine;
 /// </summary>
 public enum ShadowType
 {
-    Blinky, // Red – chases the player directly
-    Pinky,  // Pink – tries to ambush the player from the front
-    Inky,   // Blue – unpredictable, depends on other ghosts
-    Clyde   // Orange – alternates between chasing and retreating
+    Blinky, // Red ï¿½ chases the player directly
+    Pinky,  // Pink ï¿½ tries to ambush the player from the front
+    Inky,   // Blue ï¿½ unpredictable, depends on other ghosts
+    Clyde   // Orange ï¿½ alternates between chasing and retreating
 }
 
 [RequireComponent(typeof(Rigidbody2D))]
@@ -32,7 +32,6 @@ public class ShadowController : MonoBehaviour
 
     [Header("Shadow Identity")]
     [SerializeField] private ShadowType _shadowType;
-
     #endregion
 
     #region Properties
@@ -40,8 +39,16 @@ public class ShadowController : MonoBehaviour
     private Movement _movement;
     private Vector2Int _currentDirection;
     private ShadowBehaviorCycle _shadowBehaviorCycle;
-    public Vector2Int CurrentDirection
+    private bool _isShadowActive = false;
+    private ShadowPlayerController _owner;
+
+    public bool IsShadowActive
     {
+        get { return _isShadowActive; }
+        set { _isShadowActive = value; }
+    }
+
+    public Vector2Int CurrentDirection{
         get => _currentDirection;
         set
         {
@@ -137,6 +144,12 @@ public class ShadowController : MonoBehaviour
         {
             if(GameManager.Instance.IsFrightenedShadowState)
             {
+                if(_isShadowActive)
+                {
+                    _owner = GetComponentInParent<ShadowPlayerController>();
+                    _owner.StartCoroutine(_owner.SwitchShadowsRandomCoroutine());
+                }
+
                 gameObject.transform.position = GameManager.Instance.Grid.GetSpawnPoint(Grid.SpawnPointType.Shadow);
                 SetState(new ShadowExitBaseState());
             } else

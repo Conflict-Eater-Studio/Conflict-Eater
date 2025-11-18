@@ -24,6 +24,7 @@ public class LightPlayerController : MonoBehaviour
     [SerializeField] private float _snapSpeedMultiplier = 1.5f;
     
     private Grid _grid;
+    private bool _isRoundStarted = false;
 
     private Vector2Int _currentDirection = Vector2Int.up;
     public Vector2Int CurrentDirection
@@ -44,10 +45,28 @@ public class LightPlayerController : MonoBehaviour
             InputAction moveAction = _playerInput.actions[MoveActionName];
             moveAction.performed += OnMove;
         }
+
+        if(GameManager.Instance)
+        {
+            GameManager.Instance.Timer.OnRoundStart += Timer_OnRoundStart;
+            GameManager.Instance.Timer.OnRoundEnd += Timer_OnRoundEnd;
+        }
+    }
+
+    private void Timer_OnRoundEnd(object sender, EventArgs e)
+    {
+        _isRoundStarted = false;
+    }
+
+    private void Timer_OnRoundStart(object sender, EventArgs e)
+    {
+        _isRoundStarted = true;
     }
 
     public virtual void OnMove(InputAction.CallbackContext context)
     {
+        if (!_isRoundStarted) return;
+
         if (context.performed)
         {
             _moveInput = context.ReadValue<Vector2>();
@@ -84,13 +103,11 @@ public class LightPlayerController : MonoBehaviour
             var moveAction = _playerInput.actions[MoveActionName];
             moveAction.performed -= OnMove;
         }
-    }
 
-  private void OnTriggerEnter2D(Collider2D collision)
-  {
-    if(collision)
-    {
-        Debug.Log(collision);
+        if (GameManager.Instance)
+        {
+            GameManager.Instance.Timer.OnRoundStart -= Timer_OnRoundStart;
+            GameManager.Instance.Timer.OnRoundEnd -= Timer_OnRoundEnd;
+        }
     }
-  }
 }

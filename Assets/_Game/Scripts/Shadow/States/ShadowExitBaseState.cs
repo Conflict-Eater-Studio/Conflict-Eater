@@ -6,6 +6,8 @@ using UnityEngine;
 /// </summary>
 public class ShadowExitBaseState : IShadowState
 {
+    ShadowState IShadowState.State => ShadowState.ExitBase;
+
     #region Phase Definition
     private enum Phase
     {
@@ -62,6 +64,11 @@ public class ShadowExitBaseState : IShadowState
     {
         if (currentCell.x == _targetCell.x && currentCell.y >= _targetCell.y)
         {
+            if (shadow.IsShadowActive)
+            {
+                shadow.SetState(new ShadowActiveState());
+                shadow.ShadowBehaviorCycle.StartBehaviorCycle();
+            }
             _phase = Phase.MovingSide;
         }
         else
@@ -92,7 +99,14 @@ public class ShadowExitBaseState : IShadowState
         }
         else
         {
-            shadow.ShadowBehaviorCycle.StartBehaviorCycle();
+            if(GameManager.Instance.IsFrightenedShadowState)
+            {
+                shadow.SetState(new ShadowFrightenedState());
+            } 
+            else
+            {
+                shadow.ShadowBehaviorCycle.StartBehaviorCycle();
+            }    
         }
     }
 

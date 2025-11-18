@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 950135915731450671}
   - component: {fileID: 1278631364479377717}
   - component: {fileID: 7481903126405274262}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: PlayerCore
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -130,7 +130,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1118452421
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 0
   m_Sprite: {fileID: -2311659948842064771, guid: b67c4f4991403ce49a90a503d66d63f1, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
