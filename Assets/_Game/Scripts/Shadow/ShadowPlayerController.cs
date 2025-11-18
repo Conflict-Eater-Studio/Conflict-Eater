@@ -62,7 +62,35 @@ public class ShadowPlayerController : MonoBehaviour
         _pinkyState = _shadows[1].GetComponent<ShadowController>().CurrentState.State;
         _inkyState = _shadows[2].GetComponent<ShadowController>().CurrentState.State;
         _clydeState = _shadows[3].GetComponent<ShadowController>().CurrentState.State;
+
+        UpdateNextShadowMarker();
     }
+
+    private void UpdateNextShadowMarker()
+    {
+        int nextIndex = GetClosestShadowIndex();
+
+        if (nextIndex == -1 ||
+            Vector3.Distance(
+                _shadows[_activeShadowIndex].transform.position,
+                _shadows[nextIndex].transform.position) > _maxSwitchDistance)
+        {
+            for (int i = 0; i < _shadows.Count; i++)
+            {
+                var appearance = _shadows[i].GetComponent<ShadowAppearanceManager>();
+                appearance.ActiveNextShadowMarker(false);
+            }
+            return;
+        }
+
+        for (int i = 0; i < _shadows.Count; i++)
+        {
+            var appearance = _shadows[i].GetComponent<ShadowAppearanceManager>();
+            appearance.ActiveNextShadowMarker(i == nextIndex);
+        }
+    }
+
+
 
     private void OnDestroy()
     {
@@ -235,10 +263,33 @@ public class ShadowPlayerController : MonoBehaviour
         _canSwitch = true;
     }
 
+    private int GetClosestShadowIndex()
+    {
+        float closest = Mathf.Infinity;
+        int index = -1;
+
+        for (int i = 0; i < _shadows.Count; i++)
+        {
+            if (i == _activeShadowIndex) continue;
+
+            float d = Vector3.Distance(
+                _shadows[_activeShadowIndex].transform.position,
+                _shadows[i].transform.position);
+
+            if (d < closest)
+            {
+                closest = d;
+                index = i;
+            }
+        }
+
+        return index;
+    }
+
 
     #endregion
 
-        #region Round Reset
+    #region Round Reset
 
     private void HandleRoundEnd(object sender, System.EventArgs e)
     {

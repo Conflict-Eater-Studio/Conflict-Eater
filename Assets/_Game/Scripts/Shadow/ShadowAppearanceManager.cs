@@ -22,6 +22,9 @@ public class ShadowAppearanceManager : MonoBehaviour
     public Color frightenedBlinkColor = Color.white;
     public float blinkInterval = 0.2f;
 
+    [Header("NextActiveShadowMarker")]
+    [SerializeField] private GameObject _nextShadowMarker;
+
     private ShadowController controller;
     private Coroutine blinkRoutine;
 
@@ -89,6 +92,12 @@ public class ShadowAppearanceManager : MonoBehaviour
         StopBlinking();
         bodyRenderer.enabled = false;
         eyesRenderer.enabled = true;
+    }
+
+    public void ActiveNextShadowMarker(bool active)
+    {
+        if (_nextShadowMarker != null)
+            _nextShadowMarker.SetActive(active);
     }
 
     private void StartBlinking(bool isActive)
