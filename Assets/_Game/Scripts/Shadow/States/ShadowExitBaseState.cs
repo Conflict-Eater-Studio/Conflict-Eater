@@ -6,6 +6,7 @@ using UnityEngine;
 /// </summary>
 public class ShadowExitBaseState : IShadowState
 {
+    ShadowState IShadowState.State => ShadowState.ExitBase;
     #region Phase Definition
     private enum Phase
     {

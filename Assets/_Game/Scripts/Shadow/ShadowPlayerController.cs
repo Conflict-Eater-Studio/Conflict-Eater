@@ -16,6 +16,17 @@ public class ShadowPlayerController : MonoBehaviour
     [SerializeField] private float _spawnDelay = 1f;
     [SerializeField] private float _maxSwitchDistance = 10f;
 
+    [SerializeField] private bool _blinky = false;
+    [SerializeField] private bool _pinky = false;
+    [SerializeField] private bool _inky = false;
+    [SerializeField] private bool _clyde = false;
+
+    [SerializeField] private ShadowState _blintyState;
+    [SerializeField] private ShadowState _pinkyState;
+    [SerializeField] private ShadowState _inkyState;
+    [SerializeField] private ShadowState _clydeState;
+
+
     private readonly List<GameObject> _shadows = new();
     public IReadOnlyList<GameObject> Shadows => _shadows;
 
@@ -36,6 +47,21 @@ public class ShadowPlayerController : MonoBehaviour
 
         GameManager.Instance.Timer.OnRoundEnd += HandleRoundEnd;
         StartCoroutine(SpawnShadows());
+    }
+
+    private void Update()
+    {
+        if (_shadows.Count < 4) return;
+
+        _blinky = _shadows[0].GetComponent<ShadowController>().IsShadowActive;
+        _pinky = _shadows[1].GetComponent<ShadowController>().IsShadowActive;
+        _inky = _shadows[2].GetComponent<ShadowController>().IsShadowActive;
+        _clyde = _shadows[3].GetComponent<ShadowController>().IsShadowActive;
+
+        _blintyState = _shadows[0].GetComponent<ShadowController>().CurrentState.State;
+        _pinkyState = _shadows[1].GetComponent<ShadowController>().CurrentState.State;
+        _inkyState = _shadows[2].GetComponent<ShadowController>().CurrentState.State;
+        _clydeState = _shadows[3].GetComponent<ShadowController>().CurrentState.State;
     }
 
     private void OnDestroy()
@@ -63,8 +89,10 @@ public class ShadowPlayerController : MonoBehaviour
 
     private void OnSwitch(InputAction.CallbackContext context)
     {
-        if (!_canSwitch || _shadows.Count == 0) return;
-        StartCoroutine(SwitchGhostCoroutine());
+        if (!_canSwitch || _shadows.Count == 0)
+            return;
+
+        StartCoroutine(SwitchShadowsCoroutine());
     }
 
     #endregion
@@ -92,11 +120,16 @@ public class ShadowPlayerController : MonoBehaviour
             bool isActive = (i == 0);
 
             if (isActive)
+            {
                 controller.SetState(new ShadowActiveState());
+                controller.IsShadowActive = true;
+            }
             else
+            {
                 controller.SetState(new ShadowExitBaseState());
-
-
+                controller.IsShadowActive = false;
+            }
+                
             _shadows.Add(ghost);
             UpdateAppearance();
 
@@ -111,24 +144,38 @@ public class ShadowPlayerController : MonoBehaviour
             var controller = _shadows[i].GetComponent<ShadowController>();
             var appearance = _shadows[i].GetComponent<ShadowAppearanceManager>();
 
-            if (i == _activeShadowIndex)
+            if (GameManager.Instance.IsFrightenedShadowState && !controller.IsShadowActive)
+            {
+                appearance.SetFrightened(true);
+            }
+            else if (i == _activeShadowIndex)
+            {
                 appearance.SetActive();
+            }
             else
+            {
                 appearance.SetNormal();
+            }
         }
     }
+
 
     #endregion
 
     #region Switching Logic
-    private IEnumerator SwitchGhostCoroutine()
+    private IEnumerator SwitchShadowsCoroutine()
     {
         _canSwitch = false;
 
-        var currentGhost = _shadows[_activeShadowIndex];
-        var currentController = currentGhost.GetComponent<ShadowController>();
+        bool isFrightened = GameManager.Instance.IsFrightenedShadowState;
 
-        currentController.SetState(new ShadowScatterState());
+        var oldController = _shadows[_activeShadowIndex].GetComponent<ShadowController>();
+        oldController.IsShadowActive = false;
+
+        if (isFrightened)
+            oldController.SetState(new ShadowFrightenedState());
+        else
+            oldController.SetState(new ShadowScatterState());
 
         int closestIndex = _activeShadowIndex;
         float closestDistance = _maxSwitchDistance;
@@ -137,26 +184,57 @@ public class ShadowPlayerController : MonoBehaviour
         {
             if (i == _activeShadowIndex) continue;
 
-            float distance = Vector3.Distance(currentGhost.transform.position, _shadows[i].transform.position);
-            if (distance < closestDistance)
+            float dist = Vector3.Distance(
+                _shadows[_activeShadowIndex].transform.position,
+                _shadows[i].transform.position);
+
+            if (dist < closestDistance)
             {
-                closestDistance = distance;
                 closestIndex = i;
+                closestDistance = dist;
             }
         }
 
-        if (closestIndex != _activeShadowIndex)
-        {
-            _activeShadowIndex = closestIndex;
-            Debug.Log($"Switched to ghost #{_activeShadowIndex + 1}");
-        }
+        _activeShadowIndex = closestIndex;
+
+        var newController = _shadows[_activeShadowIndex].GetComponent<ShadowController>();
+        newController.IsShadowActive = true;
+        newController.SetState(new ShadowActiveState());
+
+        UpdateAppearance();
+
+        yield return new WaitForSeconds(0.3f);
+        _canSwitch = true;
+    }
+
+    public IEnumerator SwitchShadowsRandomCoroutine()
+    {
+        _canSwitch = false;
+
+        bool isFrightened = GameManager.Instance.IsFrightenedShadowState;
+
+        var oldController = _shadows[_activeShadowIndex].GetComponent<ShadowController>();
+        oldController.IsShadowActive = false;
+
+        if (isFrightened)
+            oldController.SetState(new ShadowFrightenedState());
         else
+            oldController.SetState(new ShadowScatterState());
+
+        int randomIndex = _activeShadowIndex;
+        if (_shadows.Count > 1)
         {
-            Debug.Log("No ghost in range to switch to");
+            do
+            {
+                randomIndex = Random.Range(0, _shadows.Count);
+            } while (randomIndex == _activeShadowIndex);
         }
 
-        var newActiveController = _shadows[_activeShadowIndex].GetComponent<ShadowController>();
-        newActiveController.SetState(new ShadowActiveState());
+        _activeShadowIndex = randomIndex;
+
+        var newController = _shadows[_activeShadowIndex].GetComponent<ShadowController>();
+        newController.IsShadowActive = true;
+        newController.SetState(new ShadowActiveState());
 
         UpdateAppearance();
 
@@ -167,11 +245,12 @@ public class ShadowPlayerController : MonoBehaviour
 
     #endregion
 
-    #region Round Reset
+        #region Round Reset
 
     private void HandleRoundEnd(object sender, System.EventArgs e)
     {
         StopAllCoroutines();
+        _canSwitch = true;
         GameManager.Instance.IsFrightenedShadowState = false;
 
         foreach (var ghost in _shadows)

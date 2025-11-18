@@ -32,7 +32,6 @@ public class ShadowController : MonoBehaviour
 
     [Header("Shadow Identity")]
     [SerializeField] private ShadowType _shadowType;
-
     #endregion
 
     #region Properties
@@ -40,8 +39,16 @@ public class ShadowController : MonoBehaviour
     private Movement _movement;
     private Vector2Int _currentDirection;
     private ShadowBehaviorCycle _shadowBehaviorCycle;
-    public Vector2Int CurrentDirection
+    private bool _isShadowActive = false;
+    private ShadowPlayerController _owner;
+
+    public bool IsShadowActive
     {
+        get { return _isShadowActive; }
+        set { _isShadowActive = value; }
+    }
+
+    public Vector2Int CurrentDirection{
         get => _currentDirection;
         set
         {
@@ -137,6 +144,13 @@ public class ShadowController : MonoBehaviour
         {
             if(GameManager.Instance.IsFrightenedShadowState)
             {
+                if(_isShadowActive)
+                {
+                    //Active shadow eaten 
+                    _owner = GetComponentInParent<ShadowPlayerController>();
+                    _owner.StartCoroutine(_owner.SwitchShadowsRandomCoroutine());
+                }
+
                 gameObject.transform.position = GameManager.Instance.Grid.GetSpawnPoint(Grid.SpawnPointType.Shadow);
                 SetState(new ShadowExitBaseState());
             } else

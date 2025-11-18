@@ -8,6 +8,7 @@ using System.Linq;
 /// </summary>
 public class ShadowFrightenedState : IShadowState
 {
+    ShadowState IShadowState.State => ShadowState.Frightened;
     #region Constants and Fields
     private static readonly Vector2Int[] Directions =
     {
@@ -28,7 +29,7 @@ public class ShadowFrightenedState : IShadowState
     #region IShadowState Implementation
     public void Enter(ShadowController shadow)
     {
-        Debug.Log("Enter Frightened State");
+        Debug.Log("Enter Frightened State: " + shadow.Type);
 
         ShadowAppearanceManager shadowAppearanceManager = shadow.gameObject.GetComponent<ShadowAppearanceManager>();
         shadowAppearanceManager.SetFrightened(true);
@@ -45,6 +46,7 @@ public class ShadowFrightenedState : IShadowState
 
     public void Exit(ShadowController shadow)
     {
+        Debug.Log("FrightenedState Exit: " + shadow.Type);
         ShadowAppearanceManager shadowAppearanceManager = shadow.gameObject.GetComponent<ShadowAppearanceManager>();
         shadowAppearanceManager.SetFrightened(false);
         shadowAppearanceManager.SetNormal();

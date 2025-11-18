@@ -12,7 +12,7 @@ public class ShadowBehaviorCycle : MonoBehaviour
     private int _phaseIndex = 0;
     private bool _runningCycle = false;
 
-    [SerializeField] private float frightenedDuration = 20f;
+    [SerializeField] private float frightenedDuration = 60f;
 
     private void Start()
     {
@@ -55,7 +55,10 @@ public class ShadowBehaviorCycle : MonoBehaviour
     private IEnumerator RunPhaseWithInterrupt(IShadowState phaseState, float duration)
     {
         float elapsed = 0f;
-        _controller.SetState(phaseState);
+        if (!_controller.IsShadowActive)
+        {
+            _controller.SetState(phaseState);
+        }
 
         while (elapsed < duration)
         {
@@ -72,17 +75,24 @@ public class ShadowBehaviorCycle : MonoBehaviour
 
     private IEnumerator HandleFrightenedState()
     {
-        var previousState = _controller.CurrentState;
+        IShadowState previousState = null;
 
-        _controller.SetState(new ShadowFrightenedState());
+        if (!_controller.IsShadowActive)
+            previousState = _controller.CurrentState;
+
+        if(!_controller.IsShadowActive)
+            _controller.SetState(new ShadowFrightenedState());
 
         yield return new WaitForSeconds(frightenedDuration);
 
         GameManager.Instance.IsFrightenedShadowState = false;
 
-        if (previousState != null)
+        if (previousState != null && !_controller.IsShadowActive)
         {
             _controller.SetState(previousState);
+        } else if(!_controller.IsShadowActive)
+        {
+            _controller.SetState(new ShadowScatterState());
         }
     }
 }

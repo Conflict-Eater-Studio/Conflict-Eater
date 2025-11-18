@@ -384,10 +384,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShadowAppearanceManager
   bodyRenderer: {fileID: 950135915731450671}
   eyesRenderer: {fileID: 1227894040874746553}
-  blinkyColor: {r: 1, g: 0, b: 0, a: 1}
-  pinkyColor: {r: 1, g: 0.6, b: 0.9, a: 1}
-  inkyColor: {r: 0, g: 1, b: 1, a: 1}
-  clydeColor: {r: 1, g: 0.7, b: 0.3, a: 1}
-  frightenedColor: {r: 0, g: 0, b: 0.6, a: 1}
+  blinkyColor: {r: 1, g: 0.28652775, b: 0, a: 1}
+  pinkyColor: {r: 0.05490196, g: 0.5137255, b: 1, a: 1}
+  inkyColor: {r: 0.05490196, g: 0.5137255, b: 1, a: 1}
+  clydeColor: {r: 0.05490196, g: 0.5137255, b: 1, a: 1}
+  frightenedColor: {r: 0.43137255, g: 0.5686275, b: 0.70980394, a: 1}
   frightenedBlinkColor: {r: 1, g: 1, b: 1, a: 1}
   blinkInterval: 0.2

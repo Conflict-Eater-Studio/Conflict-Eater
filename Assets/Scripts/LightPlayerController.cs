@@ -85,12 +85,4 @@ public class LightPlayerController : MonoBehaviour
             moveAction.performed -= OnMove;
         }
     }
-
-  private void OnTriggerEnter2D(Collider2D collision)
-  {
-    if(collision)
-    {
-        Debug.Log(collision);
-    }
-  }
 }
