@@ -82,7 +82,7 @@ public class ShadowFrightenedState : IShadowState
     private Vector2Int ChooseRandomDirection(Grid grid, Vector3Int currentCell)
     {
         var validDirections = Directions
-            .Where(dir => grid.IsWalkable(currentCell + (Vector3Int)dir))
+            .Where(dir => grid.IsWalkableForShadow(currentCell + (Vector3Int)dir))
             .ToList();
 
         if (validDirections.Count > 1)
@@ -91,7 +91,15 @@ public class ShadowFrightenedState : IShadowState
         }
 
         if (validDirections.Count == 0)
+        {
+            Vector3Int upCell = currentCell + Vector3Int.up;
+
+            if (grid.IsWalkable(upCell))
+            {
+                return Vector2Int.up;
+            }
             return Vector2Int.zero;
+        }
 
         int randomIndex = Random.Range(0, validDirections.Count);
         return validDirections[randomIndex];

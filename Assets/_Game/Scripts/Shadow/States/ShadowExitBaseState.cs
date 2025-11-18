@@ -62,17 +62,13 @@ public class ShadowExitBaseState : IShadowState
     /// </summary>
     private void HandleMovingUpPhase(ShadowController shadow, Vector3Int currentCell)
     {
-        if(shadow.IsShadowActive)
+        if (currentCell.x == _targetCell.x && currentCell.y >= _targetCell.y)
         {
-            if (currentCell.x == _targetCell.x && currentCell.y - 0.25 >= _targetCell.y)
+            if (shadow.IsShadowActive)
             {
                 shadow.SetState(new ShadowActiveState());
                 shadow.ShadowBehaviorCycle.StartBehaviorCycle();
             }
-        }
-
-        else if (currentCell.x == _targetCell.x && currentCell.y >= _targetCell.y)
-        {
             _phase = Phase.MovingSide;
         }
         else

@@ -58,6 +58,11 @@ public class Grid : MonoBehaviour
     [SerializeField]
     private List<Vector2Int> _powerUpSpawnCells = new List<Vector2Int>();
 
+    [Tooltip("Cells that shadows cannot step on")]
+    [SerializeField]
+    private List<Vector2Int> _shadowBlockedCells = new List<Vector2Int>();
+
+
     [System.Serializable]
     public class ShadowScatterTarget
     {
@@ -214,6 +219,19 @@ public class Grid : MonoBehaviour
         {
             return false;
         }
+    }
+
+    public bool IsWalkableForShadow(Vector3Int cellPosition)
+    {
+        if (IsShadowBlocked(cellPosition))
+            return false;
+
+        return IsWalkable(cellPosition);
+    }
+
+    public bool IsShadowBlocked(Vector3Int cellPosition)
+    {
+        return _shadowBlockedCells.Contains(new Vector2Int(cellPosition.x, cellPosition.y));
     }
 
     /// <summary>

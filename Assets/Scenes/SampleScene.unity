@@ -413,6 +413,19 @@ MonoBehaviour:
   - {x: -1, y: 8}
   - {x: -15, y: -1}
   - {x: 13, y: -1}
+  _shadowBlockedCells:
+  - {x: -2, y: 1}
+  - {x: -1, y: 1}
+  - {x: -2, y: 0}
+  - {x: -1, y: 0}
+  - {x: -2, y: -1}
+  - {x: -1, y: -2}
+  - {x: -1, y: -1}
+  - {x: -2, y: -2}
+  - {x: 0, y: -2}
+  - {x: 0, y: -1}
+  - {x: 0, y: 0}
+  - {x: 0, y: 1}
   _scatterTargets:
   - shadowType: 0
     targetCell: {x: 17, y: 10}
@@ -1597,7 +1610,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 741922700}
   m_CullTransparentMesh: 1
---- !u!43 &879965671
+--- !u!43 &992535154
 Mesh:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -14072,7 +14085,7 @@ MonoBehaviour:
     rid: 1187304558530396240
   m_ShadowCastingSource: 2
   m_ShadowMesh:
-    m_Mesh: {fileID: 879965671}
+    m_Mesh: {fileID: 992535154}
     m_LocalBounds:
       m_Center: {x: -0.50001526, y: -0.5, z: 0}
       m_Extent: {x: 21.499985, y: 12.5, z: 0}
