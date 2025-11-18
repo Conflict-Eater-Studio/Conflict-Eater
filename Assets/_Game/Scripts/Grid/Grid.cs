@@ -103,9 +103,6 @@ public class Grid : MonoBehaviour
                 }
             }
         }
-
-        if (_powerUpSpawnRoutine == null)
-            _powerUpSpawnRoutine = StartCoroutine(PowerUpSpawnLoop());
     }
 
     // Reset map state on round end
@@ -393,36 +390,4 @@ public class Grid : MonoBehaviour
         }
         return null;
     }
-
-    private IEnumerator PowerUpSpawnLoop()
-    {
-        while (true)
-        {
-            yield return new WaitForSeconds(_powerUpSpawnInterval);
-            SpawnRandomPowerUp();
-        }
-    }
-
-    private void SpawnRandomPowerUp()
-    {
-        if (_powerUpSpawnCells == null || _powerUpSpawnCells.Count == 0)
-            return;
-
-        int randomIndex;
-        do
-        {
-            randomIndex = UnityEngine.Random.Range(0, _powerUpSpawnCells.Count);
-        } while (_powerUpSpawnCells.Count > 1 && randomIndex == _lastSpawnIndex);
-        _lastSpawnIndex = randomIndex;
-
-        Vector2Int spawnCell = _powerUpSpawnCells[randomIndex];
-        Vector3 spawnPosition = _tilemapFloors.GetCellCenterWorld(new Vector3Int(spawnCell.x, spawnCell.y, 0));
-
-        var prefab = GameManager.Instance.PowerUpPrefb;
-        if (prefab == null)
-            return;
-
-        Instantiate(prefab, spawnPosition, Quaternion.identity);
-    }
-
 }

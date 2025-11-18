@@ -24,6 +24,7 @@ public class PowerupSpawner : MonoBehaviour {
     private int[] randomIdx;
 
     private void Start() {
+        _grid = GameManager.Instance.Grid;
 
         if (_grid == null) {
             Debug.LogError("Grid not assigned to PowerupSpawner!");
@@ -32,8 +33,6 @@ public class PowerupSpawner : MonoBehaviour {
 
         GameManager.Instance.Timer.OnRoundStart += PowerupSpawner_OnRoundStart;
         GameManager.Instance.Timer.OnRoundEnd += PowerupSpawner_OnRoundEnd;
-
-        
 
         SpawnPowerups();
     }
@@ -77,9 +76,6 @@ public class PowerupSpawner : MonoBehaviour {
         for (int i = 0; i < max; i++)
             list.Add(i);
 
-        foreach (var i in list) {
-            Debug.Log(i);
-        }
         for (int i = 0; i < max; i++) {
             int k = UnityEngine.Random.Range(i, list.Count);
             (list[i], list[k]) = (list[k], list[i]);
