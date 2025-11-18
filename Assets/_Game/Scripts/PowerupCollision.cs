@@ -53,6 +53,10 @@ public class PowerupCollision : MonoBehaviour {
     private void HandleShadowPowerup(ShadowController controller) {
         switch (shadowPowerup._powerupType) {
             case ShadowPowerupType.FarCry:
+                if (boostRoutine != null) {
+                    StopCoroutine(boostRoutine);
+                    boostRoutine = null;
+                }
                 boostRoutine = StartCoroutine(BoostShadowSpeed(controller));
                 break;
             case ShadowPowerupType.SarcasticSmile:
@@ -73,16 +77,14 @@ public class PowerupCollision : MonoBehaviour {
         }
     }
 
-    private IEnumerator BoostShadowSpeed(ShadowController controller)
-    {
-        float originalSpeed = controller.Movement.GetSpeed();
+    private IEnumerator BoostShadowSpeed(ShadowController controller) {
         controller.Movement.SetSpeed(speedBoost);
         Debug.Log("Shadow speed boosted to " + speedBoost);
         yield return new WaitForSeconds(shadowPowerup._duration);
 
         if (controller != null && controller.CurrentState is ShadowActiveState) {
-            controller.Movement.SetSpeed(originalSpeed);
-            Debug.Log("Shadow speed boosted back to " + originalSpeed);
+            controller.Movement.ResetSpeed();
+            Debug.Log("Shadow speed boosted");
         }
     }
     public void Enable() {
