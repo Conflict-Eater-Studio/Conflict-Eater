@@ -579,6 +579,8 @@ public class Movement
     /// </summary>
     /// <param name="newSpeed">New speed value.</param>
     public void SetSpeed(float newSpeed) => _speed = newSpeed;
+    public float GetSpeed() => _speed;
+    
 
     /// <summary>
     /// Stops all movement immediately.

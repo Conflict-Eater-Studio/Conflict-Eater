@@ -4,72 +4,121 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public enum SpawnType {
-    AllAtOnce,
+    Discrete,
     Continous,
     Random
 }
+
 public class PowerupSpawner : MonoBehaviour {
-    [SerializeField] private Vector2 _spawnTimeRange;
+    [Header("Settings")]
+    [SerializeField] private SpawnType _spawnType = SpawnType.Discrete;
+    [SerializeField] private Vector2 _spawnTimeRange = new Vector2(3, 8);
     [SerializeField] private int _powerupCount = 3;
-    [SerializeField] private SpawnType _spawnType = SpawnType.AllAtOnce;
-    
-    [SerializeField] List<Powerup> _powerups;
+
+    [Header("Powerups")]
     [SerializeField] private GameObject _powerupPrefab;
     [SerializeField] private Grid _grid;
 
-    private List<Vector3> _spawnPoints = new List<Vector3>();
     private readonly List<Coroutine> _runningCoroutines = new List<Coroutine>();
-    private List<GameObject> powerups = new List<GameObject>();
-    void Start() {
+    private readonly List<GameObject> _powerups = new List<GameObject>();
+    private int[] randomIdx;
+
+    private void Start() {
+
+        if (_grid == null) {
+            Debug.LogError("Grid not assigned to PowerupSpawner!");
+            return;
+        }
+
         GameManager.Instance.Timer.OnRoundStart += PowerupSpawner_OnRoundStart;
         GameManager.Instance.Timer.OnRoundEnd += PowerupSpawner_OnRoundEnd;
-        _spawnPoints = _grid.GetPowerupSpawnPoints(_powerupCount);
+
+        
+
+        SpawnPowerups();
     }
 
+    private void OnDestroy() {
+        GameManager.Instance.Timer.OnRoundStart -= PowerupSpawner_OnRoundStart;
+        GameManager.Instance.Timer.OnRoundEnd -= PowerupSpawner_OnRoundEnd;
+    }
+
+    // ---------------------------------------------------------------------
+    // EVENTS
+    // ---------------------------------------------------------------------
     private void PowerupSpawner_OnRoundEnd(object sender, EventArgs e) {
         StopAllRunningCoroutines();
-        DestroyAllPowerups();
-        powerups.Clear();
-    }
-    private void DestroyAllPowerups() {
-        foreach (var powerup in powerups) {
-            Destroy(powerup);
-        }
+        DeactivateAllPowerups();
     }
 
     private void PowerupSpawner_OnRoundStart(object sender, EventArgs e) {
-        foreach (var spawnPoint in _spawnPoints) {
-            Debug.Log(spawnPoint);
-        }
-        float randomTime = UnityEngine.Random.Range(_spawnTimeRange.x, _spawnTimeRange.y);
+        float delay = UnityEngine.Random.Range(_spawnTimeRange.x, _spawnTimeRange.y);
+        randomIdx = GenerateRandomPowerupIndices(_powerups.Count, _powerupCount);
+
         switch (_spawnType) {
-            case SpawnType.AllAtOnce:
-                RunCoroutine(SpawnPowerups(randomTime));
-                return;
+            case SpawnType.Discrete:
+                RunCoroutine(ActivateAllAfterDelay(delay));
+                break;
             case SpawnType.Continous:
                 for (int i = 0; i < _powerupCount; i++) {
-                    randomTime = UnityEngine.Random.Range(_spawnTimeRange.x, _spawnTimeRange.y);
-                    RunCoroutine(SpawnPowerupWithDelay(_spawnPoints[i], randomTime));
+                    float t = UnityEngine.Random.Range(_spawnTimeRange.x, _spawnTimeRange.y);
+                    RunCoroutine(ActivateSingleAfterDelay(randomIdx[i], t));
                 }
-                return;
+                break;
+            case SpawnType.Random:
+                int rnd = UnityEngine.Random.Range(0, _powerups.Count);
+                RunCoroutine(ActivateSingleAfterDelay(rnd, delay));
+                break;
+        }
+    }
+    private int[] GenerateRandomPowerupIndices(int max, int count) {
+        List<int> list = new List<int>();
+        
+        for (int i = 0; i < max; i++)
+            list.Add(i);
+
+        foreach (var i in list) {
+            Debug.Log(i);
+        }
+        for (int i = 0; i < max; i++) {
+            int k = UnityEngine.Random.Range(i, list.Count);
+            (list[i], list[k]) = (list[k], list[i]);
+        }
+
+        int[] result = list.GetRange(0, count).ToArray();
+        
+
+        return result;
+    }
+
+    private void SpawnPowerups() {
+        List<Vector3> spawnPoints = _grid.GetPowerupSpawnPoints();
+
+        for (int i = 0; i < spawnPoints.Count; i++) {
+            GameObject powerup = Instantiate(_powerupPrefab, spawnPoints[i], Quaternion.identity);
+            powerup.SetActive(false);
+            _powerups.Add(powerup);
         }
     }
     
-    private IEnumerator SpawnPowerups(float delay) {
+    private IEnumerator ActivateAllAfterDelay(float delay) {
         yield return new WaitForSeconds(delay);
-        Debug.Log("Spawning powerups");
         for (int i = 0; i < _powerupCount; i++) {
-           SpawnPowerup(_spawnPoints[i]);
+            _powerups[randomIdx[i]].SetActive(true);
         }
     }
-    private IEnumerator SpawnPowerupWithDelay(Vector2 spawnPoint, float delay) {
+
+    private IEnumerator ActivateSingleAfterDelay(int index, float delay) {
         yield return new WaitForSeconds(delay);
-        SpawnPowerup(spawnPoint);
+        if (_powerups[index] != null)
+            _powerups[index].SetActive(true);
     }
-    private void SpawnPowerup(Vector2 spawnPoint) {
-        GameObject powerup = Instantiate(_powerupPrefab, spawnPoint, Quaternion.identity);
-        powerups.Add(powerup);
+
+    private void DeactivateAllPowerups() {
+        foreach (var p in _powerups)
+            if (p != null) p.SetActive(false);
     }
+    
     private void RunCoroutine(IEnumerator routine) {
         Coroutine c = StartCoroutine(routine);
         _runningCoroutines.Add(c);
@@ -79,6 +128,7 @@ public class PowerupSpawner : MonoBehaviour {
         foreach (var c in _runningCoroutines)
             if (c != null)
                 StopCoroutine(c);
+
         _runningCoroutines.Clear();
     }
 }

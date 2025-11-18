@@ -170,13 +170,9 @@ public class Grid : MonoBehaviour
         }
         return Vector3.zero;
     }
-    public List<Vector3> GetPowerupSpawnPoints(int count) {
-        if (count > _powerUpSpawnCells.Count) {
-            Debug.LogError($"Requested {count} powerup spawn points, but only {_powerUpSpawnCells.Count} are available.");
-        }
-        
+    public List<Vector3> GetPowerupSpawnPoints() {
         List<Vector3> spawnPoints = new List<Vector3>();
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < _powerUpSpawnCells.Count; i++) {
             Vector2Int spawnCell = _powerUpSpawnCells[i];
             Vector3Int worldCoordinates = new Vector3Int(spawnCell.x, spawnCell.y, 0);
             spawnPoints.Add(_tilemapFloors.GetCellCenterWorld(worldCoordinates));
