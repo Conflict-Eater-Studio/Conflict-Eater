@@ -5,10 +5,11 @@ public class Powerup : MonoBehaviour
     [SerializeField] PowerupAnimation _animation;
     [SerializeField] PowerupCollision _collision;
     
-    public void Deactivate() {
-        gameObject.SetActive(false);
+    public void PickUp()
+    {
+        
     }
-    public void Activate() {
-        gameObject.SetActive(true);
+    public void Deactivate() {
+        throw new System.NotImplementedException();
     }
 }

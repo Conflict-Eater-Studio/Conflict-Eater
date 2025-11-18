@@ -2,4 +2,6 @@
     <ui:EnumField label="Spawn Type" value="AllAtOnce" type="SpawnType, Assembly-CSharp" data-source-type="PowerupSpawner, Assembly-CSharp" binding-path="_spawnType" />
     <ui:IntegerField label="Powerups" value="1" binding-path="_powerupCount" tooltip="A number of powerups to spawn in single round" data-source-type="PowerupSpawner, Assembly-CSharp" />
     <ui:ListView binding-path="_powerups" show-add-remove-footer="true" header-title="Powerups" show-foldout-header="true" show-border="false" />
+    <ui:MinMaxSlider label="Min/Max Slider" value="0,30" low-limit="0" high-limit="30" binding-path="_spawnTimeRange" />
+    <ui:Vector2Field binding-path="_spawnTimeRange" />
 </ui:UXML>

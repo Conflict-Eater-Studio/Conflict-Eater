@@ -47,8 +47,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73de8ac5b13e5c44287384ac69619cc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Powerup
-  speedBoost: 10
-  boostDuration: 3
+  _spriteRenderer: {fileID: 76520255542026713}
+  lightPowerup:
+    _powerupType: 1
+    _duration: 5
+  shadowPowerup:
+    _powerupType: 0
+    _duration: 3
+  speedBoost: 15
 --- !u!114 &164912606662916196
 MonoBehaviour:
   m_ObjectHideFlags: 0

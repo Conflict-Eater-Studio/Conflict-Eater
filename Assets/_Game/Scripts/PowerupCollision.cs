@@ -2,39 +2,96 @@ using System;
 using System.Collections;
 using UnityEngine;
 
-public class PowerupCollision : MonoBehaviour
-{
-    [Header("Shadow Powerup Settings")]
-    [SerializeField] private float speedBoost = 10f;
-    [SerializeField] private float boostDuration = 5f;
 
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if (!gameObject.activeInHierarchy) return;
-        
+[Serializable]
+public class LightPowerup {
+    public LightPowerupType _powerupType;
+    public int _duration;
+
+}
+[Serializable]
+public class ShadowPowerup{
+    public ShadowPowerupType _powerupType;
+    public int _duration;
+}
+public enum ShadowPowerupType {
+    FarCry,
+    SarcasticSmile,
+    HauntedRadar
+}
+
+public enum LightPowerupType {
+    DeepBreath,
+    EmpathyMode,
+    SilentTreatment
+}
+public class PowerupCollision : MonoBehaviour {
+    [SerializeField] private SpriteRenderer _spriteRenderer;
+    [SerializeField] private LightPowerup lightPowerup;
+    [SerializeField] private ShadowPowerup shadowPowerup;
+    
+    [SerializeField] private float speedBoost = 15f;
+
+    private bool _collected = false;
+    private Coroutine boostRoutine;
+
+    private void OnTriggerEnter2D(Collider2D other) {
+        if (_collected) return;
+
         if (other.CompareTag("PlayerLight")) {
-            GameManager.Instance.IsFrightenedShadowState = true;
-            gameObject.SetActive(false);
-            return;
+            HandleLightPowerup();
+            Disable();
         }
+
         if (other.TryGetComponent<ShadowController>(out var controller)) {
-            if (controller.CurrentState is ShadowActiveState) {
-                StartCoroutine(BoostShadowSpeed(controller));
-                gameObject.SetActive(false);
-            }
+            if (controller.CurrentState is not ShadowActiveState) return;
+            HandleShadowPowerup(controller);
+            Disable();
+
+        }
+    }
+    private void HandleShadowPowerup(ShadowController controller) {
+        switch (shadowPowerup._powerupType) {
+            case ShadowPowerupType.FarCry:
+                boostRoutine = StartCoroutine(BoostShadowSpeed(controller));
+                break;
+            case ShadowPowerupType.SarcasticSmile:
+                break;
+            case ShadowPowerupType.HauntedRadar:
+                break;
+        }
+    }
+    private void HandleLightPowerup() {
+        switch (lightPowerup._powerupType) {
+            case LightPowerupType.EmpathyMode:
+                GameManager.Instance.IsFrightenedShadowState = true;
+            break;
+            case LightPowerupType.SilentTreatment:
+                break;
+            case LightPowerupType.DeepBreath:
+                break;
         }
     }
 
     private IEnumerator BoostShadowSpeed(ShadowController controller)
     {
-        if (controller == null) yield break;
         float originalSpeed = controller.Movement.GetSpeed();
-        
-        controller.Movement.SetSpeed(13f);
+        controller.Movement.SetSpeed(speedBoost);
+        Debug.Log("Shadow speed boosted to " + speedBoost);
+        yield return new WaitForSeconds(shadowPowerup._duration);
 
-        yield return new WaitForSeconds(boostDuration);
-
-        if (controller != null)
+        if (controller != null && controller.CurrentState is ShadowActiveState) {
             controller.Movement.SetSpeed(originalSpeed);
+            Debug.Log("Shadow speed boosted back to " + originalSpeed);
+        }
+    }
+    public void Enable() {
+        _collected = false;
+        _spriteRenderer.enabled = true;
+        
+    }
+    public void Disable() {
+        _collected = true;
+        _spriteRenderer.enabled = false;
     }
 }

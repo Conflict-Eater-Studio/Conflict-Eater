@@ -20,7 +20,7 @@ public class PowerupSpawner : MonoBehaviour {
     [SerializeField] private Grid _grid;
 
     private readonly List<Coroutine> _runningCoroutines = new List<Coroutine>();
-    private readonly List<GameObject> _powerups = new List<GameObject>();
+    private readonly List<PowerupCollision> _powerups = new List<PowerupCollision>();
     private int[] randomIdx;
 
     private void Start() {
@@ -96,27 +96,28 @@ public class PowerupSpawner : MonoBehaviour {
 
         for (int i = 0; i < spawnPoints.Count; i++) {
             GameObject powerup = Instantiate(_powerupPrefab, spawnPoints[i], Quaternion.identity);
-            powerup.SetActive(false);
-            _powerups.Add(powerup);
+            PowerupCollision powerupCollision = powerup.GetComponent<PowerupCollision>();
+            powerupCollision.Disable();
+            _powerups.Add(powerupCollision);
         }
     }
     
     private IEnumerator ActivateAllAfterDelay(float delay) {
         yield return new WaitForSeconds(delay);
         for (int i = 0; i < _powerupCount; i++) {
-            _powerups[randomIdx[i]].SetActive(true);
+            _powerups[randomIdx[i]].Enable();
         }
     }
 
     private IEnumerator ActivateSingleAfterDelay(int index, float delay) {
         yield return new WaitForSeconds(delay);
         if (_powerups[index] != null)
-            _powerups[index].SetActive(true);
+            _powerups[index].Enable();
     }
 
     private void DeactivateAllPowerups() {
         foreach (var p in _powerups)
-            if (p != null) p.SetActive(false);
+            if (p != null) p.Disable();
     }
     
     private void RunCoroutine(IEnumerator routine) {
