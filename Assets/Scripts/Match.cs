@@ -1,68 +1,147 @@
 using System;
+using System.Collections;
+using TMPro;
 using UnityEngine;
 
 public class Match : MonoBehaviour {
-    [Tooltip( "Match duration in seconds" )]
+    #region Inspector Fields
+
+    [Tooltip("Countdown before match start")]
+    [SerializeField] private float _matchCountdown = 5f;
+    [SerializeField] private float _roundCountdown = 3f;
+    [Tooltip("Match duration in seconds")]
     [SerializeField] private float _matchDurationSeconds = 300f;
-    [Tooltip( "Round duration in seconds" )]
+    [Tooltip("Round duration in seconds")]
     [SerializeField] private float _roundDurationSeconds = 10f;
-    
+
+    #endregion
+
+    #region Events
+
     public event EventHandler<OnMatchStartEventArgs> OnMatchStart;
     public event EventHandler OnMatchEnd;
     public event EventHandler OnMatchPause;
     public event EventHandler OnMatchResume;
     public event EventHandler OnRoundEnd;
-    
-    private float _matchStartTime = 0;
-    private float _roundStartTime = 0;
-    private float _pauseTime = 0;
+    public event EventHandler OnRoundStart;
 
-    private bool _isGameStart = false;
+    #endregion
+
+    #region Private Fields
+
+    public float CountdownRemaining { get; private set; }
+    public float MatchTime { get; private set; }
+    public float RoundTime { get; private set; }
+    public bool IsGameRunning { get; private set; }
+    public bool IsGamePaused { get; private set; }
+    #endregion
+
+    #region Unity Methods
 
     private void Update() {
-        if (_pauseTime > 0) return;
-        if (!_isGameStart) return; 
-        if(Time.time >= _matchStartTime + _matchDurationSeconds) {
-            End();             
+        if (!IsGameRunning || IsGamePaused) return;
+        
+        MatchTime += Time.deltaTime;
+        RoundTime += Time.deltaTime;
+        
+        if (MatchTime >= _matchDurationSeconds) {
+            EndMatch();
             return;
         }
-        if (Time.time >= _roundStartTime + _roundDurationSeconds) {
+
+        if (RoundTime >= _roundDurationSeconds) {
             EndRound();
         }
-   
-    }   
-    public void Run() {
-        _isGameStart = true;
-        _matchStartTime = Time.time;
-        _roundStartTime = Time.time;
-        OnMatchStart?.Invoke(this, new OnMatchStartEventArgs(_matchDurationSeconds, _roundDurationSeconds)); 
     }
+
+    #endregion
+
+    #region Match Flow
+
+    public void StartMatch() {
+        if (IsGameRunning) return;
+        StartCoroutine(StartMatchCountdown(_matchCountdown));
+    }
+
+    private IEnumerator StartMatchCountdown(float delay) {
+        Pause();
+        yield return RunCountdown(delay);
+        Resume();
+        RunMatch();
+    }
+
+    private void RunMatch() {
+        IsGameRunning = true;
+        MatchTime = 0;
+        RoundTime = 0;
+
+        OnMatchStart?.Invoke(this, new OnMatchStartEventArgs(_matchDurationSeconds, _roundDurationSeconds));
+        OnRoundStart?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void EndMatch() {
+        IsGameRunning = false;
+        OnMatchEnd?.Invoke(this, EventArgs.Empty);
+        StopAllCoroutines();
+    }
+
+    #endregion
+
+    #region Round Flow
+
+    public void EndRound() {
+        RoundTime = 0;
+        StartCoroutine(HandleRoundTransition());
+    }
+
+    private IEnumerator HandleRoundTransition() {
+        Pause();
+        
+        OnRoundEnd?.Invoke(this, EventArgs.Empty);
+        yield return RunCountdown(_roundCountdown);
+
+        Resume();
+        OnRoundStart?.Invoke(this, EventArgs.Empty);
+    }
+
+    #endregion
+
+    #region Pause & Resume
+
     public void Pause() {
-        _pauseTime = Time.time;
+        IsGamePaused = true;
         OnMatchPause?.Invoke(this, EventArgs.Empty);
     }
+
     public void Resume() {
-        float diff = Time.time - _pauseTime;
-        _matchStartTime += diff;
-        _roundStartTime += diff;
-        _pauseTime = 0;
+        IsGamePaused = false;
         OnMatchResume?.Invoke(this, EventArgs.Empty);
     }
-    public void End() {
-        OnMatchEnd?.Invoke(this, EventArgs.Empty);
-        _isGameStart = false;
+
+    #endregion
+
+    #region Countdown Utility
+
+    private IEnumerator RunCountdown(float duration) {
+        CountdownRemaining = duration;
+        while (CountdownRemaining > 0f) {
+            yield return new WaitForEndOfFrame();
+            CountdownRemaining -= Time.deltaTime;
+        }
     }
-    public void EndRound() {
-        Debug.Log("round end");
-        _roundStartTime = Time.time;
-        OnRoundEnd?.Invoke(this, EventArgs.Empty);
-    }
+    #endregion
 }
+
+#region Event Args Class
+
 public class OnMatchStartEventArgs : EventArgs {
     public OnMatchStartEventArgs(float matchDuration, float roundDuration) {
         MatchDuration = matchDuration;
         RoundDuration = roundDuration;
     }
+
     public readonly float MatchDuration;
     public readonly float RoundDuration;
 }
+
+#endregion

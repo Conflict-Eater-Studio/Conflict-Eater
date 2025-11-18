@@ -95,7 +95,7 @@ public class PlayerSpawner : MonoBehaviour
             input
         );
 
-        GameManager.Instance.Timer.Run();
+        GameManager.Instance.Timer.StartMatch();
     }
     #endregion
 }

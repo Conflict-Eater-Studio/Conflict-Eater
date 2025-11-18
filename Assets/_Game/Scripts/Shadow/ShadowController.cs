@@ -6,10 +6,10 @@ using UnityEngine;
 /// </summary>
 public enum ShadowType
 {
-    Blinky, // Red – chases the player directly
-    Pinky,  // Pink – tries to ambush the player from the front
-    Inky,   // Blue – unpredictable, depends on other ghosts
-    Clyde   // Orange – alternates between chasing and retreating
+    Blinky, // Red ï¿½ chases the player directly
+    Pinky,  // Pink ï¿½ tries to ambush the player from the front
+    Inky,   // Blue ï¿½ unpredictable, depends on other ghosts
+    Clyde   // Orange ï¿½ alternates between chasing and retreating
 }
 
 [RequireComponent(typeof(Rigidbody2D))]

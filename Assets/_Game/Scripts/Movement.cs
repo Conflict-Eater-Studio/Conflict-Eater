@@ -23,8 +23,21 @@ public class Movement
     private readonly Grid _grid;
 
     private float _speed;
+    private float _defaultSpeed;
     private float _speedMult = 1f;
-    public float SpeedMult { get; set; } = 1f;
+
+    public float SpeedMult
+    {
+        get
+        {
+            return _speedMult;
+        }
+        set
+        {
+            _speedMult = Mathf.Clamp(value, 0.1f, 10f);
+        }
+    }
+
     private float _centerThreshold;
     private float _snapSpeedMultiplier;
 
@@ -66,6 +79,7 @@ public class Movement
         _speed = speed;
         _centerThreshold = centerThreshold;
         _snapSpeedMultiplier = snapSpeedMultiplier;
+        _defaultSpeed = speed;
     }
 
     public Vector2 MoveDirection => _moveDirection;
@@ -567,6 +581,9 @@ public class Movement
     /// </summary>
     /// <param name="newSpeed">New speed value.</param>
     public void SetSpeed(float newSpeed) => _speed = newSpeed;
+    public void ResetSpeed() {
+        _speed = _defaultSpeed;
+    }
 
     /// <summary>
     /// Stops all movement immediately.

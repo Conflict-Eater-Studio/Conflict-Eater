@@ -6,19 +6,9 @@ using TMPro;
 using static GameScore;
 using Unity.VisualScripting;
 
-public enum GameState
-{
-    Pause,
-    Running
-}
-
 public class GameManager : Singleton<GameManager>
 {
-    [SerializeField] private GameState _gameState = GameState.Running;
     [SerializeField] public Match Timer;
-
-    [SerializeField] private float _matchDurationInMinutes;
-    [SerializeField] private float _roundMaxDurationInMinutes;
 
     [SerializeField] private GameObject _endGamePanel;
     [SerializeField] private TextMeshProUGUI _winnerText;
