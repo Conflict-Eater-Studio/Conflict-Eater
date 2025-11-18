@@ -146,7 +146,6 @@ public class ShadowController : MonoBehaviour
             {
                 if(_isShadowActive)
                 {
-                    //Active shadow eaten 
                     _owner = GetComponentInParent<ShadowPlayerController>();
                     _owner.StartCoroutine(_owner.SwitchShadowsRandomCoroutine());
                 }

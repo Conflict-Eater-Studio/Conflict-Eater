@@ -119,17 +119,10 @@ public class ShadowPlayerController : MonoBehaviour
 
             bool isActive = (i == 0);
 
-            if (isActive)
-            {
-                controller.SetState(new ShadowActiveState());
-                controller.IsShadowActive = true;
-            }
-            else
-            {
-                controller.SetState(new ShadowExitBaseState());
-                controller.IsShadowActive = false;
-            }
-                
+            controller.IsShadowActive = isActive;
+
+            controller.SetState(new ShadowExitBaseState());
+
             _shadows.Add(ghost);
             UpdateAppearance();
 

@@ -13,8 +13,12 @@ public class ShadowAppearanceManager : MonoBehaviour
     public Color inkyColor = Color.cyan;
     public Color clydeColor = new Color(1f, 0.7f, 0.3f);
 
+    [Header("Active Colors")]
+    public Color activeColor = Color.red;
+
     [Header("Frightened Look")]
-    public Color frightenedColor = new Color(0f, 0f, 0.6f);
+    public Color frightenedNormalColor = new Color(0f, 0f, 0.6f);
+    public Color frightenedActiveColor = new Color(0f, 0f, 0.6f);
     public Color frightenedBlinkColor = Color.white;
     public float blinkInterval = 0.2f;
 
@@ -43,7 +47,7 @@ public class ShadowAppearanceManager : MonoBehaviour
         bodyRenderer.enabled = true;
         eyesRenderer.enabled = true;
 
-        bodyRenderer.color = Color.blue;
+        bodyRenderer.color = activeColor;
     }
 
     public void SetNormal()
@@ -64,18 +68,20 @@ public class ShadowAppearanceManager : MonoBehaviour
         bodyRenderer.color = GetBaseColor();
     }
 
-    public void SetFrightened(bool blinking = false)
+    public void SetFrightened(bool blinking = false, bool isActive = false)
     {
         CurrentState = VisualState.Frightened;
         eyesRenderer.enabled = false;
         bodyRenderer.enabled = true;
-        bodyRenderer.color = frightenedColor;
+
+        bodyRenderer.color = isActive ? frightenedActiveColor : frightenedNormalColor;
 
         if (blinking)
-            StartBlinking();
+            StartBlinking(isActive);
         else
             StopBlinking();
     }
+
 
     public void SetDead()
     {
@@ -85,12 +91,13 @@ public class ShadowAppearanceManager : MonoBehaviour
         eyesRenderer.enabled = true;
     }
 
-    private void StartBlinking()
+    private void StartBlinking(bool isActive)
     {
         if (blinkRoutine != null)
             StopCoroutine(blinkRoutine);
-        blinkRoutine = StartCoroutine(BlinkRoutine());
+        blinkRoutine = StartCoroutine(BlinkRoutine(isActive));
     }
+
 
     private void StopBlinking()
     {
@@ -99,12 +106,12 @@ public class ShadowAppearanceManager : MonoBehaviour
         blinkRoutine = null;
     }
 
-    private IEnumerator BlinkRoutine()
+    private IEnumerator BlinkRoutine(bool isActive = false)
     {
         bool toggle = false;
         while (true)
         {
-            bodyRenderer.color = toggle ? frightenedColor : frightenedBlinkColor;
+            bodyRenderer.color = toggle ? (isActive ? frightenedActiveColor : frightenedNormalColor) : frightenedBlinkColor;
             toggle = !toggle;
             yield return new WaitForSeconds(blinkInterval);
         }

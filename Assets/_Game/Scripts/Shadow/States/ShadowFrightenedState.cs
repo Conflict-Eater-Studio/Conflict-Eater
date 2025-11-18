@@ -29,7 +29,7 @@ public class ShadowFrightenedState : IShadowState
     #region IShadowState Implementation
     public void Enter(ShadowController shadow)
     {
-        Debug.Log("Enter Frightened State: " + shadow.Type);
+        //Debug.Log("Enter Frightened State: " + shadow.Type);
 
         ShadowAppearanceManager shadowAppearanceManager = shadow.gameObject.GetComponent<ShadowAppearanceManager>();
         shadowAppearanceManager.SetFrightened(true);
@@ -46,7 +46,7 @@ public class ShadowFrightenedState : IShadowState
 
     public void Exit(ShadowController shadow)
     {
-        Debug.Log("FrightenedState Exit: " + shadow.Type);
+        //Debug.Log("FrightenedState Exit: " + shadow.Type);
         ShadowAppearanceManager shadowAppearanceManager = shadow.gameObject.GetComponent<ShadowAppearanceManager>();
         shadowAppearanceManager.SetFrightened(false);
         shadowAppearanceManager.SetNormal();
