@@ -54,7 +54,7 @@ MonoBehaviour:
   shadowPowerup:
     _powerupType: 0
     _duration: 3
-  speedBoost: 15
+  speedBoost: 12.5
 --- !u!114 &164912606662916196
 MonoBehaviour:
   m_ObjectHideFlags: 0

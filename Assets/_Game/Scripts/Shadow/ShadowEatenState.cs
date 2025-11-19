@@ -27,6 +27,7 @@ public class ShadowEatenState : IShadowState
     #region IShadowState Implementation
     public void Enter(ShadowController shadow)
     {
+        GameManager.Instance.Score.AddScoreToActive(10);
         _homeTargets = GameManager.Instance.Grid.GetShadowHomeTargets();
         _currentTargetIndex = 0;
         _lastDirection = Vector2Int.zero;

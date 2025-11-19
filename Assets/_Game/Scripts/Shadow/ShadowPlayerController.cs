@@ -12,9 +12,9 @@ public class ShadowPlayerController : MonoBehaviour
 
     [Header("Shadow Settings")]
     [SerializeField] private GameObject _shadowPrefab;
-    [SerializeField] private int _shadowCount = 4;
+    [SerializeField] private int _shadowCount = 2;
     [SerializeField] private float _spawnDelay = 1f;
-    [SerializeField] private float _maxSwitchDistance = 10f;
+    [SerializeField] private float _maxSwitchDistance = 15f;
 
     [SerializeField] private bool _blinky = false;
     [SerializeField] private bool _pinky = false;

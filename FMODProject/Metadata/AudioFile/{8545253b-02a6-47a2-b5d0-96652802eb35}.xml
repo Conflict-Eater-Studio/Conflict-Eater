@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{8545253b-02a6-47a2-b5d0-96652802eb35}">
+		<property name="assetPath">
+			<value>Soundtracks/Eerie8-BitDescent_FULL_SONG_MusicGPT (1).mp3</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.0999985</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>72.150204081632651</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{65ffc2d6-4f3a-4193-897f-c8a79228b97b}</destination>
+		</relationship>
+	</object>
+</objects>

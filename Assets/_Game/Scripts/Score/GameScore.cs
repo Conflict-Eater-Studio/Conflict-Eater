@@ -44,6 +44,18 @@ public class GameScore
         }
     }
 
+    public void AddScoreToActive(int  score)
+    {
+        if (_activePlayer == PlayerType.P1)
+        {
+            _p1Score+=score;
+        }
+        else
+        {
+            _p2Score+=score;
+        }
+    }
+
     public PlayerType? GetWinnerType()
     {
         if (_p1Score > _p2Score)

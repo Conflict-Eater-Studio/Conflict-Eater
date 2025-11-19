@@ -149,8 +149,6 @@ public class ShadowController : MonoBehaviour
                     _owner = GetComponentInParent<ShadowPlayerController>();
                     _owner.StartCoroutine(_owner.SwitchShadowsRandomCoroutine());
                 }
-
-                //gameObject.transform.position = GameManager.Instance.Grid.GetSpawnPoint(Grid.SpawnPointType.Shadow);
                 SetState(new ShadowEatenState());
             }
             else if(_currentState.State == ShadowState.Eaten)
