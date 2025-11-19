@@ -22,20 +22,22 @@ public class Movement
     private readonly Transform _transformRef;
     private readonly Grid _grid;
 
+    private bool _isLocked = false;
+
     private float _speed;
     private float _defaultSpeed;
     private float _speedMult = 1f;
 
     public float SpeedMult
     {
-        get
-        {
-            return _speedMult;
-        }
-        set
-        {
-            _speedMult = Mathf.Clamp(value, 0.1f, 10f);
-        }
+        get { return _speedMult; }
+        set { _speedMult = Mathf.Clamp(value, 0.1f, 10f); }
+    }
+
+    public bool IsLocked
+    {
+        get { return _isLocked; }
+        set { _isLocked = value; }
     }
 
     private float _centerThreshold;
@@ -92,6 +94,10 @@ public class Movement
     /// </summary>
     public void OnMove(Vector2 stick)
     {
+        // If the movement is locked, don't update input
+        if (_isLocked)
+            return;
+
         // Store the current stick input
         _currentStickInput = stick;
 
@@ -136,6 +142,10 @@ public class Movement
     /// </summary>
     public void FixedTick()
     {
+        // If the movement is loceked, don't process movement
+        if (_isLocked)
+            return;
+
         Vector2 currentPos = _rb.position;
 
         // Try to switch direction if queued
@@ -581,7 +591,9 @@ public class Movement
     /// </summary>
     /// <param name="newSpeed">New speed value.</param>
     public void SetSpeed(float newSpeed) => _speed = newSpeed;
-    public void ResetSpeed() {
+
+    public void ResetSpeed()
+    {
         _speed = _defaultSpeed;
     }
 

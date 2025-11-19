@@ -1,0 +1,832 @@
+fileFormatVersion: 2
+guid: e2e92d84a19c85e4e92e9993b64e5127
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 3358195303546497289
+    second: Controls Outline Black 4k_0
+  - first:
+      213: -1880064730862122258
+    second: Controls Outline Black 4k_1
+  - first:
+      213: 1307691974986234260
+    second: Controls Outline Black 4k_2
+  - first:
+      213: -1895754248189512985
+    second: Controls Outline Black 4k_3
+  - first:
+      213: -7524780744421525466
+    second: Controls Outline Black 4k_4
+  - first:
+      213: 5418205147510032117
+    second: Controls Outline Black 4k_5
+  - first:
+      213: -6896669648552071308
+    second: Controls Outline Black 4k_6
+  - first:
+      213: -109586963077019705
+    second: Controls Outline Black 4k_7
+  - first:
+      213: -5183475930924560778
+    second: Controls Outline Black 4k_8
+  - first:
+      213: -5282708864765853463
+    second: Controls Outline Black 4k_9
+  - first:
+      213: -1753094095012848292
+    second: Controls Outline Black 4k_10
+  - first:
+      213: 3940076081710539299
+    second: Controls Outline Black 4k_11
+  - first:
+      213: -1166629734104427518
+    second: Controls Outline Black 4k_12
+  - first:
+      213: -4510255083324032912
+    second: Controls Outline Black 4k_13
+  - first:
+      213: 8928440042440233193
+    second: Controls Outline Black 4k_14
+  - first:
+      213: 5092675929306527767
+    second: Controls Outline Black 4k_15
+  - first:
+      213: 8964562381186623824
+    second: Controls Outline Black 4k_16
+  - first:
+      213: 1878755968622876555
+    second: Controls Outline Black 4k_17
+  - first:
+      213: -4129979940343144411
+    second: Controls Outline Black 4k_18
+  - first:
+      213: -8811869334621824025
+    second: Controls Outline Black 4k_19
+  - first:
+      213: -5930334995296744883
+    second: Controls Outline Black 4k_20
+  - first:
+      213: 1498918609405359141
+    second: Controls Outline Black 4k_21
+  - first:
+      213: -28545148357225672
+    second: Controls Outline Black 4k_22
+  - first:
+      213: 4436868784943895207
+    second: Controls Outline Black 4k_23
+  - first:
+      213: -5500344824486562975
+    second: Controls Outline Black 4k_24
+  - first:
+      213: 8970736889067511579
+    second: Controls Outline Black 4k_25
+  - first:
+      213: -5144130454929943505
+    second: Controls Outline Black 4k_26
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WindowsStoreApps
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_0
+      rect:
+        serializedVersion: 2
+        x: 828
+        y: 1932
+        width: 177
+        height: 100
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 909264a06d4ba9e20800000000000000
+      internalID: 3358195303546497289
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_1
+      rect:
+        serializedVersion: 2
+        x: 1022
+        y: 1754
+        width: 411
+        height: 182
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eea093a961ba8e5e0800000000000000
+      internalID: -1880064730862122258
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_2
+      rect:
+        serializedVersion: 2
+        x: 2665
+        y: 1754
+        width: 409
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 499feac3cead52210800000000000000
+      internalID: 1307691974986234260
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_3
+      rect:
+        serializedVersion: 2
+        x: 3090
+        y: 1932
+        width: 179
+        height: 102
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e2f93f2e8de0b5e0800000000000000
+      internalID: -1895754248189512985
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_4
+      rect:
+        serializedVersion: 2
+        x: 827
+        y: 1742
+        width: 179
+        height: 183
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6283e0ce7cb929790800000000000000
+      internalID: -7524780744421525466
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_5
+      rect:
+        serializedVersion: 2
+        x: 859
+        y: 423
+        width: 2374
+        height: 1504
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f64781ffd4513b40800000000000000
+      internalID: 5418205147510032117
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_6
+      rect:
+        serializedVersion: 2
+        x: 3090
+        y: 1742
+        width: 179
+        height: 183
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 47fe5d8ae7b1a40a0800000000000000
+      internalID: -6896669648552071308
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_7
+      rect:
+        serializedVersion: 2
+        x: 748
+        y: 1341
+        width: 58
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c7c7c9dc3baa7ef0800000000000000
+      internalID: -109586963077019705
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_8
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 1373
+        width: 50
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67e4473aa189018b0800000000000000
+      internalID: -5183475930924560778
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_9
+      rect:
+        serializedVersion: 2
+        x: 820
+        y: 1341
+        width: 59
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e003d7c64c00b6b0800000000000000
+      internalID: -5282708864765853463
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_10
+      rect:
+        serializedVersion: 2
+        x: 3148
+        y: 1293
+        width: 120
+        height: 120
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c5d9ce87532cba7e0800000000000000
+      internalID: -1753094095012848292
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_11
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 1300
+        width: 50
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 322ae562256fda630800000000000000
+      internalID: 3940076081710539299
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_12
+      rect:
+        serializedVersion: 2
+        x: 748
+        y: 1194
+        width: 58
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2041c4a107c4fcfe0800000000000000
+      internalID: -1166629734104427518
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_13
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 1225
+        width: 50
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0783218e5ea5861c0800000000000000
+      internalID: -4510255083324032912
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_14
+      rect:
+        serializedVersion: 2
+        x: 820
+        y: 1194
+        width: 59
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e01608e9e038eb70800000000000000
+      internalID: 8928440042440233193
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_15
+      rect:
+        serializedVersion: 2
+        x: 3150
+        y: 1157
+        width: 117
+        height: 116
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7187f7a86c1dca640800000000000000
+      internalID: 5092675929306527767
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_16
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 1153
+        width: 50
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05965794df5886c70800000000000000
+      internalID: 8964562381186623824
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_17
+      rect:
+        serializedVersion: 2
+        x: 748
+        y: 1047
+        width: 58
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b875961799ea21a10800000000000000
+      internalID: 1878755968622876555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_18
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 1078
+        width: 50
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 520ab56302d5fa6c0800000000000000
+      internalID: -4129979940343144411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_19
+      rect:
+        serializedVersion: 2
+        x: 820
+        y: 1047
+        width: 59
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7eb55b60783f5b580800000000000000
+      internalID: -8811869334621824025
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_20
+      rect:
+        serializedVersion: 2
+        x: 3150
+        y: 1017
+        width: 117
+        height: 116
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d4a0546fdb733bda0800000000000000
+      internalID: -5930334995296744883
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_21
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 1006
+        width: 50
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 52434dc988a3dc410800000000000000
+      internalID: 1498918609405359141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_22
+      rect:
+        serializedVersion: 2
+        x: 748
+        y: 899
+        width: 58
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8335b1cb6569a9ff0800000000000000
+      internalID: -28545148357225672
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_23
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 931
+        width: 50
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a2999107ace29d30800000000000000
+      internalID: 4436868784943895207
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_24
+      rect:
+        serializedVersion: 2
+        x: 820
+        y: 899
+        width: 59
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 163f1523689daa3b0800000000000000
+      internalID: -5500344824486562975
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_25
+      rect:
+        serializedVersion: 2
+        x: 3150
+        y: 877
+        width: 117
+        height: 117
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1f9c5eeba57e7c70800000000000000
+      internalID: 8970736889067511579
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline Black 4k_26
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 858
+        width: 50
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f24d1a32b906c98b0800000000000000
+      internalID: -5144130454929943505
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Controls Outline Black 4k_0: 3358195303546497289
+      Controls Outline Black 4k_1: -1880064730862122258
+      Controls Outline Black 4k_10: -1753094095012848292
+      Controls Outline Black 4k_11: 3940076081710539299
+      Controls Outline Black 4k_12: -1166629734104427518
+      Controls Outline Black 4k_13: -4510255083324032912
+      Controls Outline Black 4k_14: 8928440042440233193
+      Controls Outline Black 4k_15: 5092675929306527767
+      Controls Outline Black 4k_16: 8964562381186623824
+      Controls Outline Black 4k_17: 1878755968622876555
+      Controls Outline Black 4k_18: -4129979940343144411
+      Controls Outline Black 4k_19: -8811869334621824025
+      Controls Outline Black 4k_2: 1307691974986234260
+      Controls Outline Black 4k_20: -5930334995296744883
+      Controls Outline Black 4k_21: 1498918609405359141
+      Controls Outline Black 4k_22: -28545148357225672
+      Controls Outline Black 4k_23: 4436868784943895207
+      Controls Outline Black 4k_24: -5500344824486562975
+      Controls Outline Black 4k_25: 8970736889067511579
+      Controls Outline Black 4k_26: -5144130454929943505
+      Controls Outline Black 4k_3: -1895754248189512985
+      Controls Outline Black 4k_4: -7524780744421525466
+      Controls Outline Black 4k_5: 5418205147510032117
+      Controls Outline Black 4k_6: -6896669648552071308
+      Controls Outline Black 4k_7: -109586963077019705
+      Controls Outline Black 4k_8: -5183475930924560778
+      Controls Outline Black 4k_9: -5282708864765853463
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

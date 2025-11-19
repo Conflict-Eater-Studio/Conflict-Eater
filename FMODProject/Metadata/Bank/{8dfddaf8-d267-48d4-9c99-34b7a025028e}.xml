@@ -2,7 +2,7 @@
 <objects serializationModel="Studio.02.03.00">
 	<object class="Bank" id="{8dfddaf8-d267-48d4-9c99-34b7a025028e}">
 		<property name="name">
-			<value>BGM</value>
+			<value>Music</value>
 		</property>
 		<relationship name="folder">
 			<destination>{fbf2907b-b3e0-43e7-bf2e-41ea9f2de802}</destination>

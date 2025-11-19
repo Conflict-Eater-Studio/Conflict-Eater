@@ -1,0 +1,832 @@
+fileFormatVersion: 2
+guid: 3ef534e3b5f50a54486d0b1dda1818d7
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 692761160453650733
+    second: Control Solid Inv 4k_0
+  - first:
+      213: 5266297440268584399
+    second: Control Solid Inv 4k_1
+  - first:
+      213: -8776874256592960048
+    second: Control Solid Inv 4k_2
+  - first:
+      213: 7878920657448268256
+    second: Control Solid Inv 4k_3
+  - first:
+      213: 1879773980878927153
+    second: Control Solid Inv 4k_4
+  - first:
+      213: 4569170641253246907
+    second: Control Solid Inv 4k_5
+  - first:
+      213: -5937496740984511137
+    second: Control Solid Inv 4k_6
+  - first:
+      213: 8140863292190616355
+    second: Control Solid Inv 4k_7
+  - first:
+      213: 9019377976531502169
+    second: Control Solid Inv 4k_8
+  - first:
+      213: -5361952451851227907
+    second: Control Solid Inv 4k_9
+  - first:
+      213: -7649663755637217297
+    second: Control Solid Inv 4k_10
+  - first:
+      213: -5489814664176518555
+    second: Control Solid Inv 4k_11
+  - first:
+      213: -1621886245148534797
+    second: Control Solid Inv 4k_12
+  - first:
+      213: -6014364164008301782
+    second: Control Solid Inv 4k_13
+  - first:
+      213: -3400100895531412081
+    second: Control Solid Inv 4k_14
+  - first:
+      213: -396698680992538338
+    second: Control Solid Inv 4k_15
+  - first:
+      213: 2288952068904383739
+    second: Control Solid Inv 4k_16
+  - first:
+      213: 3448831862955221842
+    second: Control Solid Inv 4k_17
+  - first:
+      213: 7164336375691786574
+    second: Control Solid Inv 4k_18
+  - first:
+      213: 8096740347042712178
+    second: Control Solid Inv 4k_19
+  - first:
+      213: -328010822896438002
+    second: Control Solid Inv 4k_20
+  - first:
+      213: 3465248133981154994
+    second: Control Solid Inv 4k_21
+  - first:
+      213: 3365871796705301600
+    second: Control Solid Inv 4k_22
+  - first:
+      213: -3614235004191580369
+    second: Control Solid Inv 4k_23
+  - first:
+      213: -8521211425262287622
+    second: Control Solid Inv 4k_24
+  - first:
+      213: 430316641956319005
+    second: Control Solid Inv 4k_25
+  - first:
+      213: 402197861705038868
+    second: Control Solid Inv 4k_26
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WindowsStoreApps
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_0
+      rect:
+        serializedVersion: 2
+        x: 828
+        y: 1932
+        width: 177
+        height: 100
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d29f603ea9e2d9900800000000000000
+      internalID: 692761160453650733
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_1
+      rect:
+        serializedVersion: 2
+        x: 1022
+        y: 1754
+        width: 411
+        height: 182
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc502c0be95a51940800000000000000
+      internalID: 5266297440268584399
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_2
+      rect:
+        serializedVersion: 2
+        x: 2665
+        y: 1754
+        width: 409
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0d581819d57423680800000000000000
+      internalID: -8776874256592960048
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_3
+      rect:
+        serializedVersion: 2
+        x: 3090
+        y: 1932
+        width: 179
+        height: 102
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e1f0b8f79c875d60800000000000000
+      internalID: 7878920657448268256
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_4
+      rect:
+        serializedVersion: 2
+        x: 827
+        y: 1742
+        width: 179
+        height: 183
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1357f44e97c461a10800000000000000
+      internalID: 1879773980878927153
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_5
+      rect:
+        serializedVersion: 2
+        x: 859
+        y: 423
+        width: 2374
+        height: 1504
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb72b0e5d74f86f30800000000000000
+      internalID: 4569170641253246907
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_6
+      rect:
+        serializedVersion: 2
+        x: 3090
+        y: 1742
+        width: 179
+        height: 183
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f55249a1c26c99da0800000000000000
+      internalID: -5937496740984511137
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_7
+      rect:
+        serializedVersion: 2
+        x: 748
+        y: 1341
+        width: 58
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32be90838082af070800000000000000
+      internalID: 8140863292190616355
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_8
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 1373
+        width: 50
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9544422ab744b2d70800000000000000
+      internalID: 9019377976531502169
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_9
+      rect:
+        serializedVersion: 2
+        x: 820
+        y: 1341
+        width: 59
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dfc6fd467a48695b0800000000000000
+      internalID: -5361952451851227907
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_10
+      rect:
+        serializedVersion: 2
+        x: 3148
+        y: 1293
+        width: 120
+        height: 120
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe7201a085fe6d590800000000000000
+      internalID: -7649663755637217297
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_11
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 1300
+        width: 50
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 56a370336a240d3b0800000000000000
+      internalID: -5489814664176518555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_12
+      rect:
+        serializedVersion: 2
+        x: 748
+        y: 1194
+        width: 58
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f754db9d07ed79e0800000000000000
+      internalID: -1621886245148534797
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_13
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 1225
+        width: 50
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a2b227688afa88ca0800000000000000
+      internalID: -6014364164008301782
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_14
+      rect:
+        serializedVersion: 2
+        x: 820
+        y: 1194
+        width: 59
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f85dc51004a60d0d0800000000000000
+      internalID: -3400100895531412081
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_15
+      rect:
+        serializedVersion: 2
+        x: 3150
+        y: 1157
+        width: 117
+        height: 116
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e11e294c6a4ae7af0800000000000000
+      internalID: -396698680992538338
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_16
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 1153
+        width: 50
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf4f0fe77cdf3cf10800000000000000
+      internalID: 2288952068904383739
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_17
+      rect:
+        serializedVersion: 2
+        x: 748
+        y: 1047
+        width: 58
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 253ae718e46bcdf20800000000000000
+      internalID: 3448831862955221842
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_18
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 1078
+        width: 50
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e49b484b9f5dc6360800000000000000
+      internalID: 7164336375691786574
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_19
+      rect:
+        serializedVersion: 2
+        x: 820
+        y: 1047
+        width: 59
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 27acd0082766d5070800000000000000
+      internalID: 8096740347042712178
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_20
+      rect:
+        serializedVersion: 2
+        x: 3150
+        y: 1017
+        width: 117
+        height: 116
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e0536caf4eba27bf0800000000000000
+      internalID: -328010822896438002
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_21
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 1006
+        width: 50
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2be288471d8071030800000000000000
+      internalID: 3465248133981154994
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_22
+      rect:
+        serializedVersion: 2
+        x: 748
+        y: 899
+        width: 58
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0641022e09af5be20800000000000000
+      internalID: 3365871796705301600
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_23
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 931
+        width: 50
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f2fd068a968a7ddc0800000000000000
+      internalID: -3614235004191580369
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_24
+      rect:
+        serializedVersion: 2
+        x: 820
+        y: 899
+        width: 59
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af4cd352b539eb980800000000000000
+      internalID: -8521211425262287622
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_25
+      rect:
+        serializedVersion: 2
+        x: 3150
+        y: 877
+        width: 117
+        height: 117
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d1fceb8b4bac8f500800000000000000
+      internalID: 430316641956319005
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Control Solid Inv 4k_26
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 858
+        width: 50
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 41cb95403d4e49500800000000000000
+      internalID: 402197861705038868
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Control Solid Inv 4k_0: 692761160453650733
+      Control Solid Inv 4k_1: 5266297440268584399
+      Control Solid Inv 4k_10: -7649663755637217297
+      Control Solid Inv 4k_11: -5489814664176518555
+      Control Solid Inv 4k_12: -1621886245148534797
+      Control Solid Inv 4k_13: -6014364164008301782
+      Control Solid Inv 4k_14: -3400100895531412081
+      Control Solid Inv 4k_15: -396698680992538338
+      Control Solid Inv 4k_16: 2288952068904383739
+      Control Solid Inv 4k_17: 3448831862955221842
+      Control Solid Inv 4k_18: 7164336375691786574
+      Control Solid Inv 4k_19: 8096740347042712178
+      Control Solid Inv 4k_2: -8776874256592960048
+      Control Solid Inv 4k_20: -328010822896438002
+      Control Solid Inv 4k_21: 3465248133981154994
+      Control Solid Inv 4k_22: 3365871796705301600
+      Control Solid Inv 4k_23: -3614235004191580369
+      Control Solid Inv 4k_24: -8521211425262287622
+      Control Solid Inv 4k_25: 430316641956319005
+      Control Solid Inv 4k_26: 402197861705038868
+      Control Solid Inv 4k_3: 7878920657448268256
+      Control Solid Inv 4k_4: 1879773980878927153
+      Control Solid Inv 4k_5: 4569170641253246907
+      Control Solid Inv 4k_6: -5937496740984511137
+      Control Solid Inv 4k_7: 8140863292190616355
+      Control Solid Inv 4k_8: 9019377976531502169
+      Control Solid Inv 4k_9: -5361952451851227907
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,0 +1,832 @@
+fileFormatVersion: 2
+guid: 70d95aea5068a0941a3b45e786e15492
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 3852428130482781873
+    second: Controls Outline White 4k_0
+  - first:
+      213: 327479886413470760
+    second: Controls Outline White 4k_1
+  - first:
+      213: 5242480982888230839
+    second: Controls Outline White 4k_2
+  - first:
+      213: -1781287551396277157
+    second: Controls Outline White 4k_3
+  - first:
+      213: -934756905955418888
+    second: Controls Outline White 4k_4
+  - first:
+      213: -6963632347072755712
+    second: Controls Outline White 4k_5
+  - first:
+      213: 2752884724277662105
+    second: Controls Outline White 4k_6
+  - first:
+      213: -95261227979616416
+    second: Controls Outline White 4k_7
+  - first:
+      213: 1412176537473169542
+    second: Controls Outline White 4k_8
+  - first:
+      213: -344155303098074029
+    second: Controls Outline White 4k_9
+  - first:
+      213: -8811746822480935330
+    second: Controls Outline White 4k_10
+  - first:
+      213: 8152382950632126564
+    second: Controls Outline White 4k_11
+  - first:
+      213: -5786861489064748738
+    second: Controls Outline White 4k_12
+  - first:
+      213: 495507765407536624
+    second: Controls Outline White 4k_13
+  - first:
+      213: -1082825312023792123
+    second: Controls Outline White 4k_14
+  - first:
+      213: -3387141031579874393
+    second: Controls Outline White 4k_15
+  - first:
+      213: 3073787535809623998
+    second: Controls Outline White 4k_16
+  - first:
+      213: 5427887364117697143
+    second: Controls Outline White 4k_17
+  - first:
+      213: 6046569607385959331
+    second: Controls Outline White 4k_18
+  - first:
+      213: -1839380826559855008
+    second: Controls Outline White 4k_19
+  - first:
+      213: 2226278355420929767
+    second: Controls Outline White 4k_20
+  - first:
+      213: 7990150256052051748
+    second: Controls Outline White 4k_21
+  - first:
+      213: -7632723694834545574
+    second: Controls Outline White 4k_22
+  - first:
+      213: -8126755959301683605
+    second: Controls Outline White 4k_23
+  - first:
+      213: -1986813451214224986
+    second: Controls Outline White 4k_24
+  - first:
+      213: 6418762822606331802
+    second: Controls Outline White 4k_25
+  - first:
+      213: 7047953221338038720
+    second: Controls Outline White 4k_26
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WindowsStoreApps
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Controls Outline White 4k_0
+      rect:
+        serializedVersion: 2
+        x: 828
+        y: 1932
+        width: 177
+        height: 100
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1bef52049f2967530800000000000000
+      internalID: 3852428130482781873
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_1
+      rect:
+        serializedVersion: 2
+        x: 1022
+        y: 1754
+        width: 411
+        height: 182
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82c92ccb8317b8400800000000000000
+      internalID: 327479886413470760
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_2
+      rect:
+        serializedVersion: 2
+        x: 2665
+        y: 1754
+        width: 409
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7bf2bc69da801c840800000000000000
+      internalID: 5242480982888230839
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_3
+      rect:
+        serializedVersion: 2
+        x: 3090
+        y: 1932
+        width: 179
+        height: 102
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b541330e8689747e0800000000000000
+      internalID: -1781287551396277157
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_4
+      rect:
+        serializedVersion: 2
+        x: 827
+        y: 1742
+        width: 179
+        height: 183
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8fc1f2deb831703f0800000000000000
+      internalID: -934756905955418888
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_5
+      rect:
+        serializedVersion: 2
+        x: 859
+        y: 423
+        width: 2374
+        height: 1504
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0080f4676453c5f90800000000000000
+      internalID: -6963632347072755712
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_6
+      rect:
+        serializedVersion: 2
+        x: 3090
+        y: 1742
+        width: 179
+        height: 183
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9915b224216343620800000000000000
+      internalID: 2752884724277662105
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_7
+      rect:
+        serializedVersion: 2
+        x: 748
+        y: 1341
+        width: 58
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06f4869fa609daef0800000000000000
+      internalID: -95261227979616416
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_8
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 1373
+        width: 50
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 688ba3c241f099310800000000000000
+      internalID: 1412176537473169542
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_9
+      rect:
+        serializedVersion: 2
+        x: 820
+        y: 1341
+        width: 59
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 35cb5434390593bf0800000000000000
+      internalID: -344155303098074029
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_10
+      rect:
+        serializedVersion: 2
+        x: 3148
+        y: 1293
+        width: 120
+        height: 120
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e56c85b93f266b580800000000000000
+      internalID: -8811746822480935330
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_11
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 1300
+        width: 50
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 468f065b915132170800000000000000
+      internalID: 8152382950632126564
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_12
+      rect:
+        serializedVersion: 2
+        x: 748
+        y: 1194
+        width: 58
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3958e3c220f0bfa0800000000000000
+      internalID: -5786861489064748738
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_13
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 1225
+        width: 50
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f55094ffa560e600800000000000000
+      internalID: 495507765407536624
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_14
+      rect:
+        serializedVersion: 2
+        x: 820
+        y: 1194
+        width: 59
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5063503ad1809f0f0800000000000000
+      internalID: -1082825312023792123
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_15
+      rect:
+        serializedVersion: 2
+        x: 3150
+        y: 1157
+        width: 117
+        height: 116
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ab08887d257ef0d0800000000000000
+      internalID: -3387141031579874393
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_16
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 1153
+        width: 50
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb7b4fa6a7948aa20800000000000000
+      internalID: 3073787535809623998
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_17
+      rect:
+        serializedVersion: 2
+        x: 748
+        y: 1047
+        width: 58
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 772111baccab35b40800000000000000
+      internalID: 5427887364117697143
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_18
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 1078
+        width: 50
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3abc9e5950bb9e350800000000000000
+      internalID: 6046569607385959331
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_19
+      rect:
+        serializedVersion: 2
+        x: 820
+        y: 1047
+        width: 59
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0664c3a32e43976e0800000000000000
+      internalID: -1839380826559855008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_20
+      rect:
+        serializedVersion: 2
+        x: 3150
+        y: 1017
+        width: 117
+        height: 116
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ee51027e5455ee10800000000000000
+      internalID: 2226278355420929767
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_21
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 1006
+        width: 50
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 42f9af10357b2ee60800000000000000
+      internalID: 7990150256052051748
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_22
+      rect:
+        serializedVersion: 2
+        x: 748
+        y: 899
+        width: 58
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a5c0eac4d3e131690800000000000000
+      internalID: -7632723694834545574
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_23
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 931
+        width: 50
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b66c88d2386f73f80800000000000000
+      internalID: -8126755959301683605
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_24
+      rect:
+        serializedVersion: 2
+        x: 820
+        y: 899
+        width: 59
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6a1886551bb6d64e0800000000000000
+      internalID: -1986813451214224986
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_25
+      rect:
+        serializedVersion: 2
+        x: 3150
+        y: 877
+        width: 117
+        height: 117
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9f1fe277c6041950800000000000000
+      internalID: 6418762822606331802
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Controls Outline White 4k_26
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 858
+        width: 50
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0c18c67fc1c5fc160800000000000000
+      internalID: 7047953221338038720
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Controls Outline White 4k_0: 3852428130482781873
+      Controls Outline White 4k_1: 327479886413470760
+      Controls Outline White 4k_10: -8811746822480935330
+      Controls Outline White 4k_11: 8152382950632126564
+      Controls Outline White 4k_12: -5786861489064748738
+      Controls Outline White 4k_13: 495507765407536624
+      Controls Outline White 4k_14: -1082825312023792123
+      Controls Outline White 4k_15: -3387141031579874393
+      Controls Outline White 4k_16: 3073787535809623998
+      Controls Outline White 4k_17: 5427887364117697143
+      Controls Outline White 4k_18: 6046569607385959331
+      Controls Outline White 4k_19: -1839380826559855008
+      Controls Outline White 4k_2: 5242480982888230839
+      Controls Outline White 4k_20: 2226278355420929767
+      Controls Outline White 4k_21: 7990150256052051748
+      Controls Outline White 4k_22: -7632723694834545574
+      Controls Outline White 4k_23: -8126755959301683605
+      Controls Outline White 4k_24: -1986813451214224986
+      Controls Outline White 4k_25: 6418762822606331802
+      Controls Outline White 4k_26: 7047953221338038720
+      Controls Outline White 4k_3: -1781287551396277157
+      Controls Outline White 4k_4: -934756905955418888
+      Controls Outline White 4k_5: -6963632347072755712
+      Controls Outline White 4k_6: 2752884724277662105
+      Controls Outline White 4k_7: -95261227979616416
+      Controls Outline White 4k_8: 1412176537473169542
+      Controls Outline White 4k_9: -344155303098074029
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

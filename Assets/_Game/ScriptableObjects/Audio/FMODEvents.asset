@@ -12,19 +12,47 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8aa871ce4a5bfb9479c13f43a2c5877e, type: 3}
   m_Name: FMODEvents
   m_EditorClassIdentifier: Assembly-CSharp::FMODEvents
-  SFX:
-    SoundScore:
-      Guid:
-        Data1: -2103559546
-        Data2: 1083866524
-        Data3: -1872893294
-        Data4: -1971939753
-      Path: event:/SFX/Lamp/Lamp
-  BGM:
-    BGM8Bit:
+  Music:
+    Music8Bit:
       Guid:
         Data1: 1819243192
         Data2: 1337894302
         Data3: -1098012519
         Data4: 2067689381
-      Path: event:/BGM/Soundtrack
+      Path: event:/Music/Soundtrack
+  UI:
+    Select:
+      Guid:
+        Data1: -1351765936
+        Data2: 1310615200
+        Data3: -1618126962
+        Data4: 736529461
+      Path: event:/UI/Select
+    Close:
+      Guid:
+        Data1: -234692237
+        Data2: 1097375944
+        Data3: -1646300227
+        Data4: -1001338620
+      Path: event:/UI/Close
+    Cancel:
+      Guid:
+        Data1: 1978350861
+        Data2: 1111654564
+        Data3: 2044642478
+        Data4: -2066637316
+      Path: event:/UI/Cancel
+    Error:
+      Guid:
+        Data1: -841437777
+        Data2: 1221635546
+        Data3: 1155067838
+        Data4: -1124093182
+      Path: event:/UI/Error
+    Cursor:
+      Guid:
+        Data1: 724646811
+        Data2: 1091165648
+        Data3: -754021996
+        Data4: -96392157
+      Path: event:/UI/Cursor
