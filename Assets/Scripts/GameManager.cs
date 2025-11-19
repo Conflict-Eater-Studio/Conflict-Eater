@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -38,6 +39,13 @@ public class GameManager : Singleton<GameManager>
     {
         // Remove the GameManager before going to main menu
         Destroy(gameObject);
+        if (AudioManager.Instance.ActiveInstances.Count > 0)
+        {
+            AudioManager.Instance.StopEventInstance(
+                AudioManager.Instance.ActiveInstances.First().Key,
+                FMOD.Studio.STOP_MODE.ALLOWFADEOUT
+            );
+        }
         SceneManager.LoadSceneAsync("MainMenu");
     }
 

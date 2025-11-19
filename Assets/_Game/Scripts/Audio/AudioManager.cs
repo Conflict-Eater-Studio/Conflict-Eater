@@ -27,6 +27,7 @@ public class AudioManager : MonoBehaviour
     private float _musicVolume = 1f;
     private float _uiVolume = 1f;
 
+    public Dictionary<Guid, EventInstance> ActiveInstances => _activeInstances;
     public FMODEvents FMODEvents => _fmodEvents;
     public float MasterVolume
     {

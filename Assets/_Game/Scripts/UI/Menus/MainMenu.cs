@@ -36,7 +36,12 @@ public class MainMenu : MonoBehaviour
     public void OnBtnPlay()
     {
         // WARNING: Replace with scene management system
-        SceneManager.LoadSceneAsync("SampleScene");
+        SceneManager.LoadSceneAsync("SampleScene").completed += (_) =>
+        {
+            // WARNING: Playing music this way is temporary. We lose GUID of the music instance after loading the scene.
+            // For now it's OK beacuse it's the only instance creted in the game and can be easily found
+            AudioManager.Instance.PlaySound(AudioManager.Instance.FMODEvents.Music.Music8Bit);
+        };
     }
 
     public void OnBtnTutorial()
