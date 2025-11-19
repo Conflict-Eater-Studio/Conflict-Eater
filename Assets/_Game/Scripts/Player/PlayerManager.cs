@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Users;
+using UnityEngine.Rendering;
 
 /// <summary>
 /// Manages players in the game, including their types, input devices, and swapping gamepads.
@@ -15,9 +16,9 @@ public class PlayerManager
     [Serializable]
     public struct PlayerData
     {
-        public GameObject PlayerObject; 
-        public PlayerType Type;         
-        public PlayerInput Input;       
+        public GameObject PlayerObject;
+        public PlayerType Type;
+        public PlayerInput Input;
 
         public PlayerData(GameObject obj, PlayerType type, PlayerInput input)
         {
@@ -30,14 +31,18 @@ public class PlayerManager
     public enum PlayerType
     {
         Light,
-        Shadow
+        Shadow,
     }
     #endregion
 
     #region Fields
 
     private List<PlayerData> _players = new List<PlayerData>(); // List of all players
+    #endregion
 
+    #region Events
+    public event EventHandler OnPlayerConnected;
+    public event EventHandler OnPlayerSwapped;
     #endregion
 
     #region Player Management
@@ -48,6 +53,7 @@ public class PlayerManager
     public void AddPlayer(GameObject playerObj, PlayerType type, PlayerInput input)
     {
         _players.Add(new PlayerData(playerObj, type, input));
+        OnPlayerConnected?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -110,6 +116,11 @@ public class PlayerManager
 
         InputUser.PerformPairingWithDevice(padB, playerA.Input.user);
         InputUser.PerformPairingWithDevice(padA, playerB.Input.user);
+
+        // HACK: Swapping the players in the list to keep the track of their role for UI
+        _players.TrySwap(_players.IndexOf(playerA), _players.IndexOf(playerB), out _);
+
+        OnPlayerSwapped?.Invoke(this, EventArgs.Empty);
     }
 
     #endregion
