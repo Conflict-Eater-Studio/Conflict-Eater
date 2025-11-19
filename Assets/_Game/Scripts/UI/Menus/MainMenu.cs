@@ -43,7 +43,7 @@ public class MainMenu : MonoBehaviour
     {
         AudioManager.Instance.PlayOneShot(AudioManager.Instance.FMODEvents.UI.Select);
         // WARNING: Replace with scene management system
-        SceneManager.LoadSceneAsync("Tutorial");
+        SceneManager.LoadSceneAsync("Tutorial", LoadSceneMode.Additive);
     }
 
     public void OnBtnSettings()

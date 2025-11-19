@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using static ShadowController;
 
 public class ShadowPlayerController : MonoBehaviour
 {
     private const string MoveActionName = "Move";
     private const string SwitchActionName = "GhostSwitch";
+    private const string PauseActionName = "Pause";
 
     [Header("Shadow Settings")]
     [SerializeField] private GameObject _shadowPrefab;
@@ -44,11 +46,50 @@ public class ShadowPlayerController : MonoBehaviour
         {
             _playerInput.actions[SwitchActionName].performed += OnSwitch;
             _playerInput.actions[MoveActionName].performed += OnMove;
+            _playerInput.actions[PauseActionName].performed += OnPause;
         }
 
         GameManager.Instance.Timer.OnRoundStart += Timer_OnRoundStart;
         GameManager.Instance.Timer.OnRoundEnd += HandleRoundEnd;
+
+        GameManager.Instance.Timer.OnMatchPause += Shadow_OnMatchPause;
+        GameManager.Instance.Timer.OnMatchResume += Shadow_OnMatchResume;
+
         StartCoroutine(SpawnFirstShadow());
+    }
+
+    private void OnPause(InputAction.CallbackContext context)
+    {
+        if (!context.performed) return;
+
+        if (GameManager.Instance.Timer.IsGamePaused)
+        {
+            SceneManager.UnloadSceneAsync("GamePause").completed += (_) =>
+            {
+                GameManager.Instance.Timer.Resume();
+            };
+        }
+        else
+        {
+            GameManager.Instance.Timer.Pause();
+            SceneManager.LoadSceneAsync("GamePause", LoadSceneMode.Additive);
+        }
+    }
+
+    private void Shadow_OnMatchResume(object sender, System.EventArgs e)
+    {
+        _shadows.ForEach(shadow =>
+        {
+            shadow.GetComponent<ShadowController>().Movement.IsLocked = false;
+        });
+    }
+
+    private void Shadow_OnMatchPause(object sender, System.EventArgs e)
+    {
+        _shadows.ForEach(shadow =>
+        {
+            shadow.GetComponent<ShadowController>().Movement.IsLocked = true;
+        });
     }
 
     private void Timer_OnRoundStart(object sender, System.EventArgs e)

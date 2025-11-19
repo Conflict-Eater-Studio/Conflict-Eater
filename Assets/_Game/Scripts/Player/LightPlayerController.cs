@@ -5,10 +5,12 @@ using UnityEditor.EditorTools;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class LightPlayerController : MonoBehaviour
 {
     private const string MoveActionName = "Move";
+    private const string PauseActionName = "Pause";
 
     private Rigidbody2D _rb;
     private Vector2 _moveInput;
@@ -44,13 +46,29 @@ public class LightPlayerController : MonoBehaviour
         {
             InputAction moveAction = _playerInput.actions[MoveActionName];
             moveAction.performed += OnMove;
+
+            InputAction pauseAction = _playerInput.actions[PauseActionName];
+            pauseAction.performed += OnPause;
         }
 
         if(GameManager.Instance)
         {
             GameManager.Instance.Timer.OnRoundStart += Timer_OnRoundStart;
             GameManager.Instance.Timer.OnRoundEnd += Timer_OnRoundEnd;
+
+            GameManager.Instance.Timer.OnMatchPause += Light_OnMatchPause;
+            GameManager.Instance.Timer.OnMatchResume += Light_OnMatchResume;
         }
+    }
+
+    private void Light_OnMatchResume(object sender, EventArgs e)
+    {
+        _movement.IsLocked = false;
+    }
+
+    private void Light_OnMatchPause(object sender, EventArgs e)
+    {
+        _movement.IsLocked = true;
     }
 
     private void Timer_OnRoundEnd(object sender, EventArgs e)
@@ -83,6 +101,25 @@ public class LightPlayerController : MonoBehaviour
         }
     }
 
+    public virtual void OnPause(InputAction.CallbackContext context)
+    {
+        if (!context.performed)
+            return;
+
+        if (GameManager.Instance.Timer.IsGamePaused)
+        {
+            SceneManager.UnloadSceneAsync("GamePause").completed += (_) =>
+            {
+                GameManager.Instance.Timer.Resume();
+            };
+        }
+        else
+        {
+            GameManager.Instance.Timer.Pause();
+            SceneManager.LoadSceneAsync("GamePause", LoadSceneMode.Additive);
+        }
+    }
+
     protected virtual void FixedUpdate()
     {
         _movement.FixedTick();
@@ -108,6 +145,8 @@ public class LightPlayerController : MonoBehaviour
         {
             GameManager.Instance.Timer.OnRoundStart -= Timer_OnRoundStart;
             GameManager.Instance.Timer.OnRoundEnd -= Timer_OnRoundEnd;
+            GameManager.Instance.Timer.OnMatchPause -= Light_OnMatchPause;
+            GameManager.Instance.Timer.OnMatchResume -= Light_OnMatchResume;
         }
     }
 }

@@ -20,6 +20,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/GamePause.unity
     guid: 1d98f96d216138541822aa666c444acd
+  - enabled: 1
+    path: Assets/Scenes/Tutorial.unity
+    guid: 82759380538c0cc4cbc4ce0ff59b0c28
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0
