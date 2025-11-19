@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 13312, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: tilemap-template-32px-grid-dark_47
+  m_Name: tilemap-template-32px-grid-dark_47 1
   m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.Tilemaps.Tile
   m_Sprite: {fileID: 1451277352, guid: 94344fc3e10a07347b2c6e362e032566, type: 3}
-  m_Color: {r: 0.6392157, g: 1, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Transform:
     e00: 1
     e01: 0
@@ -31,6 +31,6 @@ MonoBehaviour:
     e31: 0
     e32: 0
     e33: 1
-  m_InstancedGameObject: {fileID: 4059025343358205287, guid: 684cb7b7104061640bc3c84be7e92c6c, type: 3}
+  m_InstancedGameObject: {fileID: 6306128888606122102, guid: c0a97c005d46ac34a960fab9a2f92027, type: 3}
   m_Flags: 0
   m_ColliderType: 1

@@ -38,9 +38,17 @@ public class Grid : MonoBehaviour
     [SerializeField]
     private Tilemap _tilemapLight;
 
+    [Tooltip("Tilemap for inactive lighted floors")]
+    [SerializeField]
+    private Tilemap _tilemapInactiveLight;
+
     [Tooltip("Tile used to indicate lighted floor")]
     [SerializeField]
     private TileBase _lightTile;
+
+    [Tooltip("Tile used to indicate inactive lighted floor")]
+    [SerializeField]
+    private TileBase _lightInactiveTile;
 
     [Tooltip("List of floor tile coordinates that are excluded from lighting")]
     [SerializeField]
@@ -106,7 +114,28 @@ public class Grid : MonoBehaviour
                 }
             }
         }
+
+        InitializeInactiveLightTiles();
     }
+
+    private void InitializeInactiveLightTiles()
+    {
+        BoundsInt bounds = _tilemapFloors.cellBounds;
+
+        for (int x = bounds.xMin; x < bounds.xMax; x++)
+        {
+            for (int y = bounds.yMin; y < bounds.yMax; y++)
+            {
+                Vector3Int cellPos = new Vector3Int(x, y, 0);
+
+                if (IsWalkable(cellPos) && !IsLightTileExcluded(cellPos))
+                {
+                    _tilemapInactiveLight.SetTile(cellPos, _lightInactiveTile);
+                }
+            }
+        }
+    }
+
 
     // Reset map state on round end
     private void OnRoundEnd(object sender, EventArgs e)

@@ -20,7 +20,9 @@ public class GridEditor : Editor
     private SerializedProperty _tilemapWalls;
     private SerializedProperty _tilemapFloors;
     private SerializedProperty _tilemapLight;
+    private SerializedProperty _tilemapInactiveLight;
     private SerializedProperty _lightTile;
+    private SerializedProperty _lightInactiveTile;
     private SerializedProperty _lightExclusion;
     private SerializedProperty _lightSpawnCells;
     private SerializedProperty _shadowSpawnCell;
@@ -37,7 +39,9 @@ public class GridEditor : Editor
         _tilemapWalls = serializedObject.FindProperty("_tilemapWalls");
         _tilemapFloors = serializedObject.FindProperty("_tilemapFloors");
         _tilemapLight = serializedObject.FindProperty("_tilemapLight");
+        _tilemapInactiveLight = serializedObject.FindProperty("_tilemapInactiveLight");
         _lightTile = serializedObject.FindProperty("_lightTile");
+        _lightInactiveTile = serializedObject.FindProperty("_lightInactiveTile");
         _lightExclusion = serializedObject.FindProperty("_lightExclusion");
         _lightSpawnCells = serializedObject.FindProperty("_lightSpawnCells");
         _shadowSpawnCell = serializedObject.FindProperty("_shadowSpawnCell");
@@ -73,7 +77,9 @@ public class GridEditor : Editor
         EditorGUILayout.PropertyField(_tilemapWalls);
         EditorGUILayout.PropertyField(_tilemapFloors);
         EditorGUILayout.PropertyField(_tilemapLight);
+        EditorGUILayout.PropertyField(_tilemapInactiveLight);
         EditorGUILayout.PropertyField(_lightTile);
+        EditorGUILayout.PropertyField(_lightInactiveTile);
 
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Editor Tools", EditorStyles.boldLabel);
@@ -875,7 +881,7 @@ public class GridEditor : Editor
                 Vector3Int cellPos = new Vector3Int(coord.x, coord.y, 0);
                 Vector3 worldPos = floorTilemap.GetCellCenterWorld(cellPos);
 
-                Gizmos.color = new Color(0.8f, 0f, 0.8f, 0.8f); // fioletowy
+                Gizmos.color = new Color(0.8f, 0f, 0.8f, 0.8f);
                 Vector3 size = new Vector3(floorTilemap.cellSize.x, floorTilemap.cellSize.y, 0.01f);
                 Gizmos.DrawCube(worldPos, size);
             }
