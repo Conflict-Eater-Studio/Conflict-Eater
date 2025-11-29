@@ -129,6 +129,9 @@ public class PlayerSpawner : MonoBehaviour
                     playerIndex == 0 ? PlayerColor.ColorType.Red : PlayerColor.ColorType.Blue;
                 _playerColors[playerIndex] = defaultColor;
 
+                // Update PlayerColorManager to keep it in sync
+                PlayerColorManager.SetPlayerColor(playerIndex, defaultColor);
+
                 // Raise color changed event
                 OnColorChanged?.Invoke(
                     this,
@@ -204,6 +207,9 @@ public class PlayerSpawner : MonoBehaviour
 
         _playerColors[playerIndex] = colors[currentIndex];
 
+        // Update PlayerColorManager to keep it in sync
+        PlayerColorManager.SetPlayerColor(playerIndex, colors[currentIndex]);
+
         OnColorChanged?.Invoke(
             this,
             new ColorChangedEventArgs { PlayerIndex = playerIndex, NewColor = colors[currentIndex] }
@@ -252,6 +258,9 @@ public class PlayerSpawner : MonoBehaviour
 
         _playerColors[playerIndex] = colors[currentIndex];
 
+        // Update PlayerColorManager to keep it in sync
+        PlayerColorManager.SetPlayerColor(playerIndex, colors[currentIndex]);
+
         OnColorChanged?.Invoke(
             this,
             new ColorChangedEventArgs { PlayerIndex = playerIndex, NewColor = colors[currentIndex] }
@@ -260,9 +269,6 @@ public class PlayerSpawner : MonoBehaviour
 
     private void DetectGamepadInput()
     {
-        if (_playersSpawned)
-            return;
-
         var gamepads = Gamepad.all;
         foreach (var gamepad in gamepads)
         {
@@ -363,11 +369,11 @@ public class PlayerSpawner : MonoBehaviour
                 if (request.HoldTime >= _holdDuration && !request.IsConfirmed)
                 {
                     request.IsConfirmed = true;
-                    RaiseRoleSelectionEvent(role, request);
+                    RaiseRoleSelectionChangedEvent(role, request);
                 }
                 else if (!request.IsConfirmed)
                 {
-                    RaiseRoleSelectionEvent(role, request);
+                    RaiseRoleSelectionChangedEvent(role, request);
                 }
             }
             else
@@ -401,7 +407,7 @@ public class PlayerSpawner : MonoBehaviour
         }
     }
 
-    private void RaiseRoleSelectionEvent(PlayerRole role, JoinRequest request)
+    private void RaiseRoleSelectionChangedEvent(PlayerRole role, JoinRequest request)
     {
         int playerIndex = _gamepadToPlayerIndex.ContainsKey(request.Gamepad)
             ? _gamepadToPlayerIndex[request.Gamepad]
@@ -454,12 +460,8 @@ public class PlayerSpawner : MonoBehaviour
         // Enabled joining and spawn players
         _playerInputManager.EnableJoining();
 
-        // Save player colors to PlayerColorManager based on their roles
-        var lightRequest = _roleRequests[PlayerRole.Light];
-        var shadowRequest = _roleRequests[PlayerRole.Shadow];
-
-        PlayerColorManager.SetPlayerColor(0, lightRequest.Color);
-        PlayerColorManager.SetPlayerColor(1, shadowRequest.Color);
+        // Note: Player colors are already saved to PlayerColorManager during color selection
+        // via HandleColorSelection methods, so we don't need to set them again here
 
         int playerIndex = 0;
         foreach (var kvp in _roleRequests)

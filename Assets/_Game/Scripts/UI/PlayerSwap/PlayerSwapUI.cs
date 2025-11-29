@@ -129,7 +129,7 @@ public class PlayerSwapUI : MonoBehaviour
     /// </summary>
     /// <param name="displayDuration">How long to display the role assignment before fading out</param>
     /// <param name="onComplete">Callback when the entire sequence (fade in, hold, fade out) completes</param>
-    public void ShowInitialAssignment(float displayDuration = 3f, System.Action onComplete = null)
+    public void ShowInitialAssignment(float displayDuration = 3f, Action onComplete = null)
     {
         _animationSequence?.Kill();
         gameObject.SetActive(true);
@@ -259,6 +259,9 @@ public class PlayerSwapUI : MonoBehaviour
     /// </summary>
     private void UpdateBarsToCurrentState()
     {
+        Debug.Log("Updating PlayerSwapUI bars to current state.");
+        Debug.Log("Player 1 Color: " + PlayerColorManager.Player1Color);
+        Debug.Log("Player 2 Color: " + PlayerColorManager.Player2Color);
         if (_player1ColorIndicator != null)
             _player1ColorIndicator.color = PlayerColor
                 .GetColor(PlayerColorManager.Player1Color)
