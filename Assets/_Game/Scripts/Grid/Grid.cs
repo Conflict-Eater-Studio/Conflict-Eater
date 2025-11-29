@@ -112,7 +112,8 @@ public class Grid : MonoBehaviour
         get { return _litTileCount; }
     }
 
-    [SerializeField] private float _powerUpSpawnInterval = 20f;
+    [SerializeField]
+    private float _powerUpSpawnInterval = 20f;
     private Coroutine _powerUpSpawnRoutine;
     private int _lastSpawnIndex = -1;
 
@@ -157,7 +158,6 @@ public class Grid : MonoBehaviour
             }
         }
     }
-
 
     // Reset map state on round end
     private void OnRoundEnd(object sender, EventArgs e)
@@ -227,9 +227,11 @@ public class Grid : MonoBehaviour
         return Vector3.zero;
     }
 
-    public List<Vector3> GetPowerupSpawnPoints() {
+    public List<Vector3> GetPowerupSpawnPoints()
+    {
         List<Vector3> spawnPoints = new List<Vector3>();
-        for (int i = 0; i < _powerUpSpawnCells.Count; i++) {
+        for (int i = 0; i < _powerUpSpawnCells.Count; i++)
+        {
             Vector2Int spawnCell = _powerUpSpawnCells[i];
             Vector3Int worldCoordinates = new Vector3Int(spawnCell.x, spawnCell.y, 0);
             spawnPoints.Add(_tilemapFloors.GetCellCenterWorld(worldCoordinates));
@@ -243,7 +245,7 @@ public class Grid : MonoBehaviour
         return _homeTargets;
     }
 
-/// <summary>
+    /// <summary>
     /// Finds the paired portal position for the given portal ID and cell position.
     /// </summary>
     /// <param name="portalId">ID of portal pair to find</param>
@@ -506,7 +508,7 @@ public class Grid : MonoBehaviour
         ResetPlayer(PlayerManager.PlayerType.Light, SpawnPointType.LightRandom);
         ResetPlayer(PlayerManager.PlayerType.Shadow, SpawnPointType.Shadow);
 
-        PowerUp[] powerUps = FindObjectsOfType<PowerUp>();
+        PowerUp[] powerUps = FindObjectsByType<PowerUp>(FindObjectsSortMode.None);
         foreach (var powerUp in powerUps)
         {
             Destroy(powerUp.gameObject);
