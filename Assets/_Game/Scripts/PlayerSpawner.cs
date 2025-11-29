@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.EditorTools;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Utilities;
 
 public class PlayerSpawner : MonoBehaviour
 {
@@ -62,7 +63,7 @@ public class PlayerSpawner : MonoBehaviour
         Shadow,
     }
 
-    private class JoinRequest
+    private struct JoinRequest
     {
         public Gamepad Gamepad;
         public PlayerRole SelectedRole;
@@ -73,10 +74,9 @@ public class PlayerSpawner : MonoBehaviour
 
     // Track 2 players by their gamepad
     private Dictionary<Gamepad, int> _gamepadToPlayerIndex = new Dictionary<Gamepad, int>();
-    private Dictionary<int, PlayerColor.ColorType> _playerColors =
-        new Dictionary<int, PlayerColor.ColorType>();
+    private PlayerColor.ColorType[] _playerColors = new PlayerColor.ColorType[2];
 
-    // Track role requests fror each join request
+    // Track role requests for each join request
     private Dictionary<PlayerRole, JoinRequest> _roleRequests =
         new Dictionary<PlayerRole, JoinRequest>();
 
@@ -99,20 +99,21 @@ public class PlayerSpawner : MonoBehaviour
         if (_playersSpawned)
             return;
 
-        HandleColorSelection();
-        DetectGamepadInput();
+        var gamepads = Gamepad.all;
+
+        HandleColorSelection(gamepads);
+        DetectGamepadInput(gamepads);
         UpdateRoleSelection();
     }
     #endregion
 
     #region Player Join Logic
 
-    private void HandleColorSelection()
+    private void HandleColorSelection(ReadOnlyArray<Gamepad> gamepads)
     {
         if (_playersSpawned)
             return;
 
-        var gamepads = Gamepad.all;
         foreach (var gamepad in gamepads)
         {
             // Assign player index to new gamepads (max 2 players)
@@ -142,15 +143,9 @@ public class PlayerSpawner : MonoBehaviour
             int pIndex = _gamepadToPlayerIndex[gamepad];
 
             // Don't allow color changes if this player has confirmed a role
-            bool hasConfirmedRole = false;
-            foreach (var request in _roleRequests.Values)
-            {
-                if (request.Gamepad == gamepad && request.IsConfirmed)
-                {
-                    hasConfirmedRole = true;
-                    break;
-                }
-            }
+            bool hasConfirmedRole = _roleRequests.Values.Any(r =>
+                r.Gamepad == gamepad && r.IsConfirmed
+            );
 
             if (hasConfirmedRole)
                 continue;
@@ -158,133 +153,62 @@ public class PlayerSpawner : MonoBehaviour
             // Cycle color with bumpers
             if (gamepad.leftShoulder.wasPressedThisFrame)
             {
-                CycleColorPrevious(pIndex);
+                CycleColor(pIndex, -1);
             }
             else if (gamepad.rightShoulder.wasPressedThisFrame)
             {
-                CycleColorNext(pIndex);
+                CycleColor(pIndex, 1);
             }
         }
     }
 
-    private void CycleColorNext(int playerIndex)
+    private void CycleColor(int playerIndex, int direction)
     {
-        if (!_playerColors.ContainsKey(playerIndex))
-            return;
-
-        PlayerColor.ColorType[] colors = new[]
-        {
-            PlayerColor.ColorType.Red,
-            PlayerColor.ColorType.Blue,
-            PlayerColor.ColorType.Green,
-            PlayerColor.ColorType.Yellow,
-            PlayerColor.ColorType.Purple,
-            PlayerColor.ColorType.Orange,
-        };
-
-        int currentIndex = Array.IndexOf(colors, _playerColors[playerIndex]);
+        PlayerColor.ColorType currentColor = _playerColors[playerIndex];
+        int currentIndex = Array.IndexOf(PlayerColor.AllColors, currentColor);
         int startIndex = currentIndex;
 
-        // Find next color that isn't taken by the other player
+        // Create a set of taken colors
+        HashSet<PlayerColor.ColorType> takenColors = new HashSet<PlayerColor.ColorType>();
+        for (int i = 0; i < _playerColors.Length; i++)
+        {
+            if (i != playerIndex)
+                takenColors.Add(_playerColors[i]);
+        }
+
         do
         {
-            currentIndex = (currentIndex + 1) % colors.Length;
+            currentIndex =
+                (currentIndex + direction + PlayerColor.AllColors.Length)
+                % PlayerColor.AllColors.Length;
 
-            // Check if this color is taken by another player
-            bool colorTaken = false;
-            foreach (var kvp in _playerColors)
-            {
-                if (kvp.Key != playerIndex && kvp.Value == colors[currentIndex])
-                {
-                    colorTaken = true;
-                    break;
-                }
-            }
-
-            if (!colorTaken)
+            if (!takenColors.Contains(PlayerColor.AllColors[currentIndex]))
                 break;
         } while (currentIndex != startIndex);
 
-        _playerColors[playerIndex] = colors[currentIndex];
+        _playerColors[playerIndex] = PlayerColor.AllColors[currentIndex];
 
-        // Update PlayerColorManager to keep it in sync
-        PlayerColorManager.SetPlayerColor(playerIndex, colors[currentIndex]);
+        PlayerColorManager.SetPlayerColor(playerIndex, PlayerColor.AllColors[currentIndex]);
 
         OnColorChanged?.Invoke(
             this,
-            new ColorChangedEventArgs { PlayerIndex = playerIndex, NewColor = colors[currentIndex] }
-        );
-    }
-
-    private void CycleColorPrevious(int playerIndex)
-    {
-        if (!_playerColors.ContainsKey(playerIndex))
-            return;
-
-        PlayerColor.ColorType[] colors = new[]
-        {
-            PlayerColor.ColorType.Red,
-            PlayerColor.ColorType.Blue,
-            PlayerColor.ColorType.Green,
-            PlayerColor.ColorType.Yellow,
-            PlayerColor.ColorType.Purple,
-            PlayerColor.ColorType.Orange,
-        };
-
-        int currentIndex = Array.IndexOf(colors, _playerColors[playerIndex]);
-        int startIndex = currentIndex;
-
-        // Find previous color that isn't taken by the other player
-        do
-        {
-            currentIndex--;
-            if (currentIndex < 0)
-                currentIndex = colors.Length - 1;
-
-            // Check if this color is taken by another player
-            bool colorTaken = false;
-            foreach (var kvp in _playerColors)
+            new ColorChangedEventArgs
             {
-                if (kvp.Key != playerIndex && kvp.Value == colors[currentIndex])
-                {
-                    colorTaken = true;
-                    break;
-                }
+                PlayerIndex = playerIndex,
+                NewColor = PlayerColor.AllColors[currentIndex],
             }
-
-            if (!colorTaken)
-                break;
-        } while (currentIndex != startIndex);
-
-        _playerColors[playerIndex] = colors[currentIndex];
-
-        // Update PlayerColorManager to keep it in sync
-        PlayerColorManager.SetPlayerColor(playerIndex, colors[currentIndex]);
-
-        OnColorChanged?.Invoke(
-            this,
-            new ColorChangedEventArgs { PlayerIndex = playerIndex, NewColor = colors[currentIndex] }
         );
     }
 
-    private void DetectGamepadInput()
+    private void DetectGamepadInput(ReadOnlyArray<Gamepad> gamepads)
     {
-        var gamepads = Gamepad.all;
         foreach (var gamepad in gamepads)
         {
             float leftTrigger = gamepad.leftTrigger.ReadValue();
             float rightTrigger = gamepad.rightTrigger.ReadValue();
 
             // Check if this gamepad is already claiming a role
-            bool gamepadAlreadyClaimed = false;
-            foreach (var existingRequest in _roleRequests.Values)
-            {
-                if (existingRequest.Gamepad == gamepad)
-                {
-                    gamepadAlreadyClaimed = true;
-                    break;
-                }
-            }
+            bool gamepadAlreadyClaimed = _roleRequests.Values.Any(r => r.Gamepad == gamepad);
 
             // Gamepad already has a role, skip it
             if (gamepadAlreadyClaimed)
@@ -295,9 +219,7 @@ public class PlayerSpawner : MonoBehaviour
                 continue;
 
             int playerIndex = _gamepadToPlayerIndex[gamepad];
-            PlayerColor.ColorType gamepadColor = _playerColors.ContainsKey(playerIndex)
-                ? _playerColors[playerIndex]
-                : PlayerColor.ColorType.Red;
+            PlayerColor.ColorType gamepadColor = _playerColors[playerIndex];
 
             // Check if Light role is being claimed
             if (leftTrigger > 0.5f && !_roleRequests.ContainsKey(PlayerRole.Light))
@@ -331,6 +253,7 @@ public class PlayerSpawner : MonoBehaviour
     {
         // Update hold times for each role request
         var rolesToRemove = new List<PlayerRole>();
+        var updates = new List<(PlayerRole, JoinRequest)>();
 
         foreach (var kvp in _roleRequests)
         {
@@ -351,16 +274,12 @@ public class PlayerSpawner : MonoBehaviour
             float rightTrigger = gamepad.rightTrigger.ReadValue();
 
             // Check if the player is still holding their claimed role's trigger
-            bool isStillHoldingRole = false;
-
-            if (role == PlayerRole.Light && leftTrigger > 0.5f)
+            bool isStillHoldingRole = role switch
             {
-                isStillHoldingRole = true;
-            }
-            else if (role == PlayerRole.Shadow && rightTrigger > 0.5f)
-            {
-                isStillHoldingRole = true;
-            }
+                PlayerRole.Light => leftTrigger > 0.5f,
+                PlayerRole.Shadow => rightTrigger > 0.5f,
+                _ => false,
+            };
 
             if (isStillHoldingRole)
             {
@@ -375,6 +294,9 @@ public class PlayerSpawner : MonoBehaviour
                 {
                     RaiseRoleSelectionChangedEvent(role, request);
                 }
+
+                // Collect update to apply after enumeration
+                updates.Add((role, request));
             }
             else
             {
@@ -382,6 +304,12 @@ public class PlayerSpawner : MonoBehaviour
                 RaiseRoleSelectionReleasedEvent(role, role);
                 rolesToRemove.Add(role);
             }
+        }
+
+        // Apply updates
+        foreach (var (role, request) in updates)
+        {
+            _roleRequests[role] = request;
         }
 
         // Remove released roles
@@ -409,9 +337,8 @@ public class PlayerSpawner : MonoBehaviour
 
     private void RaiseRoleSelectionChangedEvent(PlayerRole role, JoinRequest request)
     {
-        int playerIndex = _gamepadToPlayerIndex.ContainsKey(request.Gamepad)
-            ? _gamepadToPlayerIndex[request.Gamepad]
-            : -1;
+        if (!_gamepadToPlayerIndex.TryGetValue(request.Gamepad, out int playerIndex))
+            playerIndex = -1;
 
         OnRoleSelectionChanged?.Invoke(
             this,
@@ -428,11 +355,12 @@ public class PlayerSpawner : MonoBehaviour
 
     private void RaiseRoleSelectionReleasedEvent(PlayerRole role, PlayerRole releasedRole)
     {
-        Gamepad gamepad = _roleRequests.ContainsKey(role) ? _roleRequests[role].Gamepad : null;
-        int playerIndex =
-            gamepad != null && _gamepadToPlayerIndex.ContainsKey(gamepad)
-                ? _gamepadToPlayerIndex[gamepad]
-                : -1;
+        if (!_roleRequests.TryGetValue(role, out JoinRequest request))
+            return;
+
+        Gamepad gamepad = request.Gamepad;
+        if (gamepad == null || !_gamepadToPlayerIndex.TryGetValue(gamepad, out int playerIndex))
+            playerIndex = -1;
 
         OnRoleSelectionReleased?.Invoke(
             this,

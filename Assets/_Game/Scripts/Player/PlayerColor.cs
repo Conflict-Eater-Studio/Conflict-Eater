@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -20,26 +21,60 @@ public class PlayerColor
     public ColorType Type;
     public Color Color;
 
+    public static ColorType[] AllColors
+    {
+        get => (ColorType[])Enum.GetValues(typeof(ColorType));
+    }
+
     public PlayerColor(ColorType type, Color color)
     {
         Type = type;
         Color = color;
     }
 
-    // Predefined color palette
+    /// <summary>
+    /// Gets the PlayerColor instance for the given ColorType.
+    /// </summary>
+    /// <param name="type">ColorType enum value representing the desired color.</param>
+    /// <returns>The PlayerColor instance corresponding to the given ColorType.</returns>
     public static PlayerColor GetColor(ColorType type)
     {
         return type switch
         {
-            ColorType.Red => new PlayerColor(ColorType.Red, new Color(0.9f, 0.2f, 0.2f)),
-            ColorType.Blue => new PlayerColor(ColorType.Blue, new Color(0.2f, 0.4f, 0.9f)),
-            ColorType.Green => new PlayerColor(ColorType.Green, new Color(0.2f, 0.8f, 0.3f)),
-            ColorType.Yellow => new PlayerColor(ColorType.Yellow, new Color(1f, 0.9f, 0.2f)),
-            ColorType.Purple => new PlayerColor(ColorType.Purple, new Color(0.7f, 0.2f, 0.9f)),
-            ColorType.Orange => new PlayerColor(ColorType.Orange, new Color(1f, 0.5f, 0.1f)),
-            _ => new PlayerColor(ColorType.Red, Color.white),
+            ColorType.Red => RedPC,
+            ColorType.Blue => BluePC,
+            ColorType.Green => GreenPC,
+            ColorType.Yellow => YellowPC,
+            ColorType.Purple => PurplePC,
+            ColorType.Orange => OrangePC,
+            _ => new PlayerColor(ColorType.Red, Color.red),
         };
     }
+
+    private static readonly PlayerColor RedPC = new PlayerColor(
+        ColorType.Red,
+        new Color(0.9f, 0.2f, 0.2f)
+    );
+    private static readonly PlayerColor BluePC = new PlayerColor(
+        ColorType.Blue,
+        new Color(0.2f, 0.4f, 0.9f)
+    );
+    private static readonly PlayerColor GreenPC = new PlayerColor(
+        ColorType.Green,
+        new Color(0.2f, 0.8f, 0.3f)
+    );
+    private static readonly PlayerColor YellowPC = new PlayerColor(
+        ColorType.Yellow,
+        new Color(1f, 0.9f, 0.2f)
+    );
+    private static readonly PlayerColor PurplePC = new PlayerColor(
+        ColorType.Purple,
+        new Color(0.7f, 0.2f, 0.9f)
+    );
+    private static readonly PlayerColor OrangePC = new PlayerColor(
+        ColorType.Orange,
+        new Color(1f, 0.5f, 0.1f)
+    );
 }
 
 /// <summary>
