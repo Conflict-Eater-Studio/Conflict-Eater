@@ -3,16 +3,24 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 
-public class Match : MonoBehaviour {
+public class Match : MonoBehaviour
+{
     #region Inspector Fields
 
     [Tooltip("Countdown before match start")]
-    [SerializeField] private float _matchCountdown = 5f;
-    [SerializeField] private float _roundCountdown = 3f;
+    [SerializeField]
+    private float _matchCountdown = 5f;
+
+    [SerializeField]
+    private float _roundCountdown = 3f;
+
     [Tooltip("Match duration in seconds")]
-    [SerializeField] private float _matchDurationSeconds = 300f;
+    [SerializeField]
+    private float _matchDurationSeconds = 300f;
+
     [Tooltip("Round duration in seconds")]
-    [SerializeField] private float _roundDurationSeconds = 10f;
+    [SerializeField]
+    private float _roundDurationSeconds = 10f;
 
     #endregion
 
@@ -38,18 +46,22 @@ public class Match : MonoBehaviour {
 
     #region Unity Methods
 
-    private void Update() {
-        if (!IsGameRunning || IsGamePaused) return;
-        
+    private void Update()
+    {
+        if (!IsGameRunning || IsGamePaused)
+            return;
+
         MatchTime += Time.deltaTime;
         RoundTime += Time.deltaTime;
-        
-        if (MatchTime >= _matchDurationSeconds) {
+
+        if (MatchTime >= _matchDurationSeconds)
+        {
             EndMatch();
             return;
         }
 
-        if (RoundTime >= _roundDurationSeconds) {
+        if (RoundTime >= _roundDurationSeconds)
+        {
             EndRound();
         }
     }
@@ -58,28 +70,36 @@ public class Match : MonoBehaviour {
 
     #region Match Flow
 
-    public void StartMatch() {
-        if (IsGameRunning) return;
+    public void StartMatch()
+    {
+        if (IsGameRunning)
+            return;
         StartCoroutine(StartMatchCountdown(_matchCountdown));
     }
 
-    private IEnumerator StartMatchCountdown(float delay) {
+    private IEnumerator StartMatchCountdown(float delay)
+    {
         Pause();
         yield return RunCountdown(delay);
         Resume();
         RunMatch();
     }
 
-    private void RunMatch() {
+    private void RunMatch()
+    {
         IsGameRunning = true;
         MatchTime = 0;
         RoundTime = 0;
 
-        OnMatchStart?.Invoke(this, new OnMatchStartEventArgs(_matchDurationSeconds, _roundDurationSeconds));
+        OnMatchStart?.Invoke(
+            this,
+            new OnMatchStartEventArgs(_matchDurationSeconds, _roundDurationSeconds)
+        );
         OnRoundStart?.Invoke(this, EventArgs.Empty);
     }
 
-    public void EndMatch() {
+    public void EndMatch()
+    {
         IsGameRunning = false;
         OnMatchEnd?.Invoke(this, EventArgs.Empty);
         StopAllCoroutines();
@@ -89,17 +109,28 @@ public class Match : MonoBehaviour {
 
     #region Round Flow
 
-    public void EndRound() {
+    /// <summary>
+    /// Ends the current round. Pauses the timer, resets round time, and fires OnRoundEnd event.
+    /// External systems should call StartRoundCountdown() when ready to begin the next round.
+    /// </summary>
+    public void EndRound()
+    {
         RoundTime = 0;
-        StartCoroutine(HandleRoundTransition());
+        Pause();
+        OnRoundEnd?.Invoke(this, EventArgs.Empty);
     }
 
-    private IEnumerator HandleRoundTransition() {
-        Pause();
-        
-        OnRoundEnd?.Invoke(this, EventArgs.Empty);
-        yield return RunCountdown(_roundCountdown);
+    /// <summary>
+    /// Starts the countdown for the next round. Call this after handling round end logic (e.g., animations).
+    /// </summary>
+    public void StartRoundCountdown()
+    {
+        StartCoroutine(HandleRoundCountdown());
+    }
 
+    private IEnumerator HandleRoundCountdown()
+    {
+        yield return RunCountdown(_roundCountdown);
         Resume();
         OnRoundStart?.Invoke(this, EventArgs.Empty);
     }
@@ -108,12 +139,14 @@ public class Match : MonoBehaviour {
 
     #region Pause & Resume
 
-    public void Pause() {
+    public void Pause()
+    {
         IsGamePaused = true;
         OnMatchPause?.Invoke(this, EventArgs.Empty);
     }
 
-    public void Resume() {
+    public void Resume()
+    {
         IsGamePaused = false;
         OnMatchResume?.Invoke(this, EventArgs.Empty);
     }
@@ -122,9 +155,11 @@ public class Match : MonoBehaviour {
 
     #region Countdown Utility
 
-    private IEnumerator RunCountdown(float duration) {
+    private IEnumerator RunCountdown(float duration)
+    {
         CountdownRemaining = duration;
-        while (CountdownRemaining > 0f) {
+        while (CountdownRemaining > 0f)
+        {
             yield return new WaitForEndOfFrame();
             CountdownRemaining -= Time.deltaTime;
         }
@@ -134,8 +169,10 @@ public class Match : MonoBehaviour {
 
 #region Event Args Class
 
-public class OnMatchStartEventArgs : EventArgs {
-    public OnMatchStartEventArgs(float matchDuration, float roundDuration) {
+public class OnMatchStartEventArgs : EventArgs
+{
+    public OnMatchStartEventArgs(float matchDuration, float roundDuration)
+    {
         MatchDuration = matchDuration;
         RoundDuration = roundDuration;
     }

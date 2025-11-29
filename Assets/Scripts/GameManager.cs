@@ -67,23 +67,20 @@ public class GameManager : Singleton<GameManager>
 
     private void OnRoundEnd(object sender, EventArgs e)
     {
+        // Swap players and update score
         PlayerManager.SwapPlayerGamepads(
             PlayerManager.PlayerType.Light,
             PlayerManager.PlayerType.Shadow
         );
         Score.ToggleActivePlayer();
+
+        // Note: PlayerSwapUI listens to PlayerManager.OnPlayerSwapped and will show the animation.
+        // The animation will call Timer.StartRoundCountdown() when complete.
     }
 
     private void GameManager_OnAllLightTiles(object sender, EventArgs e)
     {
         Timer.EndRound();
-        // WARNING: Allows light player to continue as light after lighting all tiles
-        // Maybe Timer should allow for EndRound() without triggering OnRoundEnd to avoid this double swap
-        PlayerManager.SwapPlayerGamepads(
-            PlayerManager.PlayerType.Light,
-            PlayerManager.PlayerType.Shadow
-        );
-        Score.ToggleActivePlayer();
     }
 
     private void OnDestroy()

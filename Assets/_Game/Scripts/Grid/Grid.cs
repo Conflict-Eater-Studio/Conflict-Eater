@@ -114,8 +114,6 @@ public class Grid : MonoBehaviour
 
     [SerializeField]
     private float _powerUpSpawnInterval = 20f;
-    private Coroutine _powerUpSpawnRoutine;
-    private int _lastSpawnIndex = -1;
 
     private void Awake()
     {
