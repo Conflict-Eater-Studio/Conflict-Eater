@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.EditorTools;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -21,6 +22,7 @@ public class Grid : MonoBehaviour
         Walls,
         Floors,
         Light,
+        Portals,
     }
 
     public event EventHandler OnNewLightTile;
@@ -42,9 +44,21 @@ public class Grid : MonoBehaviour
     [SerializeField]
     private Tilemap _tilemapInactiveLight;
 
+    [Tooltip("Tilemap for portals")]
+    [SerializeField]
+    private Tilemap _tilemapPortals;
+
     [Tooltip("Tile used to indicate lighted floor")]
     [SerializeField]
     private TileBase _lightTile;
+
+    [Tooltip("Portal tile")]
+    [SerializeField]
+    private AnimatedTile _portalTile;
+
+    [Tooltip("Portal prefab")]
+    [SerializeField]
+    private GameObject _portalPrefab;
 
     [Tooltip("Tile used to indicate inactive lighted floor")]
     [SerializeField]
@@ -61,6 +75,10 @@ public class Grid : MonoBehaviour
     [Tooltip("Spawn point for Shadow player (cell coordinates)")]
     [SerializeField]
     private Vector2Int _shadowSpawnCell = new Vector2Int(-2, -2);
+
+    [Tooltip("Portal data (serialized for editor, instantiated at runtime)")]
+    [SerializeField]
+    private List<PortalData> _portalData = new List<PortalData>();
 
     [Tooltip("Spawn points for Power-Up (cell coordinates)")]
     [SerializeField]
@@ -85,6 +103,8 @@ public class Grid : MonoBehaviour
     [SerializeField]
     private List<ShadowScatterTarget> _scatterTargets = new List<ShadowScatterTarget>();
 
+    private List<GridPortal> _portals = new List<GridPortal>();
+
     private int _maxLitTiles = 0;
     private int _litTileCount = 0;
     public int LitTileCount
@@ -100,6 +120,8 @@ public class Grid : MonoBehaviour
     {
         GameManager.Instance.RegisterGrid(this);
         GameManager.Instance.Timer.OnRoundEnd += OnRoundEnd;
+
+        InstantiatePortals();
 
         // Calculate max lit tiles
         BoundsInt bounds = _tilemapFloors.cellBounds;
@@ -221,6 +243,149 @@ public class Grid : MonoBehaviour
         return _homeTargets;
     }
 
+/// <summary>
+    /// Finds the paired portal position for the given portal ID and cell position.
+    /// </summary>
+    /// <param name="portalId">ID of portal pair to find</param>
+    /// <param name="cellPosition">Cell position of the portal to find its pair for</param>
+    /// <returns></returns>
+    public Vector3Int? FindPortalPairPosition(uint portalId, Vector2Int cellPosition)
+    {
+        var pairedPortals = _portals
+            .Where(p => p.PortalId == portalId && p.CellPosition != cellPosition)
+            .ToList();
+        if (pairedPortals.Count > 0)
+        {
+            return new Vector3Int(
+                pairedPortals[0].CellPosition.x,
+                pairedPortals[0].CellPosition.y,
+                0
+            );
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Starts the cooldown on the paired portal (the one at the destination).
+    /// </summary>
+    /// <param name="portalId">Portal ID to find pair</param>
+    /// <param name="cellPosition">Cell position of the portal that initiated the teleport</param>
+    public void StartPortalCooldown(uint portalId, Vector2Int cellPosition)
+    {
+        var pairedPortals = _portals
+            .Where(p => p.PortalId == portalId && p.CellPosition != cellPosition)
+            .ToList();
+
+        foreach (var portal in pairedPortals)
+        {
+            portal.StartCooldown();
+        }
+    }
+
+    /// <summary>
+    /// Gets the portal tilemap for animation control.
+    /// </summary>
+    /// <returns>The portal tilemap</returns>
+    public Tilemap GetPortalTilemap()
+    {
+        return _tilemapPortals;
+    }
+
+    /// <summary>
+    /// Instantiates portal GameObjects from serialized PortalData at runtime.
+    /// </summary>
+    private void InstantiatePortals()
+    {
+        if (_portalPrefab == null)
+            return;
+
+        foreach (PortalData data in _portalData)
+        {
+            Vector3Int cellPos = new Vector3Int(data.CellPosition.x, data.CellPosition.y, 0);
+            Vector3 worldPos = _tilemapPortals.GetCellCenterWorld(cellPos);
+
+            // Change the portal tile color
+            _tilemapPortals.SetColor(cellPos, data.PortalColor);
+
+            GameObject portalObj = Instantiate(
+                _portalPrefab,
+                worldPos,
+                Quaternion.identity,
+                _tilemapPortals.transform
+            );
+            GridPortal portal = portalObj.GetComponent<GridPortal>();
+
+            if (portal != null)
+            {
+                portal.PortalId = data.PortalId;
+                portal.CellPosition = data.CellPosition;
+                portal.PortalColor = data.PortalColor;
+                portal.CooldownDuration = data.PortalCooldown;
+                _portals.Add(portal);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Adds portal data (used by editor scripts).
+    /// </summary>
+    /// <param name="data">Portal data to add</param>
+    public void AddPortalData(PortalData data)
+    {
+        // Only 2 portals with the same ID are allowed
+        if (_portalData.FindAll(p => p.PortalId == data.PortalId).Count < 2)
+        {
+            _portalData.Add(data);
+        }
+    }
+
+    /// <summary>
+    /// Removes portal data by cell position (used by editor scripts).
+    /// </summary>
+    /// <param name="cellPosition">Cell position of portal to remove</param>
+    /// <returns>True if portal was removed, false otherwise</returns>
+    public bool RemovePortalData(Vector2Int cellPosition)
+    {
+        PortalData portal = _portalData.Find(p => p.CellPosition == cellPosition);
+        if (portal != null)
+        {
+            _portalData.Remove(portal);
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Gets all portal data (used by editor scripts).
+    /// </summary>
+    public List<PortalData> GetPortalData()
+    {
+        return _portalData;
+    }
+
+    /// <summary>
+    /// Checks if the given portal ID is available (i.e. less than 2 portals with the same ID exist).
+    /// </summary>
+    /// <param name="portalId">Wanted ID</param>
+    /// <returns>True if the ID is available, false otherwise.</returns>
+    public bool IsIdAvailable(uint portalId)
+    {
+        return _portalData.FindAll(p => p.PortalId == portalId).Count < 2;
+    }
+
+    /// <summary>
+    /// Returns the next available portal ID.
+    /// </summary>
+    /// <returns>Available portal ID</returns>
+    public uint GetNextAvailablePortalId()
+    {
+        if (_portalData.Count == 0)
+            return 1;
+
+        _portalData.Sort((a, b) => a.PortalId.CompareTo(b.PortalId));
+        uint nextId = _portalData.Last().PortalId;
+        return IsIdAvailable(nextId) ? nextId : nextId + 1;
+    }
 
     /// <summary>
     /// Sets the spawn point for the given player type.
@@ -389,6 +554,9 @@ public class Grid : MonoBehaviour
             case TilemapType.Light:
                 tilemap = GameManager.Instance.Grid._tilemapLight;
                 break;
+            case TilemapType.Portals:
+                tilemap = GameManager.Instance.Grid._tilemapPortals;
+                break;
         }
         return tilemap.WorldToCell(worldPosition);
     }
@@ -409,6 +577,9 @@ public class Grid : MonoBehaviour
                 break;
             case TilemapType.Light:
                 tilemap = GameManager.Instance.Grid._tilemapLight;
+                break;
+            case TilemapType.Portals:
+                tilemap = GameManager.Instance.Grid._tilemapPortals;
                 break;
         }
         return tilemap.GetCellCenterWorld(cellPosition);

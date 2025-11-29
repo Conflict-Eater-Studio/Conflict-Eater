@@ -7,6 +7,10 @@ using UnityEngine.Tilemaps;
 [CustomEditor(typeof(Grid))]
 public class GridEditor : Editor
 {
+    #region Styles
+    private readonly GUIStyle _styleHeader = new GUIStyle();
+    #endregion
+
     private Grid _grid;
     private bool _isSelectingLightExclusion = false;
     private bool _isSelectingLightSpawns = false;
@@ -15,13 +19,18 @@ public class GridEditor : Editor
     private bool _isSelectingScatterTargets = false;
     private bool _isSelectingshadowBlockedCells = false;
     private bool _isSelectingHomeTargets = false;
+    private bool _isSelectingPortals = false;
 
     // Serialized properties
     private SerializedProperty _tilemapWalls;
     private SerializedProperty _tilemapFloors;
     private SerializedProperty _tilemapLight;
+    private SerializedProperty _tilemapPortals;
     private SerializedProperty _tilemapInactiveLight;
     private SerializedProperty _lightTile;
+    private SerializedProperty _portalTile;
+    private SerializedProperty _portalPrefab;
+    private SerializedProperty _portalData;
     private SerializedProperty _lightInactiveTile;
     private SerializedProperty _lightExclusion;
     private SerializedProperty _lightSpawnCells;
@@ -33,6 +42,11 @@ public class GridEditor : Editor
 
     private void OnEnable()
     {
+        _styleHeader.fontSize = 20;
+        _styleHeader.fontStyle = FontStyle.Bold;
+        _styleHeader.normal.textColor = Color.white;
+        _styleHeader.alignment = TextAnchor.MiddleCenter;
+
         _grid = (Grid)target;
 
         // Get serialized properties
@@ -40,7 +54,11 @@ public class GridEditor : Editor
         _tilemapFloors = serializedObject.FindProperty("_tilemapFloors");
         _tilemapLight = serializedObject.FindProperty("_tilemapLight");
         _tilemapInactiveLight = serializedObject.FindProperty("_tilemapInactiveLight");
+        _tilemapPortals = serializedObject.FindProperty("_tilemapPortals");
         _lightTile = serializedObject.FindProperty("_lightTile");
+        _portalTile = serializedObject.FindProperty("_portalTile");
+        _portalPrefab = serializedObject.FindProperty("_portalPrefab");
+        _portalData = serializedObject.FindProperty("_portalData");
         _lightInactiveTile = serializedObject.FindProperty("_lightInactiveTile");
         _lightExclusion = serializedObject.FindProperty("_lightExclusion");
         _lightSpawnCells = serializedObject.FindProperty("_lightSpawnCells");
@@ -64,6 +82,7 @@ public class GridEditor : Editor
         _isSelectingLightSpawns = false;
         _isSelectingShadowSpawn = false;
         _isSelectingPowerUpSpawns = false;
+        _isSelectingPortals = false;
     }
 
     public override void OnInspectorGUI()
@@ -71,14 +90,17 @@ public class GridEditor : Editor
         serializedObject.Update();
 
         // Draw default inspector
-        EditorGUILayout.LabelField("Grid Settings", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField("Grid Settings", _styleHeader);
         EditorGUILayout.Space();
 
         EditorGUILayout.PropertyField(_tilemapWalls);
         EditorGUILayout.PropertyField(_tilemapFloors);
         EditorGUILayout.PropertyField(_tilemapLight);
+        EditorGUILayout.PropertyField(_tilemapPortals);
         EditorGUILayout.PropertyField(_tilemapInactiveLight);
         EditorGUILayout.PropertyField(_lightTile);
+        EditorGUILayout.PropertyField(_portalTile);
+        EditorGUILayout.PropertyField(_portalPrefab);
         EditorGUILayout.PropertyField(_lightInactiveTile);
 
         EditorGUILayout.Space();
@@ -108,6 +130,7 @@ public class GridEditor : Editor
             _isSelectingLightSpawns = false;
             _isSelectingShadowSpawn = false;
             _isSelectingPowerUpSpawns = false;
+            _isSelectingPortals = false;
             SceneView.RepaintAll();
         }
         GUI.backgroundColor = Color.white;
@@ -176,6 +199,7 @@ public class GridEditor : Editor
             _isSelectingLightExclusion = false;
             _isSelectingShadowSpawn = false;
             _isSelectingPowerUpSpawns = false;
+            _isSelectingPortals = false;
             SceneView.RepaintAll();
         }
         GUI.backgroundColor = Color.white;
@@ -234,6 +258,7 @@ public class GridEditor : Editor
             _isSelectingLightExclusion = false;
             _isSelectingLightSpawns = false;
             _isSelectingPowerUpSpawns = false;
+            _isSelectingPortals = false;
             SceneView.RepaintAll();
         }
         GUI.backgroundColor = Color.white;
@@ -274,6 +299,7 @@ public class GridEditor : Editor
             _isSelectingLightSpawns = false;
             _isSelectingShadowSpawn = false;
             _isSelectingLightExclusion = false;
+            _isSelectingPortals = false;
             SceneView.RepaintAll();
         }
         GUI.backgroundColor = Color.white;
@@ -328,13 +354,18 @@ public class GridEditor : Editor
         GUI.backgroundColor = _isSelectingScatterTargets
             ? new Color(1f, 0.5f, 0.5f, 1f)
             : Color.white;
-        if (GUILayout.Button(_isSelectingScatterTargets ? "Stop Selecting Scatter" : "Add/Remove Scatter"))
+        if (
+            GUILayout.Button(
+                _isSelectingScatterTargets ? "Stop Selecting Scatter" : "Add/Remove Scatter"
+            )
+        )
         {
             _isSelectingScatterTargets = !_isSelectingScatterTargets;
             _isSelectingLightExclusion = false;
             _isSelectingLightSpawns = false;
             _isSelectingShadowSpawn = false;
             _isSelectingPowerUpSpawns = false;
+            _isSelectingPortals = false;
             SceneView.RepaintAll();
         }
         GUI.backgroundColor = Color.white;
@@ -375,6 +406,7 @@ public class GridEditor : Editor
             _isSelectingShadowSpawn = false;
             _isSelectingPowerUpSpawns = false;
             _isSelectingScatterTargets = false;
+            _isSelectingPortals = false;
 
             SceneView.RepaintAll();
         }
@@ -382,10 +414,14 @@ public class GridEditor : Editor
 
         if (GUILayout.Button("Clear All"))
         {
-            if (EditorUtility.DisplayDialog(
-                "Clear Shadow Blocked Tiles",
-                "Are you sure you want to clear all shadow-blocked tiles?",
-                "Yes", "No"))
+            if (
+                EditorUtility.DisplayDialog(
+                    "Clear Shadow Blocked Tiles",
+                    "Are you sure you want to clear all shadow-blocked tiles?",
+                    "Yes",
+                    "No"
+                )
+            )
             {
                 _shadowBlockedCells.ClearArray();
                 serializedObject.ApplyModifiedProperties();
@@ -416,7 +452,12 @@ public class GridEditor : Editor
 
         EditorGUILayout.BeginHorizontal();
         GUI.backgroundColor = _isSelectingHomeTargets ? new Color(0.8f, 0.5f, 1f, 1f) : Color.white;
-        if (GUILayout.Button(_isSelectingHomeTargets ? "Stop Selecting" : "Add/Remove", GUILayout.Width(EditorGUIUtility.currentViewWidth * 0.5f - 10)))
+        if (
+            GUILayout.Button(
+                _isSelectingHomeTargets ? "Stop Selecting" : "Add/Remove",
+                GUILayout.Width(EditorGUIUtility.currentViewWidth * 0.5f - 10)
+            )
+        )
         {
             _isSelectingHomeTargets = !_isSelectingHomeTargets;
 
@@ -427,14 +468,27 @@ public class GridEditor : Editor
             _isSelectingPowerUpSpawns = false;
             _isSelectingScatterTargets = false;
             _isSelectingshadowBlockedCells = false;
+            _isSelectingPortals = false;
 
             SceneView.RepaintAll();
         }
         GUI.backgroundColor = Color.white;
 
-        if (GUILayout.Button("Clear All", GUILayout.Width(EditorGUIUtility.currentViewWidth * 0.5f - 10)))
+        if (
+            GUILayout.Button(
+                "Clear All",
+                GUILayout.Width(EditorGUIUtility.currentViewWidth * 0.5f - 10)
+            )
+        )
         {
-            if (EditorUtility.DisplayDialog("Clear Shadow Home Targets", "Are you sure you want to clear all shadow home targets?", "Yes", "No"))
+            if (
+                EditorUtility.DisplayDialog(
+                    "Clear Shadow Home Targets",
+                    "Are you sure you want to clear all shadow home targets?",
+                    "Yes",
+                    "No"
+                )
+            )
             {
                 _homeTargets.ClearArray();
                 serializedObject.ApplyModifiedProperties();
@@ -448,17 +502,86 @@ public class GridEditor : Editor
         EditorGUILayout.PropertyField(_homeTargets, true);
         EditorGUI.indentLevel--;
 
+        // Portal creation
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Portals", EditorStyles.boldLabel);
+        EditorGUILayout.HelpBox(
+            "Portals can be created by placing portal tiles on the portal tilemap in the Scene view. "
+                + "Portals will automatically link in pairs based on their Portal ID. "
+                + "IDs will be assigned automatically when placing the tiles in pairs.",
+            MessageType.Info
+        );
+
+        GUILayout.BeginHorizontal();
+        if (
+            GUILayout.Button(
+                _isSelectingPortals ? "Stop Selecting" : "Add/Remove",
+                GUILayout.Width(EditorGUIUtility.currentViewWidth * 0.5f - 10)
+            )
+        )
+        {
+            _isSelectingPortals = !_isSelectingPortals;
+            _isSelectingHomeTargets = false;
+            _isSelectingLightExclusion = false;
+            _isSelectingLightSpawns = false;
+            _isSelectingShadowSpawn = false;
+            _isSelectingPowerUpSpawns = false;
+            _isSelectingScatterTargets = false;
+            _isSelectingshadowBlockedCells = false;
+            SceneView.RepaintAll();
+        }
+
+        if (
+            GUILayout.Button(
+                "Clear All",
+                GUILayout.Width(EditorGUIUtility.currentViewWidth * 0.5f - 10)
+            )
+        )
+        {
+            if (
+                EditorUtility.DisplayDialog(
+                    "Clear Portals",
+                    "Are you sure you want to clear all portals?",
+                    "Yes",
+                    "No"
+                )
+            )
+            {
+                // Clear portal data
+                _portalData.ClearArray();
+
+                // Clear portal tiles from tilemap
+                Tilemap portalTilemap =
+                    serializedObject.FindProperty("_tilemapPortals").objectReferenceValue
+                    as Tilemap;
+                portalTilemap.ClearAllTiles();
+
+                serializedObject.ApplyModifiedProperties();
+                SceneView.RepaintAll();
+            }
+        }
+        GUILayout.EndHorizontal();
+
+        // Show portals list
+        EditorGUI.indentLevel++;
+        EditorGUILayout.PropertyField(_portalData, true);
+        EditorGUI.indentLevel--;
+
         // Show statistics
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Statistics", EditorStyles.boldLabel);
         EditorGUILayout.LabelField($"Light Spawn Points: {_lightSpawnCells.arraySize}");
-        EditorGUILayout.LabelField($"PowerupCollision Spawn Points: {_powerUpSpawnCells.arraySize}");
+        EditorGUILayout.LabelField(
+            $"PowerupCollision Spawn Points: {_powerUpSpawnCells.arraySize}"
+        );
         EditorGUILayout.LabelField($"Excluded Tiles: {_lightExclusion.arraySize}");
 
         if (Application.isPlaying)
         {
             EditorGUILayout.LabelField($"Lit Tiles: {_grid.LitTileCount}");
         }
+
+        serializedObject.ApplyModifiedProperties();
     }
 
     private void OnSceneGUI(SceneView sceneView)
@@ -472,6 +595,7 @@ public class GridEditor : Editor
             && !_isSelectingScatterTargets
             && !_isSelectingshadowBlockedCells
             && !_isSelectingHomeTargets
+            && !_isSelectingPortals
         )
             return;
 
@@ -533,6 +657,11 @@ public class GridEditor : Editor
                     ToggleHomeTarget(cellPos);
                     e.Use();
                 }
+                else if (_isSelectingPortals)
+                {
+                    TogglePortal(cellPos);
+                    e.Use();
+                }
             }
 
             if (_isSelectingScatterTargets)
@@ -544,6 +673,64 @@ public class GridEditor : Editor
 
         // Force scene view to repaint
         sceneView.Repaint();
+    }
+
+    private void TogglePortal(Vector3Int cellPos)
+    {
+        Tilemap portalTilemap =
+            serializedObject.FindProperty("_tilemapPortals").objectReferenceValue as Tilemap;
+        TileBase portalTile =
+            serializedObject.FindProperty("_portalTile").objectReferenceValue as AnimatedTile;
+
+        if (portalTilemap == null || portalTile == null)
+            return;
+
+        Vector2Int cellPos2D = new Vector2Int(cellPos.x, cellPos.y);
+        serializedObject.Update();
+
+        // Check if there's already a portal at this position
+        bool found = false;
+        for (int i = 0; i < _portalData.arraySize; i++)
+        {
+            SerializedProperty portalElement = _portalData.GetArrayElementAtIndex(i);
+            Vector2Int existingPos = portalElement
+                .FindPropertyRelative("CellPosition")
+                .vector2IntValue;
+
+            if (existingPos == cellPos2D)
+            {
+                // Remove the portal data and tile
+                _portalData.DeleteArrayElementAtIndex(i);
+                portalTilemap.SetTile(cellPos, null);
+                found = true;
+                Debug.Log($"Removed portal at {cellPos}");
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            // Add a new portal
+            uint portalId = _grid.GetNextAvailablePortalId();
+
+            // Create portal data
+            int index = _portalData.arraySize;
+            _portalData.InsertArrayElementAtIndex(index);
+            SerializedProperty newPortal = _portalData.GetArrayElementAtIndex(index);
+            newPortal.FindPropertyRelative("PortalId").intValue = (int)portalId;
+            newPortal.FindPropertyRelative("CellPosition").vector2IntValue = cellPos2D;
+            newPortal.FindPropertyRelative("PortalColor").colorValue = Color.white;
+
+            // Place the portal tile
+            portalTilemap.SetTile(cellPos, portalTile);
+
+            Debug.Log($"Added portal at {cellPos} with ID {portalId}");
+        }
+
+        serializedObject.ApplyModifiedProperties();
+        EditorUtility.SetDirty(target);
+        EditorUtility.SetDirty(portalTilemap);
+        SceneView.RepaintAll();
     }
 
     private void ToggleLightExclusion(Vector3Int cellPos)
@@ -773,7 +960,6 @@ public class GridEditor : Editor
         SceneView.RepaintAll();
     }
 
-
     // Draw gizmos in the scene view
     [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected)]
     static void DrawGizmos(Grid grid, GizmoType gizmoType)
@@ -806,6 +992,10 @@ public class GridEditor : Editor
             "_shadowBlockedCells",
             BindingFlags.NonPublic | BindingFlags.Instance
         );
+        var portalDataField = typeof(Grid).GetField(
+            "_portalData",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
+        );
 
         if (tilemapFloorsField == null || lightExclusionField == null)
             return;
@@ -816,7 +1006,7 @@ public class GridEditor : Editor
         Vector2Int shadowSpawn = (Vector2Int)shadowSpawnField.GetValue(grid);
         List<Vector2Int> powerUpSpawns = powerUpSpawnField.GetValue(grid) as List<Vector2Int>;
         List<Vector2Int> shadowBlocked = shadowBlockedField.GetValue(grid) as List<Vector2Int>;
-
+        List<PortalData> portalData = portalDataField?.GetValue(grid) as List<PortalData>;
 
         if (floorTilemap == null || lightExclusion == null)
             return;
@@ -887,5 +1077,28 @@ public class GridEditor : Editor
             }
         }
 
+        // Draw portals (colored by ID, with labels)
+        if (portalData != null)
+        {
+            foreach (PortalData portal in portalData)
+            {
+                Vector3Int cellPos = new Vector3Int(
+                    portal.CellPosition.x,
+                    portal.CellPosition.y,
+                    0
+                );
+                Vector3 worldPos = floorTilemap.GetCellCenterWorld(cellPos);
+
+                // Use portal color or generate color based on ID
+                Color portalColor =
+                    portal.PortalColor != Color.white
+                        ? portal.PortalColor
+                        : Color.HSVToRGB((portal.PortalId * 0.618034f) % 1f, 0.8f, 1f);
+
+                Gizmos.color = portalColor;
+                Gizmos.DrawWireSphere(worldPos, spawnRadius * 0.8f);
+                Gizmos.DrawWireSphere(worldPos, spawnRadius * 1.2f);
+            }
+        }
     }
 }
