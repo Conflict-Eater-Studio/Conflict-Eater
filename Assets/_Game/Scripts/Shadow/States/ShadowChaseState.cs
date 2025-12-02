@@ -160,7 +160,7 @@ public class ShadowChaseState : IShadowState
 
         var shadowPlayerController = GameManager.Instance.PlayerManager.GetPlayerOfType(PlayerManager.PlayerType.Shadow)
                                        .GetComponentInChildren<ShadowPlayerController>();
-        Vector3Int clydeCell3D = Grid.WorldToCell(shadowPlayerController.Shadows[3].gameObject.transform.position);
+        Vector3Int clydeCell3D = Grid.WorldToCell(shadowPlayerController.Shadows[2].gameObject.transform.position);
         Vector2Int clydeCell = new Vector2Int(clydeCell3D.x, clydeCell3D.y);
 
         float distance = Vector2Int.Distance(clydeCell, playerCell);

@@ -507,10 +507,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShadowAppearanceManager
   bodyRenderer: {fileID: 950135915731450671}
-  blinkyColor: {r: 0.627451, g: 0.9098039, b: 0.6862745, a: 1}
-  pinkyColor: {r: 0.627451, g: 0.9098039, b: 0.6862745, a: 1}
-  inkyColor: {r: 0.627451, g: 0.9098039, b: 0.6862745, a: 1}
-  clydeColor: {r: 0.627451, g: 0.9098039, b: 0.6862745, a: 1}
+  blinkyColor: {r: 1, g: 0, b: 0.019788265, a: 1}
+  pinkyColor: {r: 1, g: 0, b: 0.78266525, a: 1}
+  inkyColor: {r: 0, g: 0.7943876, b: 0.8113208, a: 1}
+  clydeColor: {r: 1, g: 0.53394943, b: 0, a: 1}
   activeColor: {r: 1, g: 0, b: 0.03836775, a: 1}
   frightenedNormalColor: {r: 0.627451, g: 0.9098039, b: 0.6862745, a: 1}
   frightenedActiveColor: {r: 1, g: 0, b: 0.039215688, a: 1}

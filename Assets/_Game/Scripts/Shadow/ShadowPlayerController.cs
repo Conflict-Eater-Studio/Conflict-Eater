@@ -14,7 +14,7 @@ public class ShadowPlayerController : MonoBehaviour
 
     [Header("Shadow Settings")]
     [SerializeField] private GameObject _shadowPrefab;
-    [SerializeField] private int _shadowCount = 4;
+    [SerializeField] private int _shadowCount = 3;
     [SerializeField] private float _spawnDelay = 1f;
     [SerializeField] private float _maxSwitchDistance = 15f;
 
@@ -28,6 +28,7 @@ public class ShadowPlayerController : MonoBehaviour
     [SerializeField] private ShadowState _inkyState;
     [SerializeField] private ShadowState _clydeState;
 
+    private List<ShadowType> shadowTypes = new List<ShadowType>();
 
     private readonly List<GameObject> _shadows = new();
     public IReadOnlyList<GameObject> Shadows => _shadows;
@@ -54,6 +55,10 @@ public class ShadowPlayerController : MonoBehaviour
 
         GameManager.Instance.Timer.OnMatchPause += Shadow_OnMatchPause;
         GameManager.Instance.Timer.OnMatchResume += Shadow_OnMatchResume;
+
+        shadowTypes.Add(ShadowType.Blinky);
+        shadowTypes.Add(ShadowType.Inky);
+        shadowTypes.Add(ShadowType.Clyde);
 
         StartCoroutine(SpawnFirstShadow());
     }
@@ -99,17 +104,15 @@ public class ShadowPlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (_shadows.Count < 4) return;
+        if (_shadows.Count < 3) return;
 
         _blinky = _shadows[0].GetComponent<ShadowController>().IsShadowActive;
-        _pinky = _shadows[1].GetComponent<ShadowController>().IsShadowActive;
-        _inky = _shadows[2].GetComponent<ShadowController>().IsShadowActive;
-        _clyde = _shadows[3].GetComponent<ShadowController>().IsShadowActive;
+        _inky = _shadows[1].GetComponent<ShadowController>().IsShadowActive;
+        _clyde = _shadows[2].GetComponent<ShadowController>().IsShadowActive;
 
         _blintyState = _shadows[0].GetComponent<ShadowController>().CurrentState.State;
-        _pinkyState = _shadows[1].GetComponent<ShadowController>().CurrentState.State;
-        _inkyState = _shadows[2].GetComponent<ShadowController>().CurrentState.State;
-        _clydeState = _shadows[3].GetComponent<ShadowController>().CurrentState.State;
+        _inkyState = _shadows[1].GetComponent<ShadowController>().CurrentState.State;
+        _clydeState = _shadows[2].GetComponent<ShadowController>().CurrentState.State;
 
         UpdateNextShadowMarker();
     }
@@ -190,7 +193,7 @@ public class ShadowPlayerController : MonoBehaviour
         ghost.name = "Ghost_1";
 
         var controller = ghost.GetComponent<ShadowController>();
-        controller.SetShadowType(ShadowType.Blinky);
+        controller.SetShadowType(shadowTypes[0]);
         controller.IsShadowActive = true;
 
         _shadows.Add(ghost);
@@ -214,7 +217,7 @@ public class ShadowPlayerController : MonoBehaviour
             ghost.name = $"Ghost_{i + 1}";
 
             var controller = ghost.GetComponent<ShadowController>();
-            controller.SetShadowType((ShadowType)(i % 4));
+            controller.SetShadowType(shadowTypes[(i % _shadowCount)]);
             controller.IsShadowActive = false;
             controller.SetState(new ShadowExitBaseState());
 
