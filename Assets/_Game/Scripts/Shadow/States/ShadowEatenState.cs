@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -46,15 +47,25 @@ public class ShadowEatenState : IShadowState
 
     public void Update(ShadowController shadow)
     {
+        if (_homeTargets == null || _homeTargets.Count == 0)
+            return;
+
         if (_currentTargetIndex >= _homeTargets.Count) {
             var appearance = shadow.GetComponent<ShadowAppearanceManager>();
-            appearance.SetNormal();
+
+            appearance.SetColorAfterEaten();
+            appearance.SetColorBeforeFrightened();
+
+            ShadowPlayerController owner = shadow.GetComponentInParent<ShadowPlayerController>();
+            if (owner == null)
+            {
+                return;
+            }
+            shadow.StartCoroutine(DelayedUpdateAppearance(shadow));
+
             shadow.SetState(new ShadowScatterState());
             return;
         }
-        
-        if (_homeTargets == null || _homeTargets.Count == 0)
-            return;
 
         _moveTimer += Time.deltaTime;
         if (_moveTimer < DecisionInterval)
@@ -74,7 +85,17 @@ public class ShadowEatenState : IShadowState
             if (_currentTargetIndex >= _homeTargets.Count)
             {
                 var appearance = shadow.GetComponent<ShadowAppearanceManager>();
-                appearance.SetNormal();
+
+                appearance.SetColorAfterEaten();
+                appearance.SetColorBeforeFrightened();
+
+                ShadowPlayerController owner = shadow.GetComponentInParent<ShadowPlayerController>();
+                if (owner == null)
+                {
+                    return;
+                }
+                shadow.StartCoroutine(DelayedUpdateAppearance(shadow));
+
                 shadow.SetState(new ShadowScatterState());
                 return;
             }
@@ -90,6 +111,14 @@ public class ShadowEatenState : IShadowState
         shadow.Movement.OnMove(nextDirection);
     }
     #endregion
+
+    private IEnumerator DelayedUpdateAppearance(ShadowController shadow)
+    {
+        yield return null;
+
+        ShadowPlayerController owner = shadow.GetComponentInParent<ShadowPlayerController>();
+        owner.UpdateAppearance();
+    }
 
     #region Direction Selection
     private Vector2Int ChooseBestDirection(Grid grid, Vector3Int currentCell, Vector2Int targetCell)

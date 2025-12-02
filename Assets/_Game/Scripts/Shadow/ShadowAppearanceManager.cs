@@ -30,6 +30,8 @@ public class ShadowAppearanceManager : MonoBehaviour
     private ShadowController controller;
     private Coroutine blinkRoutine;
 
+    public Color colorBeforeFrightened = Color.white;
+
     public enum VisualState
     {
         Normal,
@@ -76,7 +78,7 @@ public class ShadowAppearanceManager : MonoBehaviour
         CurrentState = VisualState.Frightened;
         bodyRenderer.enabled = true;
 
-        bodyRenderer.color = isActive ? frightenedActiveColor : frightenedNormalColor;
+        bodyRenderer.color = isActive ? frightenedActiveColor : colorBeforeFrightened;
 
         if (blinking)
             StartBlinking(isActive);
@@ -84,6 +86,19 @@ public class ShadowAppearanceManager : MonoBehaviour
             StopBlinking();
     }
 
+    public void SetColorBeforeFrightened()
+    {
+        bodyRenderer.color = colorBeforeFrightened;
+    }
+
+    public void SetColorAfterEaten()
+    {
+        CurrentState = VisualState.Normal;
+        StopBlinking();
+        bodyRenderer.enabled = true;
+        _collider.enabled = true;
+        //bodyRenderer.color = colorBeforeFrightened;
+    }
 
     public void SetDead()
     {
@@ -119,13 +134,13 @@ public class ShadowAppearanceManager : MonoBehaviour
         bool toggle = false;
         while (true)
         {
-            bodyRenderer.color = toggle ? (isActive ? frightenedActiveColor : frightenedNormalColor) : frightenedBlinkColor;
+            bodyRenderer.color = toggle ? (isActive ? frightenedActiveColor : colorBeforeFrightened) : frightenedBlinkColor;
             toggle = !toggle;
             yield return new WaitForSeconds(blinkInterval);
         }
     }
 
-    private Color GetBaseColor()
+    public Color GetBaseColor()
     {
         return controller.Type switch
         {
@@ -135,5 +150,18 @@ public class ShadowAppearanceManager : MonoBehaviour
             ShadowType.Clyde => clydeColor,
             _ => Color.white
         };
+    }
+
+    public void SetCustomColor(Color color)
+    {
+        StopBlinking();
+        CurrentState = VisualState.Normal;
+        bodyRenderer.enabled = true;
+        _collider.enabled = true;
+        bodyRenderer.color = color;
+    }
+    public Color GetCurrentColor()
+    {
+        return bodyRenderer != null ? bodyRenderer.color : Color.white;
     }
 }

@@ -58,6 +58,15 @@ public class ShadowController : MonoBehaviour
     }
     public Movement Movement => _movement;
     public ShadowBehaviorCycle ShadowBehaviorCycle => _shadowBehaviorCycle;
+    public ShadowPlayerController Owner
+    {
+        get => _owner;
+        set
+        {
+            _owner = value;
+            UpdateDirectObjectPosition();
+        }
+    }
     private Grid _grid;
     public bool EnableAI => _enableAIMovement;
     public float DirectionChangeDelay => _directionChangeDelay;

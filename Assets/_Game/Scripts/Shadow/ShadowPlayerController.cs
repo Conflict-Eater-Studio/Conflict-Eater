@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -35,8 +35,13 @@ public class ShadowPlayerController : MonoBehaviour
 
     private PlayerInput _playerInput;
     private int _activeShadowIndex;
+    private int _previousActiveIndex = -1;
     private bool _canSwitch = true;
     private bool _isRoundStarted = false;
+
+    private Color activeColor = Color.red;
+    private Color inactiveColor1 = new Color(1f, 0.5f, 0f); 
+    private Color inactiveColor2 = Color.cyan;
 
     #region Unity Lifecycle
     private void Start()
@@ -193,8 +198,17 @@ public class ShadowPlayerController : MonoBehaviour
         ghost.name = "Ghost_1";
 
         var controller = ghost.GetComponent<ShadowController>();
+        controller.Owner = this;
         controller.SetShadowType(shadowTypes[0]);
         controller.IsShadowActive = true;
+
+        ShadowAppearanceManager appearanceManager = controller.GetComponent<ShadowAppearanceManager>();
+        activeColor = appearanceManager.activeColor;
+        inactiveColor1 = appearanceManager.clydeColor;
+        inactiveColor2 = appearanceManager.inkyColor;
+
+        appearanceManager.colorBeforeFrightened = activeColor;
+        appearanceManager.SetCustomColor(activeColor);
 
         _shadows.Add(ghost);
         _activeShadowIndex = 0;
@@ -221,35 +235,57 @@ public class ShadowPlayerController : MonoBehaviour
             controller.IsShadowActive = false;
             controller.SetState(new ShadowExitBaseState());
 
-            _shadows.Add(ghost);
+            ShadowAppearanceManager appearanceManager = controller.GetComponent<ShadowAppearanceManager>();
+            ShadowType type = controller.Type;
+
+            if (type == ShadowType.Inky)
+            {
+                appearanceManager.colorBeforeFrightened = appearanceManager.inkyColor;
+                appearanceManager.SetCustomColor(appearanceManager.inkyColor);
+            }
+
+            if (type == ShadowType.Clyde)
+            {
+                appearanceManager.colorBeforeFrightened = appearanceManager.clydeColor;
+                appearanceManager.SetCustomColor(appearanceManager.clydeColor);
+            }
+
+                _shadows.Add(ghost);
+
             UpdateAppearance();
 
             yield return new WaitForSeconds(_spawnDelay);
         }
     }
-
-    private void UpdateAppearance()
+    public void UpdateAppearance()
     {
-        for (int i = 0; i < _shadows.Count; i++)
+        if (_shadows.Count != 3) return;
+
+        var activeAppearance = _shadows[_activeShadowIndex].GetComponent<ShadowAppearanceManager>();
+        activeAppearance.SetCustomColor(activeColor);
+        activeAppearance.colorBeforeFrightened = activeColor;
+
+        if (_previousActiveIndex != -1 && _previousActiveIndex != _activeShadowIndex)
         {
-            var controller = _shadows[i].GetComponent<ShadowController>();
-            var appearance = _shadows[i].GetComponent<ShadowAppearanceManager>();
+            List<Color> existingColors = new List<Color>();
+            for (int i = 0; i < _shadows.Count; i++)
+            {
+                if (i == _activeShadowIndex) continue;
+                var appearance = _shadows[i].GetComponent<ShadowAppearanceManager>();
+                existingColors.Add(appearance.GetCurrentColor());
+            }
 
-            if (GameManager.Instance.IsFrightenedShadowState && !controller.IsShadowActive)
-            {
-                appearance.SetFrightened(true);
-            }
-            else if (i == _activeShadowIndex)
-            {
-                appearance.SetActive();
-            }
-            else
-            {
-                appearance.SetNormal();
-            }
+            Color missingColor = inactiveColor1;
+            if (existingColors.Contains(inactiveColor1))
+                missingColor = inactiveColor2;
+
+            var previousAppearance = _shadows[_previousActiveIndex].GetComponent<ShadowAppearanceManager>();
+            previousAppearance.SetCustomColor(missingColor);
+            previousAppearance.colorBeforeFrightened = missingColor;
         }
-    }
 
+        _previousActiveIndex = _activeShadowIndex;
+    }
 
     #endregion
 
@@ -288,6 +324,11 @@ public class ShadowPlayerController : MonoBehaviour
                 closestIndex = i;
                 closestDistance = dist;
             }
+        } 
+
+        if(closestIndex != _activeShadowIndex)
+        {
+                    _previousActiveIndex = _activeShadowIndex;
         }
 
         _activeShadowIndex = closestIndex;
@@ -335,7 +376,8 @@ public class ShadowPlayerController : MonoBehaviour
         newController.IsShadowActive = true;
         newController.SetState(new ShadowActiveState());
 
-        UpdateAppearance();
+        ShadowAppearanceManager shadowAppearanceManager = newController.GetComponent<ShadowAppearanceManager>();
+        shadowAppearanceManager.SetActive();
 
         yield return new WaitForSeconds(0.3f);
         _canSwitch = true;
@@ -370,13 +412,13 @@ public class ShadowPlayerController : MonoBehaviour
 
 
     #endregion
-
     
     #region Round Reset
 
     private void HandleRoundEnd(object sender, System.EventArgs e)
     {
         StopAllCoroutines();
+        _previousActiveIndex = -1;
         _canSwitch = true;
         _isRoundStarted = false;
         GameManager.Instance.IsFrightenedShadowState = false;

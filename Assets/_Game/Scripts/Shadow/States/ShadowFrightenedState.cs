@@ -1,6 +1,6 @@
-using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 /// <summary>
 /// State for shadows when they are frightened (e.g. after Light picks up a power-up).
@@ -32,6 +32,7 @@ public class ShadowFrightenedState : IShadowState
         //Debug.Log("Enter Frightened State: " + shadow.Type);
 
         ShadowAppearanceManager shadowAppearanceManager = shadow.gameObject.GetComponent<ShadowAppearanceManager>();
+
         shadowAppearanceManager.SetFrightened(true);
 
         if (shadow.CurrentDirection != Vector2Int.zero)
@@ -49,7 +50,7 @@ public class ShadowFrightenedState : IShadowState
         //Debug.Log("FrightenedState Exit: " + shadow.Type);
         ShadowAppearanceManager shadowAppearanceManager = shadow.gameObject.GetComponent<ShadowAppearanceManager>();
         shadowAppearanceManager.SetFrightened(false);
-        shadowAppearanceManager.SetNormal();
+        shadowAppearanceManager.SetColorBeforeFrightened();
     }
 
     public void Update(ShadowController shadow)
