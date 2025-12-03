@@ -175,7 +175,14 @@ public class ShadowController : MonoBehaviour
                 return;
             }
             else {
-                GameManager.Instance.Timer.EndRound();
+                if(_isShadowActive)
+                {
+                    GameManager.Instance.Timer.EndRound();
+                }
+                else
+                {
+                    //player must slow down 
+                }
             }
         }
     }

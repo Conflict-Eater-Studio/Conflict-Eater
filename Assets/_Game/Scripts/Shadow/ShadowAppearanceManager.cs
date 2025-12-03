@@ -23,9 +23,6 @@ public class ShadowAppearanceManager : MonoBehaviour
     public Color frightenedBlinkColor = Color.white;
     public float blinkInterval = 0.2f;
 
-    [Header("Eater Shadow")]
-    [SerializeField] private Collider2D _collider;
-
     private ShadowController controller;
     private Coroutine blinkRoutine;
 
@@ -60,7 +57,6 @@ public class ShadowAppearanceManager : MonoBehaviour
         CurrentState = VisualState.Normal;
         StopBlinking();
         bodyRenderer.enabled = true;
-        _collider.enabled = true;
         bodyRenderer.color = GetBaseColor();
     }
 
@@ -95,7 +91,6 @@ public class ShadowAppearanceManager : MonoBehaviour
         CurrentState = VisualState.Normal;
         StopBlinking();
         bodyRenderer.enabled = true;
-        _collider.enabled = true;
     }
 
     public void SetDead()
@@ -103,7 +98,6 @@ public class ShadowAppearanceManager : MonoBehaviour
         CurrentState = VisualState.Dead;
         StopBlinking();
         bodyRenderer.enabled = false;
-        _collider.enabled = false;
     }
 
     private void StartBlinking(bool isActive)
@@ -148,7 +142,6 @@ public class ShadowAppearanceManager : MonoBehaviour
         StopBlinking();
         CurrentState = VisualState.Normal;
         bodyRenderer.enabled = true;
-        _collider.enabled = true;
         bodyRenderer.color = color;
     }
     public Color GetCurrentColor()
