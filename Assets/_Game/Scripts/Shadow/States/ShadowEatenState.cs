@@ -50,23 +50,6 @@ public class ShadowEatenState : IShadowState
         if (_homeTargets == null || _homeTargets.Count == 0)
             return;
 
-        if (_currentTargetIndex >= _homeTargets.Count) {
-            var appearance = shadow.GetComponent<ShadowAppearanceManager>();
-
-            appearance.SetColorAfterEaten();
-            appearance.SetColorBeforeFrightened();
-
-            ShadowPlayerController owner = shadow.GetComponentInParent<ShadowPlayerController>();
-            if (owner == null)
-            {
-                return;
-            }
-            shadow.StartCoroutine(DelayedUpdateAppearance(shadow));
-
-            shadow.SetState(new ShadowScatterState());
-            return;
-        }
-
         _moveTimer += Time.deltaTime;
         if (_moveTimer < DecisionInterval)
             return;
@@ -77,29 +60,30 @@ public class ShadowEatenState : IShadowState
         var currentPosition = shadow.transform.position;
         _currentCell = Grid.WorldToCell(currentPosition);
 
-        Vector2Int targetCell = _homeTargets[_currentTargetIndex];
+        Vector2Int targetCell = _currentTargetIndex < _homeTargets.Count
+                                 ? _homeTargets[_currentTargetIndex]
+                                 : _homeTargets.Last();
 
         if ((Vector2Int)_currentCell == targetCell)
         {
             _currentTargetIndex++;
-            if (_currentTargetIndex >= _homeTargets.Count)
+
+            if (_currentTargetIndex >= _homeTargets.Count && (Vector2Int)_currentCell == _homeTargets.Last())
             {
                 var appearance = shadow.GetComponent<ShadowAppearanceManager>();
-
                 appearance.SetColorAfterEaten();
                 appearance.SetColorBeforeFrightened();
 
                 ShadowPlayerController owner = shadow.GetComponentInParent<ShadowPlayerController>();
-                if (owner == null)
-                {
-                    return;
-                }
-                shadow.StartCoroutine(DelayedUpdateAppearance(shadow));
+                if (owner != null)
+                    shadow.StartCoroutine(DelayedUpdateAppearance(shadow));
 
                 shadow.SetState(new ShadowScatterState());
                 return;
             }
-            targetCell = _homeTargets[_currentTargetIndex];
+
+            if (_currentTargetIndex < _homeTargets.Count)
+                targetCell = _homeTargets[_currentTargetIndex];
         }
 
         var nextDirection = ChooseBestDirection(grid, _currentCell, targetCell);
@@ -110,6 +94,7 @@ public class ShadowEatenState : IShadowState
         shadow.CurrentDirection = nextDirection;
         shadow.Movement.OnMove(nextDirection);
     }
+
     #endregion
 
     private IEnumerator DelayedUpdateAppearance(ShadowController shadow)

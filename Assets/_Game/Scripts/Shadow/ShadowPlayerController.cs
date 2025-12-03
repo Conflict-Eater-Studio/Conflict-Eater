@@ -9,14 +9,15 @@ using static ShadowController;
 public class ShadowPlayerController : MonoBehaviour
 {
     private const string MoveActionName = "Move";
-    private const string SwitchActionName = "GhostSwitch";
+    private const string SwitchClydeActionName = "SwitchClyde";
+    private const string SwitchInkyActionName = "SwitchInky";
     private const string PauseActionName = "Pause";
+
 
     [Header("Shadow Settings")]
     [SerializeField] private GameObject _shadowPrefab;
     [SerializeField] private int _shadowCount = 3;
     [SerializeField] private float _spawnDelay = 1f;
-    [SerializeField] private float _maxSwitchDistance = 15f;
 
     [SerializeField] private bool _blinky = false;
     [SerializeField] private bool _pinky = false;
@@ -27,6 +28,12 @@ public class ShadowPlayerController : MonoBehaviour
     [SerializeField] private ShadowState _pinkyState;
     [SerializeField] private ShadowState _inkyState;
     [SerializeField] private ShadowState _clydeState;
+
+    [Header("Switch Distance Settings")]
+    [SerializeField] private float maxSwitchDistanceToPlayer = 15f;
+
+    public delegate void ShadowDistanceChangedEvent(Color color, bool canSwitch);
+    public event ShadowDistanceChangedEvent OnShadowDistanceChanged;
 
     private List<ShadowType> shadowTypes = new List<ShadowType>();
 
@@ -43,6 +50,8 @@ public class ShadowPlayerController : MonoBehaviour
     private Color inactiveColor1 = new Color(1f, 0.5f, 0f); 
     private Color inactiveColor2 = Color.cyan;
 
+    private Dictionary<ShadowController, bool> _previousCanSwitchStates = new();
+
     #region Unity Lifecycle
     private void Start()
     {
@@ -50,9 +59,11 @@ public class ShadowPlayerController : MonoBehaviour
 
         if (_playerInput != null)
         {
-            _playerInput.actions[SwitchActionName].performed += OnSwitch;
             _playerInput.actions[MoveActionName].performed += OnMove;
             _playerInput.actions[PauseActionName].performed += OnPause;
+
+            _playerInput.actions[SwitchClydeActionName].performed += OnClydeSwitch;
+            _playerInput.actions[SwitchInkyActionName].performed += OnInkySwitch;
         }
 
         GameManager.Instance.Timer.OnRoundStart += Timer_OnRoundStart;
@@ -119,30 +130,44 @@ public class ShadowPlayerController : MonoBehaviour
         _inkyState = _shadows[1].GetComponent<ShadowController>().CurrentState.State;
         _clydeState = _shadows[2].GetComponent<ShadowController>().CurrentState.State;
 
-        UpdateNextShadowMarker();
+        CheckShadowDistance();
     }
 
-    private void UpdateNextShadowMarker()
+    private void CheckShadowDistance()
     {
-        int nextIndex = GetClosestShadowIndex();
+        if (_shadows.Count == 0) return;
 
-        if (nextIndex == -1 ||
-            Vector3.Distance(
-                _shadows[_activeShadowIndex].transform.position,
-                _shadows[nextIndex].transform.position) > _maxSwitchDistance)
-        {
-            for (int i = 0; i < _shadows.Count; i++)
-            {
-                var appearance = _shadows[i].GetComponent<ShadowAppearanceManager>();
-                appearance.ActiveNextShadowMarker(false);
-            }
-            return;
-        }
+        var activeController = GetActiveGhostController();
+        if (activeController == null) return;
+
+        Vector3 activePos = activeController.transform.position;
 
         for (int i = 0; i < _shadows.Count; i++)
         {
-            var appearance = _shadows[i].GetComponent<ShadowAppearanceManager>();
-            appearance.ActiveNextShadowMarker(i == nextIndex);
+            var shadow = _shadows[i];
+            var controller = shadow.GetComponent<ShadowController>();
+
+            if (controller == activeController)
+                continue;
+
+            if (controller.CurrentState.State == ShadowState.Eaten)
+                continue;
+
+            float distance = Vector3.Distance(activePos, shadow.transform.position);
+            bool canSwitchNow = distance <= maxSwitchDistanceToPlayer;
+
+            Color color = controller.GetComponent<ShadowAppearanceManager>().GetCurrentColor();
+
+            bool previousCanSwitch;
+            _previousCanSwitchStates.TryGetValue(controller, out previousCanSwitch);
+
+            if (previousCanSwitch != canSwitchNow)
+            {
+                controller.CanBeSwitchedTo = canSwitchNow;
+                OnShadowDistanceChanged?.Invoke(color, canSwitchNow);
+            }
+
+            _previousCanSwitchStates[controller] = canSwitchNow;
         }
     }
 
@@ -151,7 +176,9 @@ public class ShadowPlayerController : MonoBehaviour
         if (_playerInput != null)
         {
             _playerInput.actions[MoveActionName].performed -= OnMove;
-            _playerInput.actions[SwitchActionName].performed -= OnSwitch;
+
+            _playerInput.actions[SwitchClydeActionName].performed -= OnClydeSwitch;
+            _playerInput.actions[SwitchInkyActionName].performed -= OnInkySwitch;
         }
 
         if (GameManager.Instance != null)
@@ -173,14 +200,23 @@ public class ShadowPlayerController : MonoBehaviour
         activeGhost.GetComponent<ShadowController>().Move(moveInput);
     }
 
-    private void OnSwitch(InputAction.CallbackContext context)
+    private void OnClydeSwitch(InputAction.CallbackContext context)
     {
         if (!_canSwitch || _shadows.Count == 0)
             return;
 
-        StartCoroutine(SwitchShadowsCoroutine());
+        Color clydeColor = _shadows[_activeShadowIndex].GetComponent<ShadowAppearanceManager>().clydeColor;
+        SwitchToGhostByColor(clydeColor);
     }
 
+    private void OnInkySwitch(InputAction.CallbackContext context)
+    {
+        if (!_canSwitch || _shadows.Count == 0)
+            return;
+
+        Color inkyColor = _shadows[_activeShadowIndex].GetComponent<ShadowAppearanceManager>().inkyColor;
+        SwitchToGhostByColor(inkyColor);
+    }
     #endregion
 
     #region Spawning Logic
@@ -290,48 +326,49 @@ public class ShadowPlayerController : MonoBehaviour
     #endregion
 
     #region Switching Logic
-    private IEnumerator SwitchShadowsCoroutine()
+    private void SwitchToGhostByColor(Color targetColor)
+    {
+        if (!_canSwitch || _shadows.Count == 0) return;
+
+        int targetIndex = -1;
+
+        for (int i = 0; i < _shadows.Count; i++)
+        {
+            var controller = _shadows[i].GetComponent<ShadowController>();
+            var appearance = controller.GetComponent<ShadowAppearanceManager>();
+
+            if (appearance.GetCurrentColor() == targetColor &&
+                controller.CurrentState.State != ShadowState.Eaten &&
+                controller.CanBeSwitchedTo)
+            {
+                targetIndex = i;
+                break;
+            }
+        }
+
+        if (targetIndex == -1)
+        {
+            return;
+        }
+
+        StartCoroutine(SwitchToIndexCoroutine(targetIndex));
+    }
+
+
+    private IEnumerator SwitchToIndexCoroutine(int newIndex)
     {
         _canSwitch = false;
 
         bool isFrightened = GameManager.Instance.IsFrightenedShadowState;
 
-        var oldController = _shadows[_activeShadowIndex].GetComponent<ShadowController>();
-        oldController.IsShadowActive = false;
+        var old = _shadows[_activeShadowIndex].GetComponent<ShadowController>();
+        old.IsShadowActive = false;
 
-        if (isFrightened)
-            oldController.SetState(new ShadowFrightenedState());
-        else
-            oldController.SetState(new ShadowScatterState());
+        old.SetState(isFrightened ? new ShadowFrightenedState()
+                                  : new ShadowScatterState());
 
-        int closestIndex = _activeShadowIndex;
-        float closestDistance = _maxSwitchDistance;
-
-        for (int i = 0; i < _shadows.Count; i++)
-        {
-            if (i == _activeShadowIndex) continue;
-
-            var controller = _shadows[i].GetComponent<ShadowController>();
-            if (controller.CurrentState.State == ShadowState.Eaten)
-                continue;
-
-            float dist = Vector3.Distance(
-                _shadows[_activeShadowIndex].transform.position,
-                _shadows[i].transform.position);
-
-            if (dist < closestDistance)
-            {
-                closestIndex = i;
-                closestDistance = dist;
-            }
-        } 
-
-        if(closestIndex != _activeShadowIndex)
-        {
-                    _previousActiveIndex = _activeShadowIndex;
-        }
-
-        _activeShadowIndex = closestIndex;
+        _previousActiveIndex = _activeShadowIndex;
+        _activeShadowIndex = newIndex;
 
         var newController = _shadows[_activeShadowIndex].GetComponent<ShadowController>();
         newController.IsShadowActive = true;
@@ -382,34 +419,6 @@ public class ShadowPlayerController : MonoBehaviour
         yield return new WaitForSeconds(0.3f);
         _canSwitch = true;
     }
-
-    private int GetClosestShadowIndex()
-    {
-        float closest = Mathf.Infinity;
-        int index = -1;
-
-        for (int i = 0; i < _shadows.Count; i++)
-        {
-            if (i == _activeShadowIndex) continue;
-
-            var controller = _shadows[i].GetComponent<ShadowController>();
-            if (controller.CurrentState.State == ShadowState.Eaten)
-                continue;
-
-            float d = Vector3.Distance(
-                _shadows[_activeShadowIndex].transform.position,
-                _shadows[i].transform.position);
-
-            if (d < closest)
-            {
-                closest = d;
-                index = i;
-            }
-        }
-
-        return index;
-    }
-
 
     #endregion
     

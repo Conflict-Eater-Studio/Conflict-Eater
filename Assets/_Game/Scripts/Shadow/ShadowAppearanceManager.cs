@@ -23,9 +23,6 @@ public class ShadowAppearanceManager : MonoBehaviour
     public Color frightenedBlinkColor = Color.white;
     public float blinkInterval = 0.2f;
 
-    [Header("Next Active Shadow Marker")]
-    [SerializeField] private GameObject _nextShadowMarker;
-
     [Header("Eater Shadow")]
     [SerializeField] private Collider2D _collider;
 
@@ -107,12 +104,6 @@ public class ShadowAppearanceManager : MonoBehaviour
         StopBlinking();
         bodyRenderer.enabled = false;
         _collider.enabled = false;
-    }
-
-    public void ActiveNextShadowMarker(bool active)
-    {
-        if (_nextShadowMarker != null)
-            _nextShadowMarker.SetActive(active);
     }
 
     private void StartBlinking(bool isActive)

@@ -41,6 +41,7 @@ public class ShadowController : MonoBehaviour
     private ShadowBehaviorCycle _shadowBehaviorCycle;
     private bool _isShadowActive = false;
     private ShadowPlayerController _owner;
+    private bool _canBeSwitchedTo = true;
 
     public bool IsShadowActive
     {
@@ -54,6 +55,15 @@ public class ShadowController : MonoBehaviour
         {
             _currentDirection = value;
             UpdateDirectObjectPosition();
+        }
+    }
+
+    public bool CanBeSwitchedTo
+    {
+        get => _canBeSwitchedTo;
+        set
+        {
+            _canBeSwitchedTo = value;
         }
     }
     public Movement Movement => _movement;
