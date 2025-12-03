@@ -55,6 +55,7 @@ public class ShadowPlayerController : MonoBehaviour
     private Color inactiveColor2 = Color.cyan;
 
     private Dictionary<ShadowController, bool> _previousCanSwitchStates = new();
+    private readonly List<GameObject> _activeParticles = new();
 
     #region Unity Lifecycle
     private void Start()
@@ -396,6 +397,7 @@ public class ShadowPlayerController : MonoBehaviour
 
         Vector3 direction = (endPos - startPos).normalized;
         psObj.transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
+        _activeParticles.Add(psObj);
 
         float duration = 0.5f; 
         float elapsed = 0f;
@@ -410,7 +412,8 @@ public class ShadowPlayerController : MonoBehaviour
         }
 
         UpdateAppearance();
-        yield return new WaitForSeconds(1f); ;
+        yield return new WaitForSeconds(1f);
+        _activeParticles.Remove(psObj);
         Destroy(psObj);
     }
 
@@ -466,6 +469,13 @@ public class ShadowPlayerController : MonoBehaviour
         _canSwitch = true;
         _isRoundStarted = false;
         GameManager.Instance.IsFrightenedShadowState = false;
+
+        foreach (var p in _activeParticles)
+        {
+            if (p != null)
+                Destroy(p);
+        }
+        _activeParticles.Clear();
 
         foreach (var ghost in _shadows)
         {

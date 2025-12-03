@@ -480,7 +480,6 @@ MonoBehaviour:
   frightenedActiveColor: {r: 1, g: 0, b: 0.039215688, a: 1}
   frightenedBlinkColor: {r: 0.6226415, g: 0.6226415, b: 0.6226415, a: 1}
   blinkInterval: 0.2
-  _collider: {fileID: 0}
   colorBeforeFrightened: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1001 &7120915123662735434
 PrefabInstance:
@@ -570,7 +569,8 @@ PrefabInstance:
       propertyPath: pulseStrength
       value: 2
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2596250567925438930, guid: 4d471f0405b56a54eb10b06aaee6a65b, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

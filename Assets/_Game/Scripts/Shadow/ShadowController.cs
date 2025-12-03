@@ -160,6 +160,7 @@ public class ShadowController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        //Debug.Log("Collision with" + collision.gameObject.name);
         if (collision.CompareTag("PlayerLight"))
         {
             if(GameManager.Instance.IsFrightenedShadowState)
@@ -182,7 +183,6 @@ public class ShadowController : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log("Tyk");
                     LightPlayerController lightPlayerController = collision.GetComponentInChildren<LightPlayerController>();
                     lightPlayerController.Movement.SetSpeed(lightPlayerController.Speed * 0.5f);
                 }
