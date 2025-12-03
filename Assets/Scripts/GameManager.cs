@@ -19,11 +19,18 @@ public class GameManager : Singleton<GameManager>
     [SerializeField]
     private TextMeshProUGUI _winnerText;
 
+    [SerializeField] private GameObject _particleSystem;
+
     public bool IsFrightenedShadowState = false;
 
     public PlayerManager PlayerManager { get; private set; }
     public Grid Grid { get; private set; }
     public GameScore Score { get; private set; } = new GameScore();
+    public GameObject ParticleSystem
+    {
+        get { return _particleSystem; }
+        set { _particleSystem = value; }
+    }
 
     public void RegisterGrid(Grid grid)
     {

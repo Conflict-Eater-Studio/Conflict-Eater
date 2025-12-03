@@ -32,6 +32,10 @@ public class ShadowPlayerController : MonoBehaviour
     [Header("Switch Distance Settings")]
     [SerializeField] private float maxSwitchDistanceToPlayer = 15f;
 
+    [Header("Switch Particle")]
+    [SerializeField] private GameObject _switchParticlePrefab;
+
+
     public delegate void ShadowDistanceChangedEvent(Color color, bool canSwitch);
     public event ShadowDistanceChangedEvent OnShadowDistanceChanged;
 
@@ -66,6 +70,8 @@ public class ShadowPlayerController : MonoBehaviour
             _playerInput.actions[SwitchInkyActionName].performed += OnInkySwitch;
         }
 
+
+        _switchParticlePrefab = GameManager.Instance.ParticleSystem;
         GameManager.Instance.Timer.OnRoundStart += Timer_OnRoundStart;
         GameManager.Instance.Timer.OnRoundEnd += HandleRoundEnd;
 
@@ -374,11 +380,40 @@ public class ShadowPlayerController : MonoBehaviour
         newController.IsShadowActive = true;
         newController.SetState(new ShadowActiveState());
 
-        UpdateAppearance();
+        StartCoroutine(PlaySwitchParticle(old, newController, activeColor));
 
         yield return new WaitForSeconds(0.3f);
         _canSwitch = true;
     }
+
+    private IEnumerator PlaySwitchParticle(ShadowController from, ShadowController to, Color color)
+    {
+        GameObject psObj = Instantiate(_switchParticlePrefab, from.transform.position, Quaternion.identity);
+        ParticleSystem ps = psObj.GetComponent<ParticleSystem>();
+
+        Vector3 startPos = from.transform.position;
+        Vector3 endPos = to.transform.position;
+
+        Vector3 direction = (endPos - startPos).normalized;
+        psObj.transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
+
+        float duration = 0.5f; 
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+
+            psObj.transform.position = Vector3.Lerp(startPos, endPos, t);
+            yield return null;
+        }
+
+        UpdateAppearance();
+        yield return new WaitForSeconds(1f); ;
+        Destroy(psObj);
+    }
+
 
     public IEnumerator SwitchShadowsRandomCoroutine()
     {
