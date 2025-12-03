@@ -30,9 +30,9 @@ public class PowerupCollision : MonoBehaviour {
     [SerializeField] private SpriteRenderer _spriteRenderer;
     [SerializeField] private LightPowerup lightPowerup;
     [SerializeField] private ShadowPowerup shadowPowerup;
-    
+    [SerializeField] private ParticleSystem _particleSystem;
     [SerializeField] private float speedBoost = 15f;
-
+    
     private bool _collected = false;
     private Coroutine boostRoutine;
 
@@ -42,12 +42,18 @@ public class PowerupCollision : MonoBehaviour {
         if (other.CompareTag("PlayerLight")) {
             HandleLightPowerup();
             Disable();
+            _particleSystem.Emit(50);
+            AudioManager.Instance.PlayOneShot(AudioManager.Instance.FMODEvents.SFX.PowerupPickup);
+            
+
         }
 
         if (other.TryGetComponent<ShadowController>(out var controller)) {
             if (controller.CurrentState is not ShadowActiveState) return;
             HandleShadowPowerup(controller);
             Disable();
+            _particleSystem.Emit(50);
+            AudioManager.Instance.PlaySound(AudioManager.Instance.FMODEvents.SFX.PowerupPickup);
 
         }
     }

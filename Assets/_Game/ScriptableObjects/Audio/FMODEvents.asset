@@ -12,6 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8aa871ce4a5bfb9479c13f43a2c5877e, type: 3}
   m_Name: FMODEvents
   m_EditorClassIdentifier: Assembly-CSharp::FMODEvents
+  SFX:
+    PowerupPickup:
+      Guid:
+        Data1: -1835787088
+        Data2: 1232929124
+        Data3: -675509070
+        Data4: -1044722153
+      Path: event:/SFX/Powerup/Pickup2
   Music:
     Music8Bit:
       Guid:
