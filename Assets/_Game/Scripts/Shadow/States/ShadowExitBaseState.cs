@@ -1,8 +1,9 @@
 using UnityEngine;
 
 /// <summary>
-/// State for shadows when they exit their starting base.
-/// Handles initial upward movement and then lateral movement until they join normal AI behavior.
+/// State for shadows when they exit their starting base (ghost house).
+/// Handles initial upward movement and then lateral movement
+/// until they join normal AI behavior.
 /// </summary>
 public class ShadowExitBaseState : IShadowState
 {
@@ -24,6 +25,10 @@ public class ShadowExitBaseState : IShadowState
     #endregion
 
     #region IShadowState Implementation
+    /// <summary>
+    /// Called when the shadow enters the ExitBase state.
+    /// Initializes vertical movement upward.
+    /// </summary>
     public void Enter(ShadowController shadow)
     {
         _phase = Phase.MovingUp;
@@ -32,11 +37,19 @@ public class ShadowExitBaseState : IShadowState
         shadow.Movement.OnMove(Vector2.up);
     }
 
+    /// <summary>
+    /// Called when the shadow exits this state.
+    /// Stops movement to ensure proper transition to next state.
+    /// </summary>
     public void Exit(ShadowController shadow)
     {
         shadow.Movement.Stop();
     }
 
+    /// <summary>
+    /// Called every frame while in ExitBase state.
+    /// Handles vertical and horizontal movement phases.
+    /// </summary>
     public void Update(ShadowController shadow)
     {
         var grid = GameManager.Instance.Grid;

@@ -1,16 +1,22 @@
 using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
-using static Unity.Cinemachine.CinemachinePathBase;
 
+/// <summary>
+/// Represents the active state of a shadow/ghost, where it is controllable by the player.
+/// Handles appearance, glow, and transitions to frightened state if needed.
+/// </summary>
 public class ShadowActiveState : IShadowState
 {
     ShadowState IShadowState.State => ShadowState.Active;
 
     private bool _isBlinking = false;
 
+    /// <summary>
+    /// Called when the shadow enters the active state.
+    /// Stops movement and updates appearance to active with glow.
+    /// </summary>
     public void Enter(ShadowController shadow)
     {
-        //Debug.Log("Enter ActiveState: " + shadow.Type);
         shadow.Movement.Stop();
 
         var appearance = shadow.GetComponent<ShadowAppearanceManager>();
@@ -18,6 +24,10 @@ public class ShadowActiveState : IShadowState
         appearance.SetGlow(true);
     }
 
+    /// <summary>
+    /// Called every frame while in the active state.
+    /// Handles transitions to frightened appearance if the game is in frightened mode.
+    /// </summary>
     public void Update(ShadowController shadow)
     {
         var appearance = shadow.GetComponent<ShadowAppearanceManager>();
@@ -40,7 +50,10 @@ public class ShadowActiveState : IShadowState
         }
     }
 
-
+    /// <summary>
+    /// Called when exiting the active state.
+    /// Disables glow.
+    /// </summary>
     public void Exit(ShadowController shadow)
     {
         var appearance = shadow.GetComponent<ShadowAppearanceManager>();

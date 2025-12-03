@@ -1,14 +1,15 @@
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 /// <summary>
-/// State for shadows when they are frightened (e.g. after Light picks up a power-up).
-/// They move randomly, reversing direction once upon entering the state.
+/// State for shadows when they are frightened (e.g., after the Light player picks up a power-up).
+/// Behavior: move randomly, reverse direction once upon entering the state, 
+/// and avoid immediate reversals during random movement.
 /// </summary>
 public class ShadowFrightenedState : IShadowState
 {
     ShadowState IShadowState.State => ShadowState.Frightened;
+
     #region Constants and Fields
     private static readonly Vector2Int[] Directions =
     {
@@ -27,10 +28,12 @@ public class ShadowFrightenedState : IShadowState
     #endregion
 
     #region IShadowState Implementation
+    /// <summary>
+    /// Called when the shadow enters the frightened state.
+    /// Reverses current direction and triggers frightened visuals.
+    /// </summary>
     public void Enter(ShadowController shadow)
     {
-        //Debug.Log("Enter Frightened State: " + shadow.Type);
-
         ShadowAppearanceManager shadowAppearanceManager = shadow.gameObject.GetComponent<ShadowAppearanceManager>();
 
         shadowAppearanceManager.SetFrightened(true);
@@ -45,14 +48,21 @@ public class ShadowFrightenedState : IShadowState
         _moveTimer = 0f;
     }
 
+    /// <summary>
+    /// Called when exiting the frightened state.
+    /// Resets visual state back to normal.
+    /// </summary>
     public void Exit(ShadowController shadow)
     {
-        //Debug.Log("FrightenedState Exit: " + shadow.Type);
         ShadowAppearanceManager shadowAppearanceManager = shadow.gameObject.GetComponent<ShadowAppearanceManager>();
         shadowAppearanceManager.SetFrightened(false);
         shadowAppearanceManager.SetColorBeforeFrightened();
     }
 
+    /// <summary>
+    /// Called every frame during the frightened state.
+    /// Chooses a random walkable direction every DecisionInterval seconds.
+    /// </summary>
     public void Update(ShadowController shadow)
     {
         _moveTimer += Time.deltaTime;

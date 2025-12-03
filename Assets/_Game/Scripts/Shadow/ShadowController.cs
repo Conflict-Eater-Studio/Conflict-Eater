@@ -7,14 +7,18 @@ using UnityEngine;
 /// </summary>
 public enum ShadowType
 {
-    Blinky, // Red � chases the player directly
-    Pinky,  // Pink � tries to ambush the player from the front
-    Inky,   // Blue � unpredictable, depends on other ghosts
-    Clyde   // Orange � alternates between chasing and retreating
+    Blinky, // Red - chases the player directly
+    Pinky,  // Pink - tries to ambush the player from the front
+    Inky,   // Blue - unpredictable, depends on other ghosts
+    Clyde   // Orange - alternates between chasing and retreating
 }
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(CircleCollider2D))]
+/// <summary>
+/// Controls the behavior, movement, state, and interactions of a shadow/ghost.
+/// Handles AI movement, state transitions, collision with player light, and appearance updates.
+/// </summary>
 public class ShadowController : MonoBehaviour
 {
     #region Inspector Fields
@@ -160,9 +164,9 @@ public class ShadowController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        //Debug.Log("Collision with" + collision.gameObject.name);
         if (collision.CompareTag("PlayerLight"))
         {
+            Debug.Log("Collisin with light");
             if(GameManager.Instance.IsFrightenedShadowState)
             {
                 if(_isShadowActive)

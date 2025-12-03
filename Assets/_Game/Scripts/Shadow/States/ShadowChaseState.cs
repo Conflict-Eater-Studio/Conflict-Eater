@@ -2,8 +2,9 @@ using System.Linq;
 using UnityEngine;
 
 /// <summary>
-/// Chase behavior for shadows (ghosts) implementing classic Pac-Man style AI.
-/// Each shadow has a unique chase pattern based on its type.
+/// Represents the chase behavior for shadows (ghosts) in a Pac-Man-like game.
+/// Each shadow has a unique chase pattern based on its type (Blinky, Pinky, Inky, Clyde).
+/// This state calculates target cells and chooses optimal directions to pursue the player.
 /// </summary>
 public class ShadowChaseState : IShadowState
 {
@@ -26,9 +27,12 @@ public class ShadowChaseState : IShadowState
     #endregion
 
     #region IShadowState Implementation
+    /// <summary>
+    /// Called when the shadow enters the chase state.
+    /// Initializes movement direction and stores shadow type.
+    /// </summary>
     public void Enter(ShadowController shadow)
     {
-        //Debug.Log("Enter Chase State");
         _moveTimer = 0f;
         _type = shadow.Type;
 
@@ -37,11 +41,16 @@ public class ShadowChaseState : IShadowState
         shadow.Movement.OnMove(shadow.CurrentDirection);
     }
 
-    public void Exit(ShadowController shadow)
-    {
-        // Currently no exit logic
-    }
+    /// <summary>
+    /// Called when exiting the chase state.
+    /// Currently no special exit behavior is required.
+    /// </summary>
+    public void Exit(ShadowController shadow) { }
 
+    /// <summary>
+    /// Called every frame while the shadow is in the chase state.
+    /// Calculates the target cell and chooses the best direction to move toward it.
+    /// </summary>
     public void Update(ShadowController shadow)
     {
         _moveTimer += Time.deltaTime;

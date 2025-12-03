@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+/// <summary>
+/// Represents the "Eaten" state for shadows (ghosts) after they are eaten by the player.
+/// In this state, the shadow returns to its home (ghost house) before respawning.
+/// </summary>
 public class ShadowEatenState : IShadowState
 {
     public ShadowState State => ShadowState.Eaten;
@@ -10,10 +14,10 @@ public class ShadowEatenState : IShadowState
     #region Constants and Fields
     private static readonly Vector2Int[] Directions =
     {
-        new(0, 1),   // Up
-        new(-1, 0),  // Left
-        new(1, 0),   // Right
-        new(0, -1)   // Down
+        new(0, 1),  
+        new(-1, 0),  
+        new(1, 0),   
+        new(0, -1)   
     };
 
     private const float DecisionInterval = 0.13f;
@@ -26,6 +30,10 @@ public class ShadowEatenState : IShadowState
     #endregion
 
     #region IShadowState Implementation
+    /// <summary>
+    /// Called when the shadow enters the "Eaten" state.
+    /// Initializes movement towards home and sets appearance to "dead".
+    /// </summary>
     public void Enter(ShadowController shadow)
     {
         GameManager.Instance.Score.AddScoreToActive(10);
@@ -40,11 +48,16 @@ public class ShadowEatenState : IShadowState
         appearance.SetDead();
     }
 
-    public void Exit(ShadowController shadow)
-    {
-        
-    }
+    /// <summary>
+    /// Called when exiting the "Eaten" state.
+    /// No special logic is needed.
+    /// </summary>
+    public void Exit(ShadowController shadow) { }
 
+    /// <summary>
+    /// Called every frame while the shadow is in the "Eaten" state.
+    /// Moves the shadow along the path to its home.
+    /// </summary>
     public void Update(ShadowController shadow)
     {
         if (_homeTargets == null || _homeTargets.Count == 0)
@@ -95,8 +108,9 @@ public class ShadowEatenState : IShadowState
         shadow.Movement.OnMove(nextDirection);
     }
 
-    #endregion
-
+    /// <summary>
+    /// Delays updating the shadow's appearance to ensure proper timing with the player controller.
+    /// </summary>
     private IEnumerator DelayedUpdateAppearance(ShadowController shadow)
     {
         yield return null;
@@ -105,7 +119,12 @@ public class ShadowEatenState : IShadowState
         owner.UpdateAppearance();
     }
 
+    #endregion
+
     #region Direction Selection
+    /// <summary>
+    /// Determines the optimal direction toward the target cell, avoiding reversing.
+    /// </summary>
     private Vector2Int ChooseBestDirection(Grid grid, Vector3Int currentCell, Vector2Int targetCell)
     {
         var targetWorldPos = Grid.GetCellCenterWorld(new Vector3Int(targetCell.x, targetCell.y, 0));
@@ -122,6 +141,9 @@ public class ShadowEatenState : IShadowState
             .FirstOrDefault();
     }
 
+    /// <summary>
+    /// Direction priority for tie-breaking: Up > Left > Right > Down
+    /// </summary>
     private static int GetDirectionPriority(Vector2Int direction)
     {
         return direction switch

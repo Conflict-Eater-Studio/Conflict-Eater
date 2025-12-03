@@ -9,6 +9,7 @@ using System.Linq;
 public class ShadowScatterState : IShadowState
 {
     ShadowState IShadowState.State => ShadowState.Scatter;
+
     #region Constants and Fields
     private static readonly Vector2Int[] Directions =
     {
@@ -27,19 +28,26 @@ public class ShadowScatterState : IShadowState
     #endregion
 
     #region IShadowState Implementation
+    /// <summary>
+    /// Called when entering the scatter state.
+    /// Determines the scatter target based on shadow type and resets movement direction.
+    /// </summary>
     public void Enter(ShadowController shadow)
     {
-        //Debug.Log("Enter Scatter State");
         _targetCell = GameManager.Instance.Grid.GetScatterTargetByType(shadow.Type) ?? Vector2Int.zero;
         _lastDirection = Vector2Int.zero;
         shadow.CurrentDirection = Vector2Int.zero;
     }
 
-    public void Exit(ShadowController shadow)
-    {
+    /// <summary>
+    /// Exit logic – currently no specific actions needed
+    /// </summary>
+    public void Exit(ShadowController shadow) { }
 
-    }
-
+    /// <summary>
+    /// Called every frame during scatter state.
+    /// Chooses the next best direction every DecisionInterval seconds.
+    /// </summary>
     public void Update(ShadowController shadow)
     {
         _moveTimer += Time.deltaTime;

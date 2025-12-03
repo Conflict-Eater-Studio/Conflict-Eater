@@ -2,8 +2,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
 
+/// <summary>
+/// Handles the visual UI indicator for a Shadow (ghost) in the HUD.
+/// Can show active/inactive states, availability, and color changes.
+/// </summary>
 public class ShadowIndicator : MonoBehaviour
 {
+    #region Properties
     [SerializeField] private Image icon;
 
     private Tween scaleTween;
@@ -11,8 +16,10 @@ public class ShadowIndicator : MonoBehaviour
     private Tween fadeTween;
 
     private Color baseColor;
-    private float disabledAlpha = 0.1f; 
+    private float disabledAlpha = 0.1f;
+    #endregion
 
+    #region Unity Lifecycle
     private void Awake()
     {
         if (icon == null)
@@ -23,13 +30,22 @@ public class ShadowIndicator : MonoBehaviour
 
         baseColor = icon.color;
     }
+    #endregion
 
+    #region Apperence
+    /// <summary>
+    /// Changes the base color of the icon.
+    /// </summary>
     public void SetColor(Color color)
     {
         baseColor = color;
         icon.color = color;
     }
 
+    /// <summary>
+    /// Sets the active state of the shadow.
+    /// Active shadows pulse in scale and color.
+    /// </summary>
     public void SetActive(bool isActive)
     {
         if (icon == null)
@@ -62,6 +78,10 @@ public class ShadowIndicator : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Sets whether this shadow is available (e.g., can be switched to).
+    /// Fades icon in/out accordingly.
+    /// </summary>
     public void SetAvailable(bool available)
     {
         KillAll();
@@ -78,10 +98,15 @@ public class ShadowIndicator : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Stops all running tweens to prevent overlapping animations.
+    /// </summary>
     private void KillAll()
     {
         scaleTween?.Kill();
         colorTween?.Kill();
         fadeTween?.Kill();
     }
+
+    #endregion
 }

@@ -2,8 +2,14 @@ using UnityEngine;
 using System.Collections;
 using DG.Tweening;
 
+/// <summary>
+/// Manages visual appearance of a shadow/ghost character in Unity.
+/// Handles states such as Normal, Frightened, Dead, and ExitingBase.
+/// Includes blinking logic and color management.
+/// </summary>
 public class ShadowAppearanceManager : MonoBehaviour
 {
+    #region Inspector Fields
     [Header("Renderers")]
     [SerializeField] private SpriteRenderer bodyRenderer;
 
@@ -23,6 +29,9 @@ public class ShadowAppearanceManager : MonoBehaviour
     public Color frightenedBlinkColor = Color.white;
     public float blinkInterval = 0.2f;
 
+    #endregion
+
+    #region Properties
     private ShadowController controller;
     private Coroutine blinkRoutine;
 
@@ -38,11 +47,20 @@ public class ShadowAppearanceManager : MonoBehaviour
 
     public VisualState CurrentState { get; private set; }
 
+    #endregion
+
+    #region Unity Lifecycle
     private void Awake()
     {
         controller = GetComponent<ShadowController>();
     }
+    #endregion
 
+    #region Appearance States
+
+    /// <summary>
+    /// Sets the ghost to the normal active state and applies the active color.
+    /// </summary>
     public void SetActive()
     {
         CurrentState = VisualState.Normal;
@@ -52,14 +70,9 @@ public class ShadowAppearanceManager : MonoBehaviour
         bodyRenderer.color = activeColor;
     }
 
-    public void SetNormal()
-    {
-        CurrentState = VisualState.Normal;
-        StopBlinking();
-        bodyRenderer.enabled = true;
-        bodyRenderer.color = GetBaseColor();
-    }
-
+    /// <summary>
+    /// Applies the base color while the ghost is exiting its home/base.
+    /// </summary>
     public void SetExitingBase()
     {
         CurrentState = VisualState.ExitingBase;
@@ -68,6 +81,9 @@ public class ShadowAppearanceManager : MonoBehaviour
         bodyRenderer.color = GetBaseColor();
     }
 
+    /// <summary>
+    /// Sets the ghost into the frightened state, with optional blinking and active-mode coloring.
+    /// </summary>
     public void SetFrightened(bool blinking = false, bool isActive = false)
     {
         CurrentState = VisualState.Frightened;
@@ -81,11 +97,17 @@ public class ShadowAppearanceManager : MonoBehaviour
             StopBlinking();
     }
 
+    /// <summary>
+    /// Restores the color the ghost had before entering the frightened state.
+    /// </summary>
     public void SetColorBeforeFrightened()
     {
         bodyRenderer.color = colorBeforeFrightened;
     }
 
+    /// <summary>
+    /// Restores the ghost appearance after being eaten.
+    /// </summary>
     public void SetColorAfterEaten()
     {
         CurrentState = VisualState.Normal;
@@ -93,38 +115,40 @@ public class ShadowAppearanceManager : MonoBehaviour
         bodyRenderer.enabled = true;
     }
 
+    /// <summary>
+    /// Applies the dead state, hiding the body sprite.
+    /// </summary>
     public void SetDead()
     {
         CurrentState = VisualState.Dead;
         StopBlinking();
         bodyRenderer.enabled = false;
     }
+    #endregion
 
-    private void StartBlinking(bool isActive)
+    #region Color Helpers
+    /// <summary>
+    /// Manually sets a custom color and resets to the normal state.
+    /// </summary>
+    public void SetCustomColor(Color color)
     {
-        if (blinkRoutine != null)
-            StopCoroutine(blinkRoutine);
-        blinkRoutine = StartCoroutine(BlinkRoutine(isActive));
+        StopBlinking();
+        CurrentState = VisualState.Normal;
+        bodyRenderer.enabled = true;
+        bodyRenderer.color = color;
     }
 
-    private void StopBlinking()
+    /// <summary>
+    /// Returns the current color of the body renderer.
+    /// </summary>
+    public Color GetCurrentColor()
     {
-        if (blinkRoutine != null)
-            StopCoroutine(blinkRoutine);
-        blinkRoutine = null;
+        return bodyRenderer != null ? bodyRenderer.color : Color.white;
     }
 
-    private IEnumerator BlinkRoutine(bool isActive = false)
-    {
-        bool toggle = false;
-        while (true)
-        {
-            bodyRenderer.color = toggle ? (isActive ? frightenedActiveColor : colorBeforeFrightened) : frightenedBlinkColor;
-            toggle = !toggle;
-            yield return new WaitForSeconds(blinkInterval);
-        }
-    }
-
+    /// <summary>
+    /// Returns the color associated with the ghost's type.
+    /// </summary>
     public Color GetBaseColor()
     {
         return controller.Type switch
@@ -137,20 +161,51 @@ public class ShadowAppearanceManager : MonoBehaviour
         };
     }
 
-    public void SetCustomColor(Color color)
-    {
-        StopBlinking();
-        CurrentState = VisualState.Normal;
-        bodyRenderer.enabled = true;
-        bodyRenderer.color = color;
-    }
-    public Color GetCurrentColor()
-    {
-        return bodyRenderer != null ? bodyRenderer.color : Color.white;
-    }
+    #endregion
 
+    #region Glow Effect
+    /// <summary>
+    /// Enables or disables the glow effect.
+    /// </summary>
     public void SetGlow(bool glow)
     {
         _glow.SetActive(glow);
     }
+    #endregion
+
+    #region Blinking Logic
+    /// <summary>
+    /// Starts the blinking coroutine for the frightened state.
+    /// </summary>
+    private void StartBlinking(bool isActive)
+    {
+        if (blinkRoutine != null)
+            StopCoroutine(blinkRoutine);
+        blinkRoutine = StartCoroutine(BlinkRoutine(isActive));
+    }
+
+    /// <summary>
+    /// Stops the blinking coroutine if running.
+    /// </summary>
+    private void StopBlinking()
+    {
+        if (blinkRoutine != null)
+            StopCoroutine(blinkRoutine);
+        blinkRoutine = null;
+    }
+
+    /// <summary>
+    /// Coroutine that alternates colors to create a blinking effect.
+    /// </summary>
+    private IEnumerator BlinkRoutine(bool isActive = false)
+    {
+        bool toggle = false;
+        while (true)
+        {
+            bodyRenderer.color = toggle ? (isActive ? frightenedActiveColor : colorBeforeFrightened) : frightenedBlinkColor;
+            toggle = !toggle;
+            yield return new WaitForSeconds(blinkInterval);
+        }
+    }
+    #endregion
 }
