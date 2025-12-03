@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class LightPlayerController : MonoBehaviour
 {
@@ -24,6 +25,8 @@ public class LightPlayerController : MonoBehaviour
     [SerializeField] private float _centerThreshold = 0.15f;
     [Tooltip("How fast to snap to center when switching axis (multiplier of normal speed)")]
     [SerializeField] private float _snapSpeedMultiplier = 1.5f;
+
+    public float Speed => _speed;
     
     private Grid _grid;
     private bool _isRoundStarted = false;

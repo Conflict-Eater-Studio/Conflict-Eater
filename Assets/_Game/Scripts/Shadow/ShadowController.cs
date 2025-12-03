@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -181,10 +182,27 @@ public class ShadowController : MonoBehaviour
                 }
                 else
                 {
-                    //player must slow down 
+                    Debug.Log("Tyk");
+                    LightPlayerController lightPlayerController = collision.GetComponentInChildren<LightPlayerController>();
+                    lightPlayerController.Movement.SetSpeed(lightPlayerController.Speed * 0.5f);
                 }
             }
         }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.CompareTag("PlayerLight"))
+        {
+            LightPlayerController lightPlayerController = collision.GetComponentInChildren<LightPlayerController>();
+            StartCoroutine(LightPlayerSpeedReset(lightPlayerController));
+        }
+    }
+
+    private IEnumerator LightPlayerSpeedReset(LightPlayerController lightPlayerController)
+    {
+        yield return new WaitForSeconds(1);
+        lightPlayerController.Movement.SetSpeed(lightPlayerController.Speed);
     }
 
     #endregion
