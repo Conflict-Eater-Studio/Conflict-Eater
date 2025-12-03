@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using DG.Tweening;
 
 public class ShadowAppearanceManager : MonoBehaviour
 {
@@ -14,6 +15,7 @@ public class ShadowAppearanceManager : MonoBehaviour
 
     [Header("Active Colors")]
     public Color activeColor = Color.red;
+    [SerializeField] private GameObject _glow;
 
     [Header("Frightened Look")]
     public Color frightenedNormalColor = new Color(0f, 0f, 0.6f);
@@ -97,7 +99,6 @@ public class ShadowAppearanceManager : MonoBehaviour
         StopBlinking();
         bodyRenderer.enabled = true;
         _collider.enabled = true;
-        //bodyRenderer.color = colorBeforeFrightened;
     }
 
     public void SetDead()
@@ -120,7 +121,6 @@ public class ShadowAppearanceManager : MonoBehaviour
             StopCoroutine(blinkRoutine);
         blinkRoutine = StartCoroutine(BlinkRoutine(isActive));
     }
-
 
     private void StopBlinking()
     {
@@ -163,5 +163,10 @@ public class ShadowAppearanceManager : MonoBehaviour
     public Color GetCurrentColor()
     {
         return bodyRenderer != null ? bodyRenderer.color : Color.white;
+    }
+
+    public void SetGlow(bool glow)
+    {
+        _glow.SetActive(glow);
     }
 }

@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
+using static Unity.Cinemachine.CinemachinePathBase;
 
 public class ShadowActiveState : IShadowState
 {
@@ -14,6 +15,7 @@ public class ShadowActiveState : IShadowState
 
         var appearance = shadow.GetComponent<ShadowAppearanceManager>();
         appearance.SetActive();
+        appearance.SetGlow(true);
     }
 
     public void Update(ShadowController shadow)
@@ -41,6 +43,7 @@ public class ShadowActiveState : IShadowState
 
     public void Exit(ShadowController shadow)
     {
-
+        var appearance = shadow.GetComponent<ShadowAppearanceManager>();
+        appearance.SetGlow(false);
     }
 }
