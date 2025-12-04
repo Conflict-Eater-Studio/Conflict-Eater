@@ -85,7 +85,6 @@ public class Grid : MonoBehaviour
     [SerializeField]
     private List<ShadowScatterTarget> _scatterTargets = new List<ShadowScatterTarget>();
 
-    private List<Vector2Int> _litedCells = new List<Vector2Int>();
     private int _maxLitTiles = 0;
     private int _litTileCount = 0;
     public int LitTileCount
@@ -294,13 +293,7 @@ public class Grid : MonoBehaviour
             return;
         }
         _tilemapLight.SetTile(cellPosition, _lightTile);
-        
-        _litedCells.Add(new Vector2Int(cellPosition.x, cellPosition.y));
-        
-        foreach (var cell in _litedCells) {
-            Debug.Log($"cell: {cell.x}, {cell.y}");
-        }
-        
+
         _litTileCount++;
         OnNewLightTile?.Invoke(this, EventArgs.Empty);
 
@@ -437,5 +430,4 @@ public class Grid : MonoBehaviour
         }
         return null;
     }
-    public List<Vector2Int> GetLittedCells() { return _litedCells; }
 }
