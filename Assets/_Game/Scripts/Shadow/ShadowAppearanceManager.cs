@@ -12,6 +12,8 @@ public class ShadowAppearanceManager : MonoBehaviour
     #region Inspector Fields
     [Header("Renderers")]
     [SerializeField] private SpriteRenderer bodyRenderer;
+    [SerializeField] private SpriteRenderer skullRenderer;
+    [SerializeField] private SpriteRenderer faceRenderer;
 
     [Header("Base Colors")]
     public Color blinkyColor = Color.red;
@@ -66,6 +68,8 @@ public class ShadowAppearanceManager : MonoBehaviour
         CurrentState = VisualState.Normal;
         StopBlinking();
         bodyRenderer.enabled = true;
+        skullRenderer.enabled = true;
+        faceRenderer.enabled = false;
 
         bodyRenderer.color = activeColor;
     }
@@ -78,6 +82,8 @@ public class ShadowAppearanceManager : MonoBehaviour
         CurrentState = VisualState.ExitingBase;
         StopBlinking();
         bodyRenderer.enabled = true;
+        skullRenderer.enabled = true;
+        faceRenderer.enabled = false;
         bodyRenderer.color = GetBaseColor();
     }
 
@@ -88,6 +94,8 @@ public class ShadowAppearanceManager : MonoBehaviour
     {
         CurrentState = VisualState.Frightened;
         bodyRenderer.enabled = true;
+        skullRenderer.enabled = true;
+        faceRenderer.enabled = false;
 
         bodyRenderer.color = isActive ? frightenedActiveColor : colorBeforeFrightened;
 
@@ -113,6 +121,8 @@ public class ShadowAppearanceManager : MonoBehaviour
         CurrentState = VisualState.Normal;
         StopBlinking();
         bodyRenderer.enabled = true;
+        skullRenderer.enabled = true;
+        faceRenderer.enabled = false;
     }
 
     /// <summary>
@@ -123,6 +133,8 @@ public class ShadowAppearanceManager : MonoBehaviour
         CurrentState = VisualState.Dead;
         StopBlinking();
         bodyRenderer.enabled = false;
+        skullRenderer.enabled = false;
+        faceRenderer.enabled = true;
     }
     #endregion
 
@@ -190,7 +202,10 @@ public class ShadowAppearanceManager : MonoBehaviour
     private void StopBlinking()
     {
         if (blinkRoutine != null)
+        {
             StopCoroutine(blinkRoutine);
+            skullRenderer.color = Color.white;
+        }
         blinkRoutine = null;
     }
 
@@ -202,7 +217,7 @@ public class ShadowAppearanceManager : MonoBehaviour
         bool toggle = false;
         while (true)
         {
-            bodyRenderer.color = toggle ? (isActive ? frightenedActiveColor : colorBeforeFrightened) : frightenedBlinkColor;
+            skullRenderer.color = toggle ? (isActive ? frightenedActiveColor : colorBeforeFrightened) : frightenedBlinkColor;
             toggle = !toggle;
             yield return new WaitForSeconds(blinkInterval);
         }
