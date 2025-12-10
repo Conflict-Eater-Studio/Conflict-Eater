@@ -44,4 +44,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29dc3b45eb8c598488ed1f3c21aa1559, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PowerupSpawner
+  _spawnType: 0
+  _spawnTimeRange: {x: 3, y: 8}
+  _powerupCount: 14
+  _powerupPrefab: {fileID: 0}
   _grid: {fileID: 0}

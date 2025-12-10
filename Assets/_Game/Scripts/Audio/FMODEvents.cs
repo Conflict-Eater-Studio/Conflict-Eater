@@ -24,7 +24,10 @@ public class FMODEvents : ScriptableObject
     private void ValidateEventReferences()
     {
         // Check SFX
-        if (SFX != null) { }
+        if (SFX != null) {
+            if (SFX.PowerupPickup.IsNull)
+                Debug.LogWarning($"[FMODEvents] SFX.PowerupPickup is not assigned in {name}");
+        }
 
         // Check BGM
         if (Music != null)
@@ -44,7 +47,9 @@ public class FMODEvents : ScriptableObject
 namespace AudioEvents
 {
     [System.Serializable]
-    public class SFX { }
+    public class SFX {
+        public EventReference PowerupPickup;
+    }
 
     [System.Serializable]
     public class Music

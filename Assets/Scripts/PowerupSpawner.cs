@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Cinemachine;
 using UnityEngine;
 
 public enum SpawnType {
@@ -12,6 +13,7 @@ public enum SpawnType {
 public class PowerupSpawner : MonoBehaviour {
     [Header("Settings")]
     [SerializeField] private SpawnType _spawnType = SpawnType.Discrete;
+    [MinMaxRangeSlider(0, 10f)]
     [SerializeField] private Vector2 _spawnTimeRange = new Vector2(3, 8);
     [SerializeField] private int _powerupCount = 3;
 
