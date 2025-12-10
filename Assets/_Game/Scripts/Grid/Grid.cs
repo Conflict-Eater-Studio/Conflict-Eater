@@ -48,6 +48,10 @@ public class Grid : MonoBehaviour
     [SerializeField]
     private Tilemap _tilemapPortals;
 
+    [Tooltip("Tilemap for active lighted floors")]
+    [SerializeField]
+    private Tilemap _tilemapActiveLight;
+
     [Tooltip("Tile used to indicate lighted floor")]
     [SerializeField]
     private TileBase _lightTile;
@@ -474,6 +478,7 @@ public class Grid : MonoBehaviour
     public void ClearLightTiles()
     {
         _tilemapLight.ClearAllTiles();
+        _tilemapActiveLight.ClearAllTiles();
         _litTileCount = 0;
     }
 

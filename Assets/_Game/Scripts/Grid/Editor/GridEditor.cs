@@ -27,6 +27,7 @@ public class GridEditor : Editor
     private SerializedProperty _tilemapLight;
     private SerializedProperty _tilemapPortals;
     private SerializedProperty _tilemapInactiveLight;
+    private SerializedProperty _tilemapActiveLight;
     private SerializedProperty _lightTile;
     private SerializedProperty _portalTile;
     private SerializedProperty _portalPrefab;
@@ -54,6 +55,7 @@ public class GridEditor : Editor
         _tilemapFloors = serializedObject.FindProperty("_tilemapFloors");
         _tilemapLight = serializedObject.FindProperty("_tilemapLight");
         _tilemapInactiveLight = serializedObject.FindProperty("_tilemapInactiveLight");
+        _tilemapActiveLight = serializedObject.FindProperty("_tilemapActiveLight");
         _tilemapPortals = serializedObject.FindProperty("_tilemapPortals");
         _lightTile = serializedObject.FindProperty("_lightTile");
         _portalTile = serializedObject.FindProperty("_portalTile");
@@ -98,6 +100,7 @@ public class GridEditor : Editor
         EditorGUILayout.PropertyField(_tilemapLight);
         EditorGUILayout.PropertyField(_tilemapPortals);
         EditorGUILayout.PropertyField(_tilemapInactiveLight);
+        EditorGUILayout.PropertyField(_tilemapActiveLight);
         EditorGUILayout.PropertyField(_lightTile);
         EditorGUILayout.PropertyField(_portalTile);
         EditorGUILayout.PropertyField(_portalPrefab);
