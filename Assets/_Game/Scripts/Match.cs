@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Match : MonoBehaviour
@@ -21,7 +22,10 @@ public class Match : MonoBehaviour
     [Tooltip("Round duration in seconds")]
     [SerializeField]
     private float _roundDurationSeconds = 10f;
-
+    
+    [Tooltip("Round in single match")]
+    [SerializeField][Range(1, 10)]
+    private int _rounds = 3;
     #endregion
 
     #region Events
@@ -37,6 +41,7 @@ public class Match : MonoBehaviour
 
     #region Private Fields
 
+    public int Rounds { get; private set; }
     public float CountdownRemaining { get; private set; }
     public float MatchTime { get; private set; }
     public float RoundTime { get; private set; }
@@ -51,15 +56,10 @@ public class Match : MonoBehaviour
         if (!IsGameRunning || IsGamePaused)
             return;
 
-        MatchTime += Time.deltaTime;
         RoundTime += Time.deltaTime;
-
-        if (MatchTime >= _matchDurationSeconds)
-        {
+        if (Rounds <= 0) {
             EndMatch();
-            return;
         }
-
         if (RoundTime >= _roundDurationSeconds)
         {
             EndRound();
@@ -72,6 +72,7 @@ public class Match : MonoBehaviour
 
     public void StartMatch()
     {
+        Rounds = _rounds;
         if (IsGameRunning)
             return;
         StartCoroutine(StartMatchCountdown(_matchCountdown));
@@ -93,7 +94,7 @@ public class Match : MonoBehaviour
 
         OnMatchStart?.Invoke(
             this,
-            new OnMatchStartEventArgs(_matchDurationSeconds, _roundDurationSeconds)
+            new OnMatchStartEventArgs(_rounds, _roundDurationSeconds)
         );
         OnRoundStart?.Invoke(this, EventArgs.Empty);
     }
@@ -116,6 +117,7 @@ public class Match : MonoBehaviour
     public void EndRound()
     {
         RoundTime = 0;
+        Rounds--; 
         Pause();
         OnRoundEnd?.Invoke(this, EventArgs.Empty);
     }
@@ -171,13 +173,13 @@ public class Match : MonoBehaviour
 
 public class OnMatchStartEventArgs : EventArgs
 {
-    public OnMatchStartEventArgs(float matchDuration, float roundDuration)
+    public OnMatchStartEventArgs(int matchRounds, float roundDuration)
     {
-        MatchDuration = matchDuration;
+        MatchRounds = matchRounds;
         RoundDuration = roundDuration;
     }
 
-    public readonly float MatchDuration;
+    public readonly int MatchRounds;
     public readonly float RoundDuration;
 }
 

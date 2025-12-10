@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 8875186400380694721}
   - component: {fileID: 3096004135653304541}
   - component: {fileID: 704244929295975110}
+  - component: {fileID: 3169967145286819252}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -45,9 +46,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f1fbd90239e84b4bb7cd5a90f73d154, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  _gameState: 1
   Timer: {fileID: 704244929295975110}
-  RoleSwapper: {fileID: 0}
+  _endGamePanel: {fileID: 0}
+  _winnerText: {fileID: 0}
+  _particleSystem: {fileID: 7779248770068823122, guid: a55d6050db1fb1a4eb80d526ad62bd6e, type: 3}
+  IsFrightenedShadowState: 0
 --- !u!114 &704244929295975110
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -60,5 +63,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d560c974cac678b488612c45172adb0b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  _matchDurationSeconds: 10
-  _roundDurationSeconds: 10
+  _matchCountdown: 5
+  _roundCountdown: 3
+  _matchDurationSeconds: 240
+  _roundDurationSeconds: 60
+  _rounds: 10
+--- !u!114 &3169967145286819252
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3992267007662837414}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b18b5cf42de929045bf38603f71475dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameScoreUI
+  _p1Score: {fileID: 0}
+  _p2Score: {fileID: 0}
