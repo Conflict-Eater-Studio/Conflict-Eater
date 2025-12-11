@@ -7,10 +7,11 @@ using UnityEngine.UI;
 public class TimerUI : MonoBehaviour
 {
     #region Serialized Fields
-
+    [SerializeField] Color _timerDefaultColor;
+    [SerializeField] Color _timerDangerZoneColor;
     [SerializeField]
-    private Slider _matchSlider;
-
+    private TMP_Text _roundsLeft;
+    
     [SerializeField]
     private Slider _roundSlider;
 
@@ -134,15 +135,18 @@ public class TimerUI : MonoBehaviour
     #region Event Handlers
     private void TimerUI_OnMatchStart(object sender, OnMatchStartEventArgs e)
     {
-        _matchDurationSeconds = e.MatchDuration;
         _roundDurationSeconds = e.RoundDuration;
-        _matchSlider.value = 1f;
         _roundSlider.value = 1f;
+        _roundSlider.fillRect.GetComponent<Image>().color = _timerDefaultColor;
+        _roundsLeft.text = e.MatchRounds.ToString();
     }
 
     private void TimerUI_OnRoundEnd(object sender, System.EventArgs e)
     {
         _roundSlider.value = 1f;
+        _roundSlider.fillRect.GetComponent<Image>().color = _timerDefaultColor;
+        _roundsLeft.text = _timer.Rounds.ToString();
+
     }
 
     private void TimerUI_OnMatchEnd(object sender, System.EventArgs e)
@@ -156,10 +160,11 @@ public class TimerUI : MonoBehaviour
     private void UpdateSliders()
     {
         float roundTimeLeft = 1f - (_timer.RoundTime / _roundDurationSeconds);
-        float matchTimeLeft = 1f - (_timer.MatchTime / _matchDurationSeconds);
 
-        _roundSlider.value = Mathf.Clamp01(roundTimeLeft);
-        _matchSlider.value = Mathf.Clamp01(matchTimeLeft);
+        _roundSlider.value = Mathf.Lerp(_roundSlider.value , roundTimeLeft, Time.deltaTime);
+        if (roundTimeLeft <= 0.25f) {
+            _roundSlider.fillRect.GetComponent<Image>().color = Color.Lerp(Color.red, Color.white, roundTimeLeft);
+        }
     }
 
     private void ResetCountdownUI()
