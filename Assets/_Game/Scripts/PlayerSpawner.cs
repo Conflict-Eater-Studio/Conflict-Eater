@@ -14,7 +14,6 @@ public class PlayerSpawner : MonoBehaviour
         public PlayerRole SelectedRole;
         public float HoldProgress; // 0 to 1 inclusive
         public bool IsConfirmed;
-        public PlayerColor.ColorType PlayerColor;
     }
 
     public class RoleSelectionReleasedEventArgs : EventArgs
@@ -23,16 +22,15 @@ public class PlayerSpawner : MonoBehaviour
         public PlayerRole ReleasedRole;
     }
 
-    public class ColorChangedEventArgs : EventArgs
+    public class PlayerReadyEventArgs : EventArgs
     {
         public int PlayerIndex; // 0 or 1
-        public PlayerColor.ColorType NewColor;
+        public PlayerRole AssignedRole;
     }
 
     public static event EventHandler<RoleSelectionEventArgs> OnRoleSelectionChanged;
     public static event EventHandler<RoleSelectionReleasedEventArgs> OnRoleSelectionReleased;
-    public static event EventHandler<ColorChangedEventArgs> OnColorChanged;
-    public static event EventHandler OnPlayersReadyToSpawn;
+    public static event EventHandler<PlayerReadyEventArgs> OnPlayersReadyToSpawn;
     #endregion
 
     #region Fields
@@ -55,6 +53,15 @@ public class PlayerSpawner : MonoBehaviour
     [SerializeField]
     private float _stayOnReadyTime = 1f;
 
+    public static readonly Dictionary<PlayerRole, Color> RoleColors = new Dictionary<
+        PlayerRole,
+        Color
+    >
+    {
+        { PlayerRole.Light, Color.yellow },
+        { PlayerRole.Shadow, Color.red },
+    };
+
     // Role selection state
     public enum PlayerRole
     {
@@ -69,12 +76,10 @@ public class PlayerSpawner : MonoBehaviour
         public PlayerRole SelectedRole;
         public float HoldTime;
         public bool IsConfirmed;
-        public PlayerColor.ColorType Color;
     }
 
     // Track 2 players by their gamepad
     private Dictionary<Gamepad, int> _gamepadToPlayerIndex = new Dictionary<Gamepad, int>();
-    private PlayerColor.ColorType[] _playerColors = new PlayerColor.ColorType[2];
 
     // Track role requests for each join request
     private Dictionary<PlayerRole, JoinRequest> _roleRequests =
@@ -82,6 +87,28 @@ public class PlayerSpawner : MonoBehaviour
 
     private bool _playersSpawned = false;
     private int _nextPlayerIndex = 0;
+    #endregion
+
+    #region Public Methods
+    /// <summary>
+    /// Gets the role assigned to Player 1 (index 0).
+    /// Returns PlayerRole.None if Player 1 hasn't selected a role yet.
+    /// </summary>
+    public PlayerRole GetPlayer1Role()
+    {
+        // Find the role request for player index 0
+        foreach (var kvp in _roleRequests)
+        {
+            if (_gamepadToPlayerIndex.TryGetValue(kvp.Value.Gamepad, out int playerIndex))
+            {
+                if (playerIndex == 0)
+                {
+                    return kvp.Value.SelectedRole;
+                }
+            }
+        }
+        return PlayerRole.None;
+    }
     #endregion
 
     #region Unity Lifecycle
@@ -114,90 +141,8 @@ public class PlayerSpawner : MonoBehaviour
         if (_playersSpawned)
             return;
 
-        foreach (var gamepad in gamepads)
-        {
-            // Assign player index to new gamepads (max 2 players)
-            if (!_gamepadToPlayerIndex.ContainsKey(gamepad))
-            {
-                if (_nextPlayerIndex >= 2)
-                    continue;
-
-                int playerIndex = _nextPlayerIndex++;
-                _gamepadToPlayerIndex[gamepad] = playerIndex;
-
-                // Default colors: P1 = Red, P2 = Blue
-                PlayerColor.ColorType defaultColor =
-                    playerIndex == 0 ? PlayerColor.ColorType.Red : PlayerColor.ColorType.Blue;
-                _playerColors[playerIndex] = defaultColor;
-
-                // Update PlayerColorManager to keep it in sync
-                PlayerColorManager.SetPlayerColor(playerIndex, defaultColor);
-
-                // Raise color changed event
-                OnColorChanged?.Invoke(
-                    this,
-                    new ColorChangedEventArgs { PlayerIndex = playerIndex, NewColor = defaultColor }
-                );
-            }
-
-            int pIndex = _gamepadToPlayerIndex[gamepad];
-
-            // Don't allow color changes if this player has confirmed a role
-            bool hasConfirmedRole = _roleRequests.Values.Any(r =>
-                r.Gamepad == gamepad && r.IsConfirmed
-            );
-
-            if (hasConfirmedRole)
-                continue;
-
-            // Cycle color with bumpers
-            if (gamepad.leftShoulder.wasPressedThisFrame)
-            {
-                CycleColor(pIndex, -1);
-            }
-            else if (gamepad.rightShoulder.wasPressedThisFrame)
-            {
-                CycleColor(pIndex, 1);
-            }
-        }
-    }
-
-    private void CycleColor(int playerIndex, int direction)
-    {
-        PlayerColor.ColorType currentColor = _playerColors[playerIndex];
-        int currentIndex = Array.IndexOf(PlayerColor.AllColors, currentColor);
-        int startIndex = currentIndex;
-
-        // Create a set of taken colors
-        HashSet<PlayerColor.ColorType> takenColors = new HashSet<PlayerColor.ColorType>();
-        for (int i = 0; i < _playerColors.Length; i++)
-        {
-            if (i != playerIndex)
-                takenColors.Add(_playerColors[i]);
-        }
-
-        do
-        {
-            currentIndex =
-                (currentIndex + direction + PlayerColor.AllColors.Length)
-                % PlayerColor.AllColors.Length;
-
-            if (!takenColors.Contains(PlayerColor.AllColors[currentIndex]))
-                break;
-        } while (currentIndex != startIndex);
-
-        _playerColors[playerIndex] = PlayerColor.AllColors[currentIndex];
-
-        PlayerColorManager.SetPlayerColor(playerIndex, PlayerColor.AllColors[currentIndex]);
-
-        OnColorChanged?.Invoke(
-            this,
-            new ColorChangedEventArgs
-            {
-                PlayerIndex = playerIndex,
-                NewColor = PlayerColor.AllColors[currentIndex],
-            }
-        );
+        // This method is kept for compatibility but player index assignment
+        // now happens in DetectGamepadInput when a trigger is first pressed
     }
 
     private void DetectGamepadInput(ReadOnlyArray<Gamepad> gamepads)
@@ -214,12 +159,16 @@ public class PlayerSpawner : MonoBehaviour
             if (gamepadAlreadyClaimed)
                 continue;
 
-            // Get player index and color
+            // Assign player index when first trigger is pressed
             if (!_gamepadToPlayerIndex.ContainsKey(gamepad))
-                continue;
+            {
+                if (_nextPlayerIndex >= 2)
+                    continue;
 
-            int playerIndex = _gamepadToPlayerIndex[gamepad];
-            PlayerColor.ColorType gamepadColor = _playerColors[playerIndex];
+                // First gamepad to press a trigger gets index 0
+                int playerIndex = _nextPlayerIndex++;
+                _gamepadToPlayerIndex[gamepad] = playerIndex;
+            }
 
             // Check if Light role is being claimed
             if (leftTrigger > 0.5f && !_roleRequests.ContainsKey(PlayerRole.Light))
@@ -230,7 +179,6 @@ public class PlayerSpawner : MonoBehaviour
                     SelectedRole = PlayerRole.Light,
                     HoldTime = 0f,
                     IsConfirmed = false,
-                    Color = gamepadColor,
                 };
             }
 
@@ -243,7 +191,6 @@ public class PlayerSpawner : MonoBehaviour
                     SelectedRole = PlayerRole.Shadow,
                     HoldTime = 0f,
                     IsConfirmed = false,
-                    Color = gamepadColor,
                 };
             }
         }
@@ -348,7 +295,6 @@ public class PlayerSpawner : MonoBehaviour
                 SelectedRole = request.SelectedRole,
                 HoldProgress = request.HoldTime / _holdDuration,
                 IsConfirmed = request.IsConfirmed,
-                PlayerColor = request.Color,
             }
         );
     }
@@ -383,7 +329,7 @@ public class PlayerSpawner : MonoBehaviour
         // Wait before spawning players (stay on "Ready" state for a moment)
         yield return new WaitForSeconds(_stayOnReadyTime);
 
-        OnPlayersReadyToSpawn?.Invoke(this, EventArgs.Empty);
+        OnPlayersReadyToSpawn?.Invoke(this, new PlayerReadyEventArgs() { });
 
         // Enabled joining and spawn players
         _playerInputManager.EnableJoining();
