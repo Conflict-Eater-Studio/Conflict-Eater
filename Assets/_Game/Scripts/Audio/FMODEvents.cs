@@ -25,8 +25,12 @@ public class FMODEvents : ScriptableObject
     {
         // Check SFX
         if (SFX != null) {
-            if (SFX.PowerupPickup.IsNull)
+            if (SFX.LightPowerupPickup.IsNull)
                 Debug.LogWarning($"[FMODEvents] SFX.PowerupPickup is not assigned in {name}");
+            if (SFX.ShadowPowerupPickup.IsNull)
+                Debug.LogWarning($"[FMODEvents] SFX.PowerupPickup is not assigned in {name}");
+            if (SFX.TimeDangerZone.IsNull)
+                Debug.LogWarning($"[FMODEvents] SFX.TimeDangerZone is not assigned in {name}");
         }
 
         // Check BGM
@@ -48,7 +52,9 @@ namespace AudioEvents
 {
     [System.Serializable]
     public class SFX {
-        public EventReference PowerupPickup;
+        public EventReference LightPowerupPickup;
+        public EventReference ShadowPowerupPickup;
+        public EventReference TimeDangerZone;
     }
 
     [System.Serializable]

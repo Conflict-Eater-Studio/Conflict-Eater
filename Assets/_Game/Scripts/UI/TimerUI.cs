@@ -32,6 +32,7 @@ public class TimerUI : MonoBehaviour
     #region Private Fields
     private float _matchDurationSeconds;
     private float _roundDurationSeconds;
+    private bool _soundPlayed = false;
 
     private Match _timer;
     #endregion
@@ -139,6 +140,7 @@ public class TimerUI : MonoBehaviour
         _roundSlider.value = 1f;
         _roundSlider.fillRect.GetComponent<Image>().color = _timerDefaultColor;
         _roundsLeft.text = e.MatchRounds.ToString();
+        _soundPlayed = false;
     }
 
     private void TimerUI_OnRoundEnd(object sender, System.EventArgs e)
@@ -146,7 +148,7 @@ public class TimerUI : MonoBehaviour
         _roundSlider.value = 1f;
         _roundSlider.fillRect.GetComponent<Image>().color = _timerDefaultColor;
         _roundsLeft.text = _timer.Rounds.ToString();
-
+        _soundPlayed = false;
     }
 
     private void TimerUI_OnMatchEnd(object sender, System.EventArgs e)
@@ -163,7 +165,11 @@ public class TimerUI : MonoBehaviour
 
         _roundSlider.value = Mathf.Lerp(_roundSlider.value , roundTimeLeft, Time.deltaTime);
         if (roundTimeLeft <= 0.25f) {
-            _roundSlider.fillRect.GetComponent<Image>().color = Color.Lerp(Color.red, Color.white, roundTimeLeft);
+            if (!_soundPlayed) {
+                _soundPlayed = true;
+                AudioManager.Instance.PlayOneShot(AudioManager.Instance.FMODEvents.SFX.TimeDangerZone);
+            }
+            _roundSlider.fillRect.GetComponent<Image>().color = _timerDangerZoneColor;
         }
     }
 
