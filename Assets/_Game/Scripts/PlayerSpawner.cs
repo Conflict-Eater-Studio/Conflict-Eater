@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
+using UnityEditor.Animations;
 
 public class PlayerSpawner : MonoBehaviour
 {
@@ -44,6 +45,8 @@ public class PlayerSpawner : MonoBehaviour
     [Header("Prefabs & Positions")]
     [SerializeField]
     private GameObject _ghostPrefab;
+
+    [SerializeField] private AnimatorController animationController;
 
     [Header("Role Selection Settings")]
     [SerializeField]
@@ -372,8 +375,9 @@ public class PlayerSpawner : MonoBehaviour
 
         input.name = "LightControllerRoot";
         input.transform.position = _grid.GetSpawnPoint(Grid.SpawnPointType.Light);
+        input.gameObject.AddComponent<Animator>();
+        input.gameObject.GetComponent<Animator>().runtimeAnimatorController = animationController;
 
-        renderer.material.color = Color.yellow;
         input.gameObject.tag = "PlayerLight";
 
         child.AddComponent<LightPlayerController>();
