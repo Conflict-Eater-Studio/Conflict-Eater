@@ -160,6 +160,9 @@ public class TimerUI : MonoBehaviour
         float matchTimeLeft = 1f - (_timer.MatchTime / _matchDurationSeconds);
 
         _roundSlider.value = Mathf.Clamp01(roundTimeLeft);
+        if (roundTimeLeft <= 0.25f) {
+            _roundSlider.fillRect.GetComponent<Image>().color = Color.Lerp(Color.red, Color.white, roundTimeLeft);
+        }
     }
 
     private void ResetCountdownUI()
