@@ -13,13 +13,27 @@ MonoBehaviour:
   m_Name: FMODEvents
   m_EditorClassIdentifier: Assembly-CSharp::FMODEvents
   SFX:
-    PowerupPickup:
+    LightPowerupPickup:
       Guid:
-        Data1: -1835787088
-        Data2: 1232929124
-        Data3: -675509070
-        Data4: -1044722153
-      Path: event:/SFX/Powerup/Pickup2
+        Data1: -77682939
+        Data2: 1202461994
+        Data3: -1179800169
+        Data4: -637923603
+      Path: event:/SFX/Pickup
+    ShadowPowerupPickup:
+      Guid:
+        Data1: 1157994065
+        Data2: 1332330553
+        Data3: -1896874829
+        Data4: -1819376328
+      Path: event:/SFX/Pickup 2
+    TimeDangerZone:
+      Guid:
+        Data1: -1062654896
+        Data2: 1123926887
+        Data3: -1877252728
+        Data4: -160276197
+      Path: event:/SFX/Clock
   Music:
     Music8Bit:
       Guid:

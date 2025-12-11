@@ -43,7 +43,7 @@ public class PowerupCollision : MonoBehaviour {
             HandleLightPowerup();
             Disable();
             _particleSystem.Emit(50);
-            AudioManager.Instance.PlayOneShot(AudioManager.Instance.FMODEvents.SFX.PowerupPickup);
+            AudioManager.Instance.PlayOneShot(AudioManager.Instance.FMODEvents.SFX.LightPowerupPickup);
             
 
         }
@@ -53,7 +53,7 @@ public class PowerupCollision : MonoBehaviour {
             HandleShadowPowerup(controller);
             Disable();
             _particleSystem.Emit(50);
-            AudioManager.Instance.PlaySound(AudioManager.Instance.FMODEvents.SFX.PowerupPickup);
+            AudioManager.Instance.PlaySound(AudioManager.Instance.FMODEvents.SFX.ShadowPowerupPickup);
 
         }
     }
