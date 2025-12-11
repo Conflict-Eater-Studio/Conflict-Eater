@@ -7,7 +7,8 @@ using UnityEngine.UI;
 public class TimerUI : MonoBehaviour
 {
     #region Serialized Fields
-
+    [SerializeField] Color _timerDefaultColor;
+    [SerializeField] Color _timerDangerZoneColor;
     [SerializeField]
     private TMP_Text _roundsLeft;
     
@@ -136,12 +137,14 @@ public class TimerUI : MonoBehaviour
     {
         _roundDurationSeconds = e.RoundDuration;
         _roundSlider.value = 1f;
+        _roundSlider.fillRect.GetComponent<Image>().color = _timerDefaultColor;
         _roundsLeft.text = e.MatchRounds.ToString();
     }
 
     private void TimerUI_OnRoundEnd(object sender, System.EventArgs e)
     {
         _roundSlider.value = 1f;
+        _roundSlider.fillRect.GetComponent<Image>().color = _timerDefaultColor;
         _roundsLeft.text = _timer.Rounds.ToString();
 
     }
@@ -157,9 +160,8 @@ public class TimerUI : MonoBehaviour
     private void UpdateSliders()
     {
         float roundTimeLeft = 1f - (_timer.RoundTime / _roundDurationSeconds);
-        float matchTimeLeft = 1f - (_timer.MatchTime / _matchDurationSeconds);
 
-        _roundSlider.value = Mathf.Clamp01(roundTimeLeft);
+        _roundSlider.value = Mathf.Lerp(_roundSlider.value , roundTimeLeft, Time.deltaTime);
         if (roundTimeLeft <= 0.25f) {
             _roundSlider.fillRect.GetComponent<Image>().color = Color.Lerp(Color.red, Color.white, roundTimeLeft);
         }
