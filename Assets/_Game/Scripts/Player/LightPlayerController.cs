@@ -20,13 +20,19 @@ public class LightPlayerController : MonoBehaviour
     public Movement Movement => _movement;
 
     [Tooltip("Movement speed in units per second")]
-    [SerializeField] protected float _speed = 10f;
-    [Tooltip("How close to .5 before applying queued dir")]
-    [SerializeField] private float _centerThreshold = 0.15f;
-    [Tooltip("How fast to snap to center when switching axis (multiplier of normal speed)")]
-    [SerializeField] private float _snapSpeedMultiplier = 1.5f;
+    [SerializeField]
+    protected float _speed = 10f;
 
-    [SerializeField] private Animator _animator;
+    [Tooltip("How close to .5 before applying queued dir")]
+    [SerializeField]
+    private float _centerThreshold = 0.15f;
+
+    [Tooltip("How fast to snap to center when switching axis (multiplier of normal speed)")]
+    [SerializeField]
+    private float _snapSpeedMultiplier = 1.5f;
+
+    [SerializeField]
+    private Animator _animator;
 
     private const string AnimatorBoolIsMovingBottom = "IsMovingBottom";
     private const string AnimatorBoolIsMovingUp = "IsMovingUp";
@@ -34,7 +40,7 @@ public class LightPlayerController : MonoBehaviour
     private const string AnimatorBoolIsMovingLeft = "IsMovingLeft";
 
     public float Speed => _speed;
-    
+
     private Grid _grid;
     private bool _isRoundStarted = false;
 
@@ -50,7 +56,14 @@ public class LightPlayerController : MonoBehaviour
         _rb = GetComponentInParent<Rigidbody2D>();
         _grid = FindFirstObjectByType<Grid>();
         _animator = GetComponentInParent<Animator>();
-        _movement = new Movement(_rb, transform, _grid, _speed, _centerThreshold, _snapSpeedMultiplier);
+        _movement = new Movement(
+            _rb,
+            transform,
+            _grid,
+            _speed,
+            _centerThreshold,
+            _snapSpeedMultiplier
+        );
 
         _playerInput = GetComponentInParent<PlayerInput>();
         if (_playerInput)
@@ -62,7 +75,7 @@ public class LightPlayerController : MonoBehaviour
             pauseAction.performed += OnPause;
         }
 
-        if(GameManager.Instance)
+        if (GameManager.Instance)
         {
             GameManager.Instance.Timer.OnRoundStart += Timer_OnRoundStart;
             GameManager.Instance.Timer.OnRoundEnd += Timer_OnRoundEnd;
@@ -94,7 +107,8 @@ public class LightPlayerController : MonoBehaviour
 
     public virtual void OnMove(InputAction.CallbackContext context)
     {
-        if (!_isRoundStarted) return;
+        if (!_isRoundStarted)
+            return;
 
         if (context.performed)
         {
@@ -117,17 +131,24 @@ public class LightPlayerController : MonoBehaviour
         if (!context.performed)
             return;
 
-        if (GameManager.Instance.Timer.IsGamePaused)
+        if (GameManager.Instance?.Timer != null)
         {
-            SceneManager.UnloadSceneAsync("GamePause").completed += (_) =>
+            if (
+                GameManager.Instance.Timer.IsGamePaused
+                && MenuManager.Instance.IsLastMenuOfType(MenuManager.Menu.Pause)
+            )
             {
                 GameManager.Instance.Timer.Resume();
-            };
-        }
-        else
-        {
-            GameManager.Instance.Timer.Pause();
-            SceneManager.LoadSceneAsync("GamePause", LoadSceneMode.Additive);
+                MenuManager.Instance.CloseLastSubMenu();
+            }
+            else if (
+                !GameManager.Instance.Timer.IsGamePaused
+                && !MenuManager.Instance.IsLastMenuOfType(MenuManager.Menu.Pause)
+            )
+            {
+                GameManager.Instance.Timer.Pause();
+                MenuManager.Instance.OpenSubMenu(MenuManager.Menu.Pause);
+            }
         }
     }
 
@@ -140,9 +161,7 @@ public class LightPlayerController : MonoBehaviour
         // If the player skips over a tile, it won't activate it.
         // This situation should not happen with proper movement speed and tile size.
         // Event at low FPS this SHOULD be fine.
-        GameManager.Instance.Grid.SetTileToLight(
-            Grid.WorldToCell(transform.position)
-        );
+        GameManager.Instance.Grid.SetTileToLight(Grid.WorldToCell(transform.position));
     }
 
     private void OnDestroy()
@@ -199,5 +218,4 @@ public class LightPlayerController : MonoBehaviour
                 break;
         }
     }
-
 }

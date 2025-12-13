@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -12,25 +13,46 @@ public class ShadowPlayerController : MonoBehaviour
 {
     #region Inspector Fields
     [Header("Shadow Settings")]
-    [SerializeField] private GameObject _shadowPrefab;
-    [SerializeField] private int _shadowCount = 3;
-    [SerializeField] private float _spawnDelay = 1f;
+    [SerializeField]
+    private GameObject _shadowPrefab;
 
-    [SerializeField] private bool _blinky = false;
-    [SerializeField] private bool _pinky = false;
-    [SerializeField] private bool _inky = false;
-    [SerializeField] private bool _clyde = false;
+    [SerializeField]
+    private int _shadowCount = 3;
 
-    [SerializeField] private ShadowState _blintyState;
-    [SerializeField] private ShadowState _pinkyState;
-    [SerializeField] private ShadowState _inkyState;
-    [SerializeField] private ShadowState _clydeState;
+    [SerializeField]
+    private float _spawnDelay = 1f;
+
+    [SerializeField]
+    private bool _blinky = false;
+
+    [SerializeField]
+    private bool _pinky = false;
+
+    [SerializeField]
+    private bool _inky = false;
+
+    [SerializeField]
+    private bool _clyde = false;
+
+    [SerializeField]
+    private ShadowState _blintyState;
+
+    [SerializeField]
+    private ShadowState _pinkyState;
+
+    [SerializeField]
+    private ShadowState _inkyState;
+
+    [SerializeField]
+    private ShadowState _clydeState;
 
     [Header("Switch Distance Settings")]
-    [SerializeField] private float maxSwitchDistanceToPlayer = 15f;
+    [SerializeField]
+    private float maxSwitchDistanceToPlayer = 15f;
 
     [Header("Switch Particle")]
-    [SerializeField] private GameObject _switchParticlePrefab;
+    [SerializeField]
+    private GameObject _switchParticlePrefab;
 
     #endregion
 
@@ -83,7 +105,6 @@ public class ShadowPlayerController : MonoBehaviour
             _playerInput.actions[SwitchInkyActionName].performed += OnInkySwitch;
         }
 
-
         _switchParticlePrefab = GameManager.Instance.ParticleSystem;
         GameManager.Instance.Timer.OnRoundStart += Timer_OnRoundStart;
         GameManager.Instance.Timer.OnRoundEnd += HandleRoundEnd;
@@ -103,7 +124,8 @@ public class ShadowPlayerController : MonoBehaviour
     /// </summary>
     private void Update()
     {
-        if (_shadows.Count < 3) return;
+        if (_shadows.Count < 3)
+            return;
 
         _blinky = _shadows[0].GetComponent<ShadowController>().IsShadowActive;
         _inky = _shadows[1].GetComponent<ShadowController>().IsShadowActive;
@@ -146,8 +168,10 @@ public class ShadowPlayerController : MonoBehaviour
     /// </summary>
     private void OnMove(InputAction.CallbackContext context)
     {
-        if (!_isRoundStarted) return;
-        if (_shadows.Count == 0) return;
+        if (!_isRoundStarted)
+            return;
+        if (_shadows.Count == 0)
+            return;
 
         Vector2 moveInput = context.ReadValue<Vector2>();
         var activeGhost = _shadows[_activeShadowIndex];
@@ -162,7 +186,9 @@ public class ShadowPlayerController : MonoBehaviour
         if (!_canSwitch || _shadows.Count == 0)
             return;
 
-        Color clydeColor = _shadows[_activeShadowIndex].GetComponent<ShadowAppearanceManager>().clydeColor;
+        Color clydeColor = _shadows[_activeShadowIndex]
+            .GetComponent<ShadowAppearanceManager>()
+            .clydeColor;
         SwitchToGhostByColor(clydeColor);
     }
 
@@ -174,7 +200,9 @@ public class ShadowPlayerController : MonoBehaviour
         if (!_canSwitch || _shadows.Count == 0)
             return;
 
-        Color inkyColor = _shadows[_activeShadowIndex].GetComponent<ShadowAppearanceManager>().inkyColor;
+        Color inkyColor = _shadows[_activeShadowIndex]
+            .GetComponent<ShadowAppearanceManager>()
+            .inkyColor;
         SwitchToGhostByColor(inkyColor);
     }
     #endregion
@@ -200,7 +228,8 @@ public class ShadowPlayerController : MonoBehaviour
         controller.SetShadowType(shadowTypes[0]);
         controller.IsShadowActive = true;
 
-        ShadowAppearanceManager appearanceManager = controller.GetComponent<ShadowAppearanceManager>();
+        ShadowAppearanceManager appearanceManager =
+            controller.GetComponent<ShadowAppearanceManager>();
         activeColor = appearanceManager.activeColor;
         inactiveColor1 = appearanceManager.clydeColor;
         inactiveColor2 = appearanceManager.inkyColor;
@@ -236,7 +265,8 @@ public class ShadowPlayerController : MonoBehaviour
             controller.IsShadowActive = false;
             controller.SetState(new ShadowExitBaseState());
 
-            ShadowAppearanceManager appearanceManager = controller.GetComponent<ShadowAppearanceManager>();
+            ShadowAppearanceManager appearanceManager =
+                controller.GetComponent<ShadowAppearanceManager>();
             ShadowType type = controller.Type;
 
             if (type == ShadowType.Inky)
@@ -265,21 +295,29 @@ public class ShadowPlayerController : MonoBehaviour
     /// <summary>
     /// Handles the pause input from the player. Toggles game pause state and loads/unloads the pause menu scene.
     /// </summary>
-    private void OnPause(InputAction.CallbackContext context)
+    public virtual void OnPause(InputAction.CallbackContext context)
     {
-        if (!context.performed) return;
+        if (!context.performed)
+            return;
 
-        if (GameManager.Instance.Timer.IsGamePaused)
+        if (GameManager.Instance?.Timer != null)
         {
-            SceneManager.UnloadSceneAsync("GamePause").completed += (_) =>
+            if (
+                GameManager.Instance.Timer.IsGamePaused
+                && MenuManager.Instance.IsLastMenuOfType(MenuManager.Menu.Pause)
+            )
             {
                 GameManager.Instance.Timer.Resume();
-            };
-        }
-        else
-        {
-            GameManager.Instance.Timer.Pause();
-            SceneManager.LoadSceneAsync("GamePause", LoadSceneMode.Additive);
+                MenuManager.Instance.CloseLastSubMenu();
+            }
+            else if (
+                !GameManager.Instance.Timer.IsGamePaused
+                && !MenuManager.Instance.IsLastMenuOfType(MenuManager.Menu.Pause)
+            )
+            {
+                GameManager.Instance.Timer.Pause();
+                MenuManager.Instance.OpenSubMenu(MenuManager.Menu.Pause);
+            }
         }
     }
 
@@ -320,10 +358,12 @@ public class ShadowPlayerController : MonoBehaviour
     /// </summary>
     private void CheckShadowDistance()
     {
-        if (_shadows.Count == 0) return;
+        if (_shadows.Count == 0)
+            return;
 
         var activeController = GetActiveGhostController();
-        if (activeController == null) return;
+        if (activeController == null)
+            return;
 
         Vector3 activePos = activeController.transform.position;
 
@@ -363,7 +403,8 @@ public class ShadowPlayerController : MonoBehaviour
     /// </summary>
     public void UpdateAppearance()
     {
-        if (_shadows.Count != 3) return;
+        if (_shadows.Count != 3)
+            return;
 
         var activeAppearance = _shadows[_activeShadowIndex].GetComponent<ShadowAppearanceManager>();
         activeAppearance.SetCustomColor(activeColor);
@@ -374,7 +415,8 @@ public class ShadowPlayerController : MonoBehaviour
             List<Color> existingColors = new List<Color>();
             for (int i = 0; i < _shadows.Count; i++)
             {
-                if (i == _activeShadowIndex) continue;
+                if (i == _activeShadowIndex)
+                    continue;
                 var appearance = _shadows[i].GetComponent<ShadowAppearanceManager>();
                 existingColors.Add(appearance.GetCurrentColor());
             }
@@ -383,7 +425,8 @@ public class ShadowPlayerController : MonoBehaviour
             if (existingColors.Contains(inactiveColor1))
                 missingColor = inactiveColor2;
 
-            var previousAppearance = _shadows[_previousActiveIndex].GetComponent<ShadowAppearanceManager>();
+            var previousAppearance = _shadows[_previousActiveIndex]
+                .GetComponent<ShadowAppearanceManager>();
             previousAppearance.SetCustomColor(missingColor);
             previousAppearance.colorBeforeFrightened = missingColor;
         }
@@ -399,7 +442,8 @@ public class ShadowPlayerController : MonoBehaviour
     /// </summary>
     private void SwitchToGhostByColor(Color targetColor)
     {
-        if (!_canSwitch || _shadows.Count == 0) return;
+        if (!_canSwitch || _shadows.Count == 0)
+            return;
 
         int targetIndex = -1;
 
@@ -408,9 +452,11 @@ public class ShadowPlayerController : MonoBehaviour
             var controller = _shadows[i].GetComponent<ShadowController>();
             var appearance = controller.GetComponent<ShadowAppearanceManager>();
 
-            if (appearance.GetCurrentColor() == targetColor &&
-                controller.CurrentState.State != ShadowState.Eaten &&
-                controller.CanBeSwitchedTo)
+            if (
+                appearance.GetCurrentColor() == targetColor
+                && controller.CurrentState.State != ShadowState.Eaten
+                && controller.CanBeSwitchedTo
+            )
             {
                 targetIndex = i;
                 break;
@@ -438,8 +484,7 @@ public class ShadowPlayerController : MonoBehaviour
         var old = _shadows[_activeShadowIndex].GetComponent<ShadowController>();
         old.IsShadowActive = false;
 
-        old.SetState(isFrightened ? new ShadowFrightenedState()
-                                  : new ShadowScatterState());
+        old.SetState(isFrightened ? new ShadowFrightenedState() : new ShadowScatterState());
 
         _previousActiveIndex = _activeShadowIndex;
         _activeShadowIndex = newIndex;
@@ -462,7 +507,11 @@ public class ShadowPlayerController : MonoBehaviour
     /// <param name="color">The color to apply to the particle effect.</param>
     private IEnumerator PlaySwitchParticle(ShadowController from, ShadowController to, Color color)
     {
-        GameObject psObj = Instantiate(_switchParticlePrefab, from.transform.position, Quaternion.identity);
+        GameObject psObj = Instantiate(
+            _switchParticlePrefab,
+            from.transform.position,
+            Quaternion.identity
+        );
         ParticleSystem ps = psObj.GetComponent<ParticleSystem>();
 
         Vector3 startPos = from.transform.position;
@@ -472,7 +521,7 @@ public class ShadowPlayerController : MonoBehaviour
         psObj.transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
         _activeParticles.Add(psObj);
 
-        float duration = 0.5f; 
+        float duration = 0.5f;
         float elapsed = 0f;
 
         while (elapsed < duration)
@@ -516,9 +565,13 @@ public class ShadowPlayerController : MonoBehaviour
             {
                 randomIndex = Random.Range(0, _shadows.Count);
                 attempts++;
-                if (attempts > 10) break;
-            } while (randomIndex == _activeShadowIndex
-                     || _shadows[randomIndex].GetComponent<ShadowController>().CurrentState.State == ShadowState.Eaten);
+                if (attempts > 10)
+                    break;
+            } while (
+                randomIndex == _activeShadowIndex
+                || _shadows[randomIndex].GetComponent<ShadowController>().CurrentState.State
+                    == ShadowState.Eaten
+            );
         }
 
         _activeShadowIndex = randomIndex;
@@ -527,7 +580,8 @@ public class ShadowPlayerController : MonoBehaviour
         newController.IsShadowActive = true;
         newController.SetState(new ShadowActiveState());
 
-        ShadowAppearanceManager shadowAppearanceManager = newController.GetComponent<ShadowAppearanceManager>();
+        ShadowAppearanceManager shadowAppearanceManager =
+            newController.GetComponent<ShadowAppearanceManager>();
         shadowAppearanceManager.SetActive();
 
         yield return new WaitForSeconds(0.3f);
@@ -584,7 +638,8 @@ public class ShadowPlayerController : MonoBehaviour
     /// <summary>
     /// Returns the currently active shadow's controller.
     /// </summary>
-    public ShadowController GetActiveGhostController() {
+    public ShadowController GetActiveGhostController()
+    {
         var activeGhost = _shadows[_activeShadowIndex];
         return activeGhost.GetComponent<ShadowController>();
     }
