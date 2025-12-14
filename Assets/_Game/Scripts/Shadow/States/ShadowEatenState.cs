@@ -116,7 +116,7 @@ public class ShadowEatenState : IShadowState
         yield return null;
 
         ShadowPlayerController owner = shadow.GetComponentInParent<ShadowPlayerController>();
-        owner.UpdateAppearance();
+        //owner.UpdateAppearance();
     }
 
     #endregion

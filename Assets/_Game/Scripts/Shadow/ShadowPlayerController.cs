@@ -17,32 +17,9 @@ public class ShadowPlayerController : MonoBehaviour
     [SerializeField] private GameObject _shadowPrefab;
     [SerializeField] private int _shadowCount = 3;
     [SerializeField] private float _spawnDelay = 1f;
-
-    [SerializeField] private bool _blinky = false;
-    [SerializeField] private bool _pinky = false;
-    [SerializeField] private bool _inky = false;
-    [SerializeField] private bool _clyde = false;
-
-    [SerializeField] private ShadowState _blintyState;
-    [SerializeField] private ShadowState _pinkyState;
-    [SerializeField] private ShadowState _inkyState;
-    [SerializeField] private ShadowState _clydeState;
-
-    [Header("Switch Distance Settings")]
-    [SerializeField] private float maxSwitchDistanceToPlayer = 15f;
-
-    [Header("Switch Particle")]
-    [SerializeField] private GameObject _switchParticlePrefab;
-
-    #endregion
-
-    #region Events
-    public delegate void ShadowDistanceChangedEvent(Color color, bool canSwitch);
-    public event ShadowDistanceChangedEvent OnShadowDistanceChanged;
     #endregion
 
     #region Private Fields
-
     private const string MoveActionName = "Move";
     private const string SwitchClydeActionName = "SwitchClyde";
     private const string SwitchInkyActionName = "SwitchInky";
@@ -52,16 +29,17 @@ public class ShadowPlayerController : MonoBehaviour
     private readonly List<GameObject> _shadows = new();
     private PlayerInput _playerInput;
     private int _activeShadowIndex;
-    private int _previousActiveIndex = -1;
     private bool _canSwitch = true;
     private bool _isRoundStarted = false;
 
-    private Color activeColor = Color.red;
-    private Color inactiveColor1 = new Color(1f, 0.5f, 0f);
-    private Color inactiveColor2 = Color.cyan;
+    [SerializeField] private Color _rbSwitchColor;
+    [SerializeField] private Color _lbSwitchColor;
+    [SerializeField] private Color _aSwitchColor;
+    #endregion
 
-    private Dictionary<ShadowController, bool> _previousCanSwitchStates = new();
-    private readonly List<GameObject> _activeParticles = new();
+    #region Events
+    public event System.Action OnLBSwitchEvent;
+    public event System.Action OnRBSwitchEvent;
     #endregion
 
     #region Public Fields
@@ -81,12 +59,10 @@ public class ShadowPlayerController : MonoBehaviour
             _playerInput.actions[MoveActionName].performed += OnMove;
             _playerInput.actions[PauseActionName].performed += OnPause;
 
-            _playerInput.actions[SwitchClydeActionName].performed += OnClydeSwitch;
-            _playerInput.actions[SwitchInkyActionName].performed += OnInkySwitch;
+            _playerInput.actions[SwitchClydeActionName].performed += OnLBSwitch;
+            _playerInput.actions[SwitchInkyActionName].performed += OnRBSwitch;
         }
 
-
-        _switchParticlePrefab = GameManager.Instance.ParticleSystem;
         GameManager.Instance.Timer.OnRoundStart += Timer_OnRoundStart;
         GameManager.Instance.Timer.OnRoundEnd += HandleRoundEnd;
 
@@ -101,24 +77,6 @@ public class ShadowPlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// Updates shadow states and checks distances for switch logic.
-    /// </summary>
-    private void Update()
-    {
-        if (_shadows.Count < 3) return;
-
-        _blinky = _shadows[0].GetComponent<ShadowController>().IsShadowActive;
-        _inky = _shadows[1].GetComponent<ShadowController>().IsShadowActive;
-        _clyde = _shadows[2].GetComponent<ShadowController>().IsShadowActive;
-
-        _blintyState = _shadows[0].GetComponent<ShadowController>().CurrentState.State;
-        _inkyState = _shadows[1].GetComponent<ShadowController>().CurrentState.State;
-        _clydeState = _shadows[2].GetComponent<ShadowController>().CurrentState.State;
-
-        CheckShadowDistance();
-    }
-
-    /// <summary>
     /// Handles cleanup and unsubscribes from events.
     /// </summary>
     private void OnDestroy()
@@ -127,8 +85,8 @@ public class ShadowPlayerController : MonoBehaviour
         {
             _playerInput.actions[MoveActionName].performed -= OnMove;
 
-            _playerInput.actions[SwitchClydeActionName].performed -= OnClydeSwitch;
-            _playerInput.actions[SwitchInkyActionName].performed -= OnInkySwitch;
+            _playerInput.actions[SwitchClydeActionName].performed -= OnLBSwitch;
+            _playerInput.actions[SwitchInkyActionName].performed -= OnRBSwitch;
         }
 
         if (GameManager.Instance != null)
@@ -159,25 +117,38 @@ public class ShadowPlayerController : MonoBehaviour
     /// <summary>
     /// Switches to Clyde if possible.
     /// </summary>
-    private void OnClydeSwitch(InputAction.CallbackContext context)
+    private void OnLBSwitch(InputAction.CallbackContext context)
     {
         if (!_canSwitch || _shadows.Count == 0)
             return;
 
-        Color clydeColor = _shadows[_activeShadowIndex].GetComponent<ShadowAppearanceManager>().clydeColor;
-        SwitchToGhostByColor(clydeColor);
+        OnLBSwitchEvent?.Invoke();
+
+        SwitchToGhostByColor(_lbSwitchColor);
+        Color pomA = _aSwitchColor;
+        Color pomLB = _lbSwitchColor;
+
+        _aSwitchColor = pomLB;
+        _lbSwitchColor = pomA;
     }
 
     /// <summary>
     /// Switches to Inky if possible.
     /// </summary>
-    private void OnInkySwitch(InputAction.CallbackContext context)
+    private void OnRBSwitch(InputAction.CallbackContext context)
     {
         if (!_canSwitch || _shadows.Count == 0)
             return;
 
-        Color inkyColor = _shadows[_activeShadowIndex].GetComponent<ShadowAppearanceManager>().inkyColor;
-        SwitchToGhostByColor(inkyColor);
+        OnRBSwitchEvent?.Invoke();
+
+        SwitchToGhostByColor(_rbSwitchColor);
+
+        Color pomA = _aSwitchColor;
+        Color pomRB = _rbSwitchColor;
+
+        _aSwitchColor = pomRB;
+        _rbSwitchColor = pomA;
     }
     #endregion
 
@@ -203,16 +174,15 @@ public class ShadowPlayerController : MonoBehaviour
         controller.IsShadowActive = true;
 
         ShadowAppearanceManager appearanceManager = controller.GetComponent<ShadowAppearanceManager>();
-        activeColor = appearanceManager.activeColor;
-        inactiveColor1 = appearanceManager.clydeColor;
-        inactiveColor2 = appearanceManager.inkyColor;
+        _lbSwitchColor = appearanceManager.clydeColor;
+        _rbSwitchColor = appearanceManager.inkyColor;
+        _aSwitchColor = appearanceManager.blinkyColor;
 
-        appearanceManager.colorBeforeFrightened = activeColor;
-        appearanceManager.SetCustomColor(activeColor);
+        appearanceManager.colorBeforeFrightened = appearanceManager.blinkyColor;
+        appearanceManager.SetCustomColor(appearanceManager.blinkyColor);
 
         _shadows.Add(ghost);
         _activeShadowIndex = 0;
-        UpdateAppearance();
 
         yield return new WaitUntil(() => _isRoundStarted);
 
@@ -254,8 +224,6 @@ public class ShadowPlayerController : MonoBehaviour
             }
 
             _shadows.Add(ghost);
-
-            UpdateAppearance();
 
             yield return new WaitForSeconds(_spawnDelay);
         }
@@ -316,85 +284,6 @@ public class ShadowPlayerController : MonoBehaviour
     }
     #endregion
 
-    #region Distance Checking
-    /// <summary>
-    /// Checks distance between active shadow and others to enable switching.
-    /// </summary>
-    private void CheckShadowDistance()
-    {
-        if (_shadows.Count == 0) return;
-
-        var activeController = GetActiveGhostController();
-        if (activeController == null) return;
-
-        Vector3 activePos = activeController.transform.position;
-
-        for (int i = 0; i < _shadows.Count; i++)
-        {
-            var shadow = _shadows[i];
-            var controller = shadow.GetComponent<ShadowController>();
-
-            if (controller == activeController)
-                continue;
-
-            if (controller.CurrentState.State == ShadowState.Eaten)
-                continue;
-
-            float distance = Vector3.Distance(activePos, shadow.transform.position);
-            bool canSwitchNow = distance <= maxSwitchDistanceToPlayer;
-
-            Color color = controller.GetComponent<ShadowAppearanceManager>().GetCurrentColor();
-
-            bool previousCanSwitch;
-            _previousCanSwitchStates.TryGetValue(controller, out previousCanSwitch);
-
-            if (previousCanSwitch != canSwitchNow)
-            {
-                controller.CanBeSwitchedTo = canSwitchNow;
-                OnShadowDistanceChanged?.Invoke(color, canSwitchNow);
-            }
-
-            _previousCanSwitchStates[controller] = canSwitchNow;
-        }
-    }
-    #endregion
-
-    #region Appearance
-    /// <summary>
-    /// Updates appearance for active and inactive shadows.
-    /// </summary>
-    public void UpdateAppearance()
-    {
-        if (_shadows.Count != 3) return;
-
-        var activeAppearance = _shadows[_activeShadowIndex].GetComponent<ShadowAppearanceManager>();
-        activeAppearance.SetCustomColor(activeColor);
-        activeAppearance.colorBeforeFrightened = activeColor;
-
-        if (_previousActiveIndex != -1 && _previousActiveIndex != _activeShadowIndex)
-        {
-            List<Color> existingColors = new List<Color>();
-            for (int i = 0; i < _shadows.Count; i++)
-            {
-                if (i == _activeShadowIndex) continue;
-                var appearance = _shadows[i].GetComponent<ShadowAppearanceManager>();
-                existingColors.Add(appearance.GetCurrentColor());
-            }
-
-            Color missingColor = inactiveColor1;
-            if (existingColors.Contains(inactiveColor1))
-                missingColor = inactiveColor2;
-
-            var previousAppearance = _shadows[_previousActiveIndex].GetComponent<ShadowAppearanceManager>();
-            previousAppearance.SetCustomColor(missingColor);
-            previousAppearance.colorBeforeFrightened = missingColor;
-        }
-
-        _previousActiveIndex = _activeShadowIndex;
-    }
-
-    #endregion
-
     #region Switching Logic
     /// <summary>
     /// Switches control to a shadow with the specified color if possible.
@@ -411,8 +300,7 @@ public class ShadowPlayerController : MonoBehaviour
             var appearance = controller.GetComponent<ShadowAppearanceManager>();
 
             if (appearance.GetCurrentColor() == targetColor &&
-                controller.CurrentState.State != ShadowState.Eaten &&
-                controller.CanBeSwitchedTo)
+                controller.CurrentState.State != ShadowState.Eaten)
             {
                 targetIndex = i;
                 break;
@@ -443,56 +331,19 @@ public class ShadowPlayerController : MonoBehaviour
         old.SetState(isFrightened ? new ShadowFrightenedState()
                                   : new ShadowScatterState());
 
-        _previousActiveIndex = _activeShadowIndex;
         _activeShadowIndex = newIndex;
 
         var newController = _shadows[_activeShadowIndex].GetComponent<ShadowController>();
         newController.IsShadowActive = true;
         newController.SetState(new ShadowActiveState());
 
-        StartCoroutine(PlaySwitchLaser(old, newController, activeColor));
+        StartCoroutine(PlaySwitchLaser(old, newController));
 
         yield return new WaitForSeconds(0.3f);
         _canSwitch = true;
     }
 
-    /// <summary>
-    /// Plays a particle effect traveling from the old shadow to the new shadow when switching.
-    /// </summary>
-    /// <param name="from">The shadow being switched from.</param>
-    /// <param name="to">The shadow being switched to.</param>
-    /// <param name="color">The color to apply to the particle effect.</param>
-    private IEnumerator PlaySwitchParticle(ShadowController from, ShadowController to, Color color)
-    {
-        GameObject psObj = Instantiate(_switchParticlePrefab, from.transform.position, Quaternion.identity);
-        ParticleSystem ps = psObj.GetComponent<ParticleSystem>();
-
-        Vector3 startPos = from.transform.position;
-        Vector3 endPos = to.transform.position;
-
-        Vector3 direction = (endPos - startPos).normalized;
-        psObj.transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
-        _activeParticles.Add(psObj);
-
-        float duration = 0.5f; 
-        float elapsed = 0f;
-
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            float t = elapsed / duration;
-
-            psObj.transform.position = Vector3.Lerp(startPos, endPos, t);
-            yield return null;
-        }
-
-        UpdateAppearance();
-        yield return new WaitForSeconds(1f);
-        _activeParticles.Remove(psObj);
-        Destroy(psObj);
-    }
-
-    private IEnumerator PlaySwitchLaser(ShadowController from, ShadowController to, Color color)
+    private IEnumerator PlaySwitchLaser(ShadowController from, ShadowController to)
     {
         GameObject laserObj = new GameObject("SwitchLaser");
         laserObj.transform.position = from.transform.position;
@@ -510,7 +361,7 @@ public class ShadowPlayerController : MonoBehaviour
 
         Gradient gradient = new Gradient();
         gradient.SetKeys(
-            new GradientColorKey[] { new GradientColorKey(color, 0f), new GradientColorKey(color, 1f) },
+            new GradientColorKey[] { new GradientColorKey(Color.softRed, 0f), new GradientColorKey(Color.softRed, 1f) },
             new GradientAlphaKey[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) }
         );
         lr.colorGradient = gradient;
@@ -522,7 +373,7 @@ public class ShadowPlayerController : MonoBehaviour
         lightObj.transform.position = startPos;
         Light2D light2D = lightObj.AddComponent<Light2D>();
         light2D.lightType = Light2D.LightType.Point;
-        light2D.color = color;
+        light2D.color = Color.softRed;
         light2D.intensity = 12f;
         light2D.pointLightOuterRadius = 1f;
 
@@ -551,8 +402,6 @@ public class ShadowPlayerController : MonoBehaviour
 
         lr.SetPosition(0, endPos);
         lr.SetPosition(1, endPos);
-
-        UpdateAppearance();
 
         yield return new WaitForSeconds(0.05f);
 
@@ -615,17 +464,9 @@ public class ShadowPlayerController : MonoBehaviour
     private void HandleRoundEnd(object sender, System.EventArgs e)
     {
         StopAllCoroutines();
-        _previousActiveIndex = -1;
         _canSwitch = true;
         _isRoundStarted = false;
         GameManager.Instance.IsFrightenedShadowState = false;
-
-        foreach (var p in _activeParticles)
-        {
-            if (p != null)
-                Destroy(p);
-        }
-        _activeParticles.Clear();
 
         foreach (var ghost in _shadows)
         {

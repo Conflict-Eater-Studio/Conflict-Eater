@@ -42,40 +42,9 @@ public class ShadowIndicator : MonoBehaviour
         icon.color = color;
     }
 
-    /// <summary>
-    /// Sets the active state of the shadow.
-    /// Active shadows pulse in scale and color.
-    /// </summary>
-    public void SetActive(bool isActive)
+    public Color GetColor()
     {
-        if (icon == null)
-        {
-            Debug.LogError("[ShadowIndicator] Image null!");
-            return;
-        }
-
-        scaleTween?.Kill();
-        colorTween?.Kill();
-
-        icon.transform.localScale = Vector3.one;
-        icon.color = baseColor;
-
-        if (isActive)
-        {
-            scaleTween = icon.transform
-                .DOScale(1.1f, 0.5f)
-                .SetLoops(-1, LoopType.Yoyo)
-                .SetEase(Ease.InOutSine);
-
-
-            Color brighter = Color.Lerp(baseColor, Color.white, 0.6f);
-            brighter.a = 1f;
-
-            colorTween = icon
-                .DOColor(brighter, 0.5f)
-                .SetLoops(-1, LoopType.Yoyo)
-                .SetEase(Ease.InOutSine);
-        }
+        return icon.color;
     }
 
     /// <summary>

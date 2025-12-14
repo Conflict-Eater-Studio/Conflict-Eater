@@ -17,17 +17,13 @@ public class ShadowAppearanceManager : MonoBehaviour
 
     [Header("Base Colors")]
     public Color blinkyColor = Color.red;
-    public Color pinkyColor = new Color(1f, 0.6f, 0.9f);
     public Color inkyColor = Color.cyan;
     public Color clydeColor = new Color(1f, 0.7f, 0.3f);
 
     [Header("Active Colors")]
-    public Color activeColor = Color.red;
     [SerializeField] private GameObject _glow;
 
     [Header("Frightened Look")]
-    public Color frightenedNormalColor = new Color(0f, 0f, 0.6f);
-    public Color frightenedActiveColor = new Color(0f, 0f, 0.6f);
     public Color frightenedBlinkColor = Color.white;
     public float blinkInterval = 0.2f;
 
@@ -70,8 +66,6 @@ public class ShadowAppearanceManager : MonoBehaviour
         bodyRenderer.enabled = true;
         skullRenderer.enabled = true;
         faceRenderer.enabled = false;
-
-        bodyRenderer.color = activeColor;
     }
 
     /// <summary>
@@ -97,7 +91,7 @@ public class ShadowAppearanceManager : MonoBehaviour
         skullRenderer.enabled = true;
         faceRenderer.enabled = false;
 
-        bodyRenderer.color = isActive ? frightenedActiveColor : colorBeforeFrightened;
+        bodyRenderer.color = colorBeforeFrightened;
 
         if (blinking)
             StartBlinking(isActive);
@@ -166,7 +160,6 @@ public class ShadowAppearanceManager : MonoBehaviour
         return controller.Type switch
         {
             ShadowType.Blinky => blinkyColor,
-            ShadowType.Pinky => pinkyColor,
             ShadowType.Inky => inkyColor,
             ShadowType.Clyde => clydeColor,
             _ => Color.white
@@ -217,7 +210,7 @@ public class ShadowAppearanceManager : MonoBehaviour
         bool toggle = false;
         while (true)
         {
-            skullRenderer.color = toggle ? (isActive ? frightenedActiveColor : colorBeforeFrightened) : frightenedBlinkColor;
+            skullRenderer.color = toggle ? colorBeforeFrightened : frightenedBlinkColor;
             toggle = !toggle;
             yield return new WaitForSeconds(blinkInterval);
         }

@@ -1,7 +1,15 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
+using DG.Tweening;
+
+[System.Serializable]
+public class ShadowIndicatorSlot
+{
+    public int id;
+    public ShadowIndicator indicator;
+}
 
 /// <summary>
 /// Handles the UI for switching between shadows (ghosts).
@@ -11,9 +19,7 @@ public class ShadowSwitchUI : MonoBehaviour
 {
     #region Inspector Fields
     [Header("UI Indicators")]
-    [SerializeField] private ShadowIndicator _activeUI;
-    [SerializeField] private ShadowIndicator _inkyUI;
-    [SerializeField] private ShadowIndicator _clydeUI;
+    [SerializeField] private List<ShadowIndicatorSlot> _shadowIndicators;
 
     [Header("UI Controlers")]
     [SerializeField] private GameObject _l1;
@@ -34,14 +40,6 @@ public class ShadowSwitchUI : MonoBehaviour
 
     #region Unity Lifecycle
     /// <summary>
-    /// Initialization: sets the active shadow indicator to visible.
-    /// </summary>
-    private void Start()
-    {
-        _activeUI.SetActive(true);
-    }
-
-    /// <summary>
     /// Per-frame check: subscribes to shadow events once the ShadowPlayerController is available.
     /// </summary>
     private void Update()
@@ -55,16 +53,10 @@ public class ShadowSwitchUI : MonoBehaviour
                                                         ?.GetComponentInChildren<ShadowPlayerController>();
         if (playerController != null)
         {
-            playerController.OnShadowDistanceChanged += HandleShadowDistanceChanged;
             _isSubscribed = true;
 
-            _playerInput = playerController.GetComponentInParent<PlayerInput>();
-
-            if (_playerInput != null)
-            {
-                _playerInput.actions[SwitchClydeActionName].performed += OnClydeSwitch;
-                _playerInput.actions[SwitchInkyActionName].performed += OnInkySwitch;
-            }
+            playerController.OnLBSwitchEvent += OnLBSwitch;
+            playerController.OnRBSwitchEvent += OnRBSwitch;
         }
     }
 
@@ -75,8 +67,9 @@ public class ShadowSwitchUI : MonoBehaviour
     /// Called when the player triggers the Clyde switch action.
     /// Starts a coroutine to flash the corresponding UI button.
     /// </summary>
-    private void OnClydeSwitch(InputAction.CallbackContext context)
+    private void OnLBSwitch()
     {
+        SwapActiveColor(GetSlotById(0));
         StartCoroutine(FlashButton(_l1, 0.3f));
     }
 
@@ -84,8 +77,9 @@ public class ShadowSwitchUI : MonoBehaviour
     /// Called when the player triggers the Inky switch action.
     /// Starts a coroutine to flash the corresponding UI button.
     /// </summary>
-    private void OnInkySwitch(InputAction.CallbackContext context)
+    private void OnRBSwitch()
     {
+        SwapActiveColor(GetSlotById(2));
         StartCoroutine(FlashButton(_r1, 0.3f));
     }
 
@@ -104,37 +98,37 @@ public class ShadowSwitchUI : MonoBehaviour
     }
     #endregion
 
-    #region Logic Distance Changed
     /// <summary>
-    /// Updates the UI indicators when the shadow's switch availability changes.
+    /// Swaps the currently active indicator with the given target indicator.
     /// </summary>
-    /// <param name="shadowColor">Color of the shadow whose state changed.</param>
-    /// <param name="canSwitch">Whether switching to this shadow is currently allowed.</param>
-    private void HandleShadowDistanceChanged(Color shadowColor, bool canSwitch)
+    /// <param name="target">The indicator whose color will be applied to the active indicator.</param>
+    private void SwapActiveColor(ShadowIndicatorSlot target)
     {
-        if (Approximately(shadowColor, inkyColor))
-        {
-            _inkyUI.SetAvailable(canSwitch);
-        }
-        
-        if (Approximately(shadowColor, clydeColor))
-        {
-            _clydeUI.SetAvailable(canSwitch);
-        }
+        ShadowIndicatorSlot active = GetSlotById(1);
+
+        if (active == null || target == null) return;
+
+        Vector3 targetPos = new Vector3(target.indicator.transform.position.x, active.indicator.transform.position.y, active.indicator.transform.position.z);
+        Vector3 activePos = new Vector3(active.indicator.transform.position.x, target.indicator.transform.position.y, target.indicator.transform.position.z);
+
+        float duration = 0.25f;
+        active.indicator.transform.DOMoveX(targetPos.x, duration).SetEase(Ease.InOutCubic);
+        target.indicator.transform.DOMoveX(activePos.x, duration).SetEase(Ease.InOutCubic);
+
+        StartCoroutine(SwapAfterDelay(active, target, duration));
     }
 
-    /// <summary>
-    /// Compares two colors approximately, ignoring small floating-point differences.
-    /// </summary>
-    /// <param name="a">First color.</param>
-    /// <param name="b">Second color.</param>
-    /// <param name="eps">Tolerance value for comparison.</param>
-    /// <returns>True if colors are approximately equal.</returns>
-    private bool Approximately(Color a, Color b, float eps = 0.01f)
+    private IEnumerator SwapAfterDelay(ShadowIndicatorSlot active, ShadowIndicatorSlot target, float delay)
     {
-        return Mathf.Abs(a.r - b.r) < eps &&
-               Mathf.Abs(a.g - b.g) < eps &&
-               Mathf.Abs(a.b - b.b) < eps;
+        yield return new WaitForSeconds(delay);
+
+        ShadowIndicator temp = active.indicator;
+        active.indicator = target.indicator;
+        target.indicator = temp;
     }
-    #endregion
+
+    private ShadowIndicatorSlot GetSlotById(int id)
+    {
+        return _shadowIndicators.Find(s => s.id == id);
+    }
 }

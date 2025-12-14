@@ -261,14 +261,14 @@ MonoBehaviour:
   bodyRenderer: {fileID: 2664260103228331524}
   skullRenderer: {fileID: 950135915731450671}
   faceRenderer: {fileID: 7577029060059744355}
-  blinkyColor: {r: 1, g: 0, b: 0.019788265, a: 1}
+  blinkyColor: {r: 1, g: 0, b: 0.73927116, a: 1}
   pinkyColor: {r: 1, g: 0, b: 0.78266525, a: 1}
-  inkyColor: {r: 0, g: 0.58431375, b: 1, a: 1}
-  clydeColor: {r: 0.6745098, g: 0, b: 1, a: 1}
-  activeColor: {r: 1, g: 0, b: 0.03836775, a: 1}
+  inkyColor: {r: 0, g: 0.13333334, b: 1, a: 1}
+  clydeColor: {r: 0.07456994, g: 1, b: 0, a: 1}
+  activeColor: {r: 1, g: 0, b: 0.7411765, a: 1}
   _glow: {fileID: 6988365153553169056}
   frightenedNormalColor: {r: 0.627451, g: 0.9098039, b: 0.6862745, a: 1}
-  frightenedActiveColor: {r: 1, g: 0, b: 0.039215688, a: 1}
+  frightenedActiveColor: {r: 1, g: 0, b: 0.7411765, a: 1}
   frightenedBlinkColor: {r: 0.6226415, g: 0.6226415, b: 0.6226415, a: 1}
   blinkInterval: 0.2
   colorBeforeFrightened: {r: 1, g: 1, b: 1, a: 1}
