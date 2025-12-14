@@ -10,24 +10,24 @@ using static GameScore;
 
 public class GameManager : Singleton<GameManager>
 {
-    [SerializeField] private GameObject _globalVolume;
+    [SerializeField]
+    private GameObject _globalVolume;
 
     [SerializeField]
     public Match Timer;
 
     [SerializeField]
-    private GameObject _endGamePanel;
+    private GameObject _particleSystem;
 
     [SerializeField]
-    private TextMeshProUGUI _winnerText;
-
-    [SerializeField] private GameObject _particleSystem;
+    private PlayerSpawner _playerSpawner;
 
     public bool IsFrightenedShadowState = false;
 
     public PlayerManager PlayerManager { get; private set; }
     public Grid Grid { get; private set; }
     public GameScore Score { get; private set; } = new GameScore();
+    public PlayerSpawner PlayerSpawner => _playerSpawner;
     public GameObject ParticleSystem
     {
         get { return _particleSystem; }
@@ -65,15 +65,13 @@ public class GameManager : Singleton<GameManager>
         Timer.OnRoundEnd += OnRoundEnd;
         Timer.OnMatchEnd += OnMatchEnd;
 
-        _endGamePanel.GetComponentInChildren<Button>().onClick.AddListener(BtnMainMenu);
-
         _globalVolume.SetActive(true);
     }
 
     private void OnMatchEnd(object sender, EventArgs e)
     {
-        _endGamePanel.SetActive(true);
-        _winnerText.SetText(Score.GetWinnerText());
+        MenuManager.Instance.OpenSubMenu(MenuManager.Menu.GameOver);
+        MenuManager.Instance.GetScript<GameOverMenu>(MenuManager.Menu.GameOver).UpdateText();
     }
 
     private void OnRoundEnd(object sender, EventArgs e)

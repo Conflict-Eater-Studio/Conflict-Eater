@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.InputSystem;
@@ -76,7 +77,6 @@ public class ShadowPlayerController : MonoBehaviour
         StartCoroutine(SpawnFirstShadow());
     }
 
-    /// <summary>
     /// Handles cleanup and unsubscribes from events.
     /// </summary>
     private void OnDestroy()
@@ -106,8 +106,10 @@ public class ShadowPlayerController : MonoBehaviour
     /// </summary>
     private void OnMove(InputAction.CallbackContext context)
     {
-        if (!_isRoundStarted) return;
-        if (_shadows.Count == 0) return;
+        if (!_isRoundStarted)
+            return;
+        if (_shadows.Count == 0)
+            return;
 
         Vector2 moveInput = context.ReadValue<Vector2>();
         var activeGhost = _shadows[_activeShadowIndex];
@@ -130,6 +132,7 @@ public class ShadowPlayerController : MonoBehaviour
 
         _aSwitchColor = pomLB;
         _lbSwitchColor = pomA;
+
     }
 
     /// <summary>
@@ -208,7 +211,8 @@ public class ShadowPlayerController : MonoBehaviour
             controller.IsShadowActive = false;
             controller.SetState(new ShadowExitBaseState());
 
-            ShadowAppearanceManager appearanceManager = controller.GetComponent<ShadowAppearanceManager>();
+            ShadowAppearanceManager appearanceManager =
+                controller.GetComponent<ShadowAppearanceManager>();
             ShadowType type = controller.Type;
 
             if (type == ShadowType.Inky)
@@ -235,21 +239,29 @@ public class ShadowPlayerController : MonoBehaviour
     /// <summary>
     /// Handles the pause input from the player. Toggles game pause state and loads/unloads the pause menu scene.
     /// </summary>
-    private void OnPause(InputAction.CallbackContext context)
+    public virtual void OnPause(InputAction.CallbackContext context)
     {
-        if (!context.performed) return;
+        if (!context.performed)
+            return;
 
-        if (GameManager.Instance.Timer.IsGamePaused)
+        if (GameManager.Instance?.Timer != null)
         {
-            SceneManager.UnloadSceneAsync("GamePause").completed += (_) =>
+            if (
+                GameManager.Instance.Timer.IsGamePaused
+                && MenuManager.Instance.IsLastMenuOfType(MenuManager.Menu.Pause)
+            )
             {
                 GameManager.Instance.Timer.Resume();
-            };
-        }
-        else
-        {
-            GameManager.Instance.Timer.Pause();
-            SceneManager.LoadSceneAsync("GamePause", LoadSceneMode.Additive);
+                MenuManager.Instance.CloseLastSubMenu();
+            }
+            else if (
+                !GameManager.Instance.Timer.IsGamePaused
+                && !MenuManager.Instance.IsLastMenuOfType(MenuManager.Menu.Pause)
+            )
+            {
+                GameManager.Instance.Timer.Pause();
+                MenuManager.Instance.OpenSubMenu(MenuManager.Menu.Pause);
+            }
         }
     }
 
@@ -290,7 +302,8 @@ public class ShadowPlayerController : MonoBehaviour
     /// </summary>
     private void SwitchToGhostByColor(Color targetColor)
     {
-        if (!_canSwitch || _shadows.Count == 0) return;
+        if (!_canSwitch || _shadows.Count == 0)
+            return;
 
         int targetIndex = -1;
 
@@ -328,8 +341,7 @@ public class ShadowPlayerController : MonoBehaviour
         var old = _shadows[_activeShadowIndex].GetComponent<ShadowController>();
         old.IsShadowActive = false;
 
-        old.SetState(isFrightened ? new ShadowFrightenedState()
-                                  : new ShadowScatterState());
+        old.SetState(isFrightened ? new ShadowFrightenedState() : new ShadowScatterState());
 
         _activeShadowIndex = newIndex;
 
@@ -435,9 +447,13 @@ public class ShadowPlayerController : MonoBehaviour
             {
                 randomIndex = Random.Range(0, _shadows.Count);
                 attempts++;
-                if (attempts > 10) break;
-            } while (randomIndex == _activeShadowIndex
-                     || _shadows[randomIndex].GetComponent<ShadowController>().CurrentState.State == ShadowState.Eaten);
+                if (attempts > 10)
+                    break;
+            } while (
+                randomIndex == _activeShadowIndex
+                || _shadows[randomIndex].GetComponent<ShadowController>().CurrentState.State
+                    == ShadowState.Eaten
+            );
         }
 
         _activeShadowIndex = randomIndex;
@@ -446,7 +462,8 @@ public class ShadowPlayerController : MonoBehaviour
         newController.IsShadowActive = true;
         newController.SetState(new ShadowActiveState());
 
-        ShadowAppearanceManager shadowAppearanceManager = newController.GetComponent<ShadowAppearanceManager>();
+        ShadowAppearanceManager shadowAppearanceManager =
+            newController.GetComponent<ShadowAppearanceManager>();
         shadowAppearanceManager.SetActive();
 
         yield return new WaitForSeconds(0.3f);
@@ -495,7 +512,8 @@ public class ShadowPlayerController : MonoBehaviour
     /// <summary>
     /// Returns the currently active shadow's controller.
     /// </summary>
-    public ShadowController GetActiveGhostController() {
+    public ShadowController GetActiveGhostController()
+    {
         var activeGhost = _shadows[_activeShadowIndex];
         return activeGhost.GetComponent<ShadowController>();
     }

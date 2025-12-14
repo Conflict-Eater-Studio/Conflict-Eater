@@ -1,8 +1,10 @@
 using Unity.VisualScripting;
+using UnityEditor.PackageManager;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
-public class Settings : MonoBehaviour
+public class Settings : MenuBase
 {
     [SerializeField]
     private UnityEngine.UI.Slider _sliderMaster;
@@ -45,23 +47,14 @@ public class Settings : MonoBehaviour
 
     public void OnBtnSave()
     {
-        AudioManager.Instance.PlayOneShot(AudioManager.Instance.FMODEvents.UI.Select);
         AudioManager.Instance.SaveSettings();
     }
 
     public void OnBtnBack()
     {
-        AudioManager.Instance.PlayOneShot(AudioManager.Instance.FMODEvents.UI.Close);
-        SceneManager.UnloadSceneAsync("Settings");
-    }
-
-    public void OnPointerDown()
-    {
-        AudioManager.Instance.PlayOneShot(AudioManager.Instance.FMODEvents.UI.Cursor);
-    }
-
-    public void OnPointerUp()
-    {
-        AudioManager.Instance.PlayOneShot(AudioManager.Instance.FMODEvents.UI.Cursor);
+        if (MenuManager.Instance != null)
+        {
+            MenuManager.Instance.CloseLastSubMenu();
+        }
     }
 }

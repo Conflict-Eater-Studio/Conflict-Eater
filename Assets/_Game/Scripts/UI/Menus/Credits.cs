@@ -1,11 +1,9 @@
 using UnityEngine;
 
-public class Credits : MonoBehaviour
+public class Credits : MenuBase
 {
     public void OnBtnBack()
     {
-        AudioManager.Instance.PlayOneShot(AudioManager.Instance.FMODEvents.UI.Select);
-        // WARNING: Replace with scene management system
-        UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync("Credits");
+        MenuManager.Instance.CloseLastSubMenu();
     }
 }
