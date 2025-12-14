@@ -18,6 +18,7 @@ public class MenuManager : MonoBehaviour
         Credits,
         Controls,
         Pause,
+        GameOver,
     }
 
     public enum Scene
@@ -52,6 +53,9 @@ public class MenuManager : MonoBehaviour
     [SerializeField]
     private MenuData _pauseMenu;
 
+    [SerializeField]
+    private MenuData _gameOverMenu;
+
     private Dictionary<Menu, MenuData> _subMenus;
     private Stack<Tuple<Menu, MenuData>> _openedMenus = new Stack<Tuple<Menu, MenuData>>();
 
@@ -72,6 +76,7 @@ public class MenuManager : MonoBehaviour
             { Menu.Credits, _creditsMenu },
             { Menu.Controls, _controlsMenu },
             { Menu.Pause, _pauseMenu },
+            { Menu.GameOver, _gameOverMenu },
         };
     }
 
@@ -102,9 +107,10 @@ public class MenuManager : MonoBehaviour
         GameObject currentlySelected = _eventSystem.currentSelectedGameObject;
 
         // Update the last menu's saved selected object with what's currently selected
+        Tuple<Menu, MenuData> lastMenuTuple = null;
         if (_openedMenus.Count > 0)
         {
-            var lastMenuTuple = _openedMenus.Pop();
+            lastMenuTuple = _openedMenus.Pop();
             var updatedMenuData = new MenuData
             {
                 Canvas = lastMenuTuple.Item2.Canvas,
@@ -172,8 +178,6 @@ public class MenuManager : MonoBehaviour
 
     public AsyncOperation LoadSceneAsync(Scene scene, LoadSceneMode mode = LoadSceneMode.Single)
     {
-        // Clear all menus before loading a new scene
-        CloseAllSubMenus();
         string sceneName = Scenes[scene];
         return SceneManager.LoadSceneAsync(sceneName, mode);
     }
@@ -182,5 +186,15 @@ public class MenuManager : MonoBehaviour
     {
         string sceneName = Scenes[scene];
         return SceneManager.UnloadSceneAsync(sceneName);
+    }
+
+    public T GetScript<T>(Menu menu)
+    {
+        if (_subMenus == null || !_subMenus.TryGetValue(menu, out var data))
+        {
+            throw new ArgumentException($"MenuManager: Menu {menu} not found!");
+        }
+
+        return data.Canvas.GetComponent<T>();
     }
 }

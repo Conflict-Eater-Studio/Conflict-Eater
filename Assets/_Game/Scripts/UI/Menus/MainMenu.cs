@@ -29,6 +29,8 @@ public class MainMenu : MenuBase
         {
             MenuManager.Instance.LoadSceneAsync(MenuManager.Scene.Game).completed += (_) =>
             {
+                MenuManager.Instance.CloseAllSubMenus();
+
                 // NOTE: Start playing game music, we don't store GUID for now
                 AudioManager.Instance.PlaySound(AudioManager.Instance.FMODEvents.Music.Music8Bit);
             };

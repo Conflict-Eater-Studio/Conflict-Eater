@@ -23,7 +23,12 @@ public class GamePause : MenuBase
         }
         if (MenuManager.Instance != null)
         {
-            MenuManager.Instance.LoadSceneAsync(MenuManager.Scene.MainMenu);
+            MenuManager.Instance.LoadSceneAsync(MenuManager.Scene.MainMenu).completed += (_) =>
+            {
+                // Open main menu after scene load
+                MenuManager.Instance.CloseAllSubMenus();
+                MenuManager.Instance.OpenSubMenu(MenuManager.Menu.Main);
+            };
         }
     }
 
