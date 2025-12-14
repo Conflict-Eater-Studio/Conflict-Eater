@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 public class MenuManager : MonoBehaviour
@@ -36,6 +33,9 @@ public class MenuManager : MonoBehaviour
 
     [SerializeField]
     private EventSystem _eventSystem;
+
+    [SerializeField]
+    private LoadingScreen _loadingScreen;
 
     [Header("Menu GameObjects")]
     [SerializeField]
@@ -158,12 +158,16 @@ public class MenuManager : MonoBehaviour
         }
     }
 
-    public void CloseAllSubMenus()
+    public void CloseAllSubMenus(Menu? openOne = null)
     {
         while (_openedMenus.Count > 0)
         {
             Tuple<Menu, MenuData> lastMenu = _openedMenus.Pop();
             _subMenus[lastMenu.Item1].Canvas.SetActive(false);
+        }
+        if (openOne != null)
+        {
+            OpenSubMenu(openOne.Value);
         }
     }
 
@@ -180,6 +184,105 @@ public class MenuManager : MonoBehaviour
     {
         string sceneName = Scenes[scene];
         return SceneManager.LoadSceneAsync(sceneName, mode);
+    }
+
+    /// <summary>
+    /// Loads a scene with loading screen. Automatically closes all menus.
+    /// </summary>
+    /// <param name="scene">The scene to load.</param>
+    /// <param name="menuToOpen">Menu to open after scene loads (null to keep all closed).</param>
+    /// <param name="resetGameState">If true, destroys GameManager to reset game state.</param>
+    /// <param name="onComplete">Callback invoked after scene is loaded and menu is opened.</param>
+    public void LoadScene(
+        Scene scene,
+        Menu? menuToOpen = null,
+        bool resetGameState = false,
+        Action onComplete = null
+    )
+    {
+        if (resetGameState && GameManager.Instance != null)
+        {
+            Destroy(GameManager.Instance.gameObject);
+        }
+
+        StartCoroutine(LoadSceneCoroutine(scene, menuToOpen, onComplete));
+    }
+
+    /// <summary>
+    /// Loads the main menu scene and resets all game state to fresh.
+    /// Destroys GameManager and any other persistent game objects.
+    /// </summary>
+    public void LoadMainMenuAndReset()
+    {
+        LoadScene(Scene.MainMenu, Menu.Main, resetGameState: true);
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.StopAllSounds(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+        }
+    }
+
+    private System.Collections.IEnumerator LoadSceneCoroutine(
+        Scene scene,
+        Menu? menuToOpen,
+        Action onComplete
+    )
+    {
+        Debug.Log($"[MenuManager] Starting scene load for {scene}");
+
+        // Show loading screen to cover everything - wait for fade in callback
+        bool fadeInComplete = false;
+        if (_loadingScreen != null)
+        {
+            _loadingScreen.Show(() => fadeInComplete = true);
+
+            // Wait for fade in to complete
+            while (!fadeInComplete)
+            {
+                yield return null;
+            }
+        }
+
+        Debug.Log($"[MenuManager] Loading screen shown, starting scene load");
+
+        // Start loading the scene
+        var asyncLoad = LoadSceneAsync(scene);
+
+        Debug.Log($"[MenuManager] Waiting for scene to load to 100%...");
+
+        // Wait until the scene is fully loaded (isDone)
+        while (!asyncLoad.isDone)
+        {
+            // Update loading bar with real progress (0 to 1)
+            if (_loadingScreen != null)
+            {
+                _loadingScreen.SetProgress(asyncLoad.progress);
+            }
+            yield return null;
+        }
+
+        Debug.Log($"[MenuManager] Scene fully loaded and activated");
+
+        // Close any old menus
+        CloseAllSubMenus();
+
+        // Now that we're in the new scene, open the target menu if specified
+        if (menuToOpen != null)
+        {
+            OpenSubMenu(menuToOpen.Value);
+        }
+
+        Debug.Log($"[MenuManager] Menu opened, hiding loading screen");
+
+        // Hide loading screen with fade out
+        if (_loadingScreen != null)
+        {
+            _loadingScreen.Hide();
+        }
+
+        // Invoke the completion callback
+        onComplete?.Invoke();
+
+        Debug.Log($"[MenuManager] Scene transition complete");
     }
 
     public AsyncOperation UnloadSceneAsync(Scene scene)

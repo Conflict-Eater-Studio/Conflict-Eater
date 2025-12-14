@@ -14,11 +14,8 @@ public class GameOverMenu : MenuBase
 
     public void OnBtnMainMenu()
     {
-        MenuManager.Instance.LoadSceneAsync(MenuManager.Scene.MainMenu).completed += (asyncOp) =>
-        {
-            MenuManager.Instance.CloseAllSubMenus();
-            MenuManager.Instance.OpenSubMenu(MenuManager.Menu.Main);
-        };
+        Debug.Log("Main Menu Button Clicked");
+        MenuManager.Instance.LoadMainMenuAndReset();
     }
 
     public void UpdateText()

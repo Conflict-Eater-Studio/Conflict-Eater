@@ -1,9 +1,4 @@
-using System;
-using TMPro;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class MainMenu : MenuBase
@@ -27,13 +22,19 @@ public class MainMenu : MenuBase
     {
         if (MenuManager.Instance != null)
         {
-            MenuManager.Instance.LoadSceneAsync(MenuManager.Scene.Game).completed += (_) =>
-            {
-                MenuManager.Instance.CloseAllSubMenus();
-
-                // NOTE: Start playing game music, we don't store GUID for now
-                AudioManager.Instance.PlaySound(AudioManager.Instance.FMODEvents.Music.Music8Bit);
-            };
+            // Load game scene with loading screen, close all menus, don't open any menu
+            MenuManager.Instance.LoadScene(
+                MenuManager.Scene.Game,
+                menuToOpen: null,
+                resetGameState: false,
+                onComplete: () =>
+                {
+                    // NOTE: Start playing game music, we don't store GUID for now
+                    AudioManager.Instance.PlaySound(
+                        AudioManager.Instance.FMODEvents.Music.Music8Bit
+                    );
+                }
+            );
         }
     }
 

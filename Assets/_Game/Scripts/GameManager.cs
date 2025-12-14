@@ -19,11 +19,15 @@ public class GameManager : Singleton<GameManager>
     [SerializeField]
     private GameObject _particleSystem;
 
+    [SerializeField]
+    private PlayerSpawner _playerSpawner;
+
     public bool IsFrightenedShadowState = false;
 
     public PlayerManager PlayerManager { get; private set; }
     public Grid Grid { get; private set; }
     public GameScore Score { get; private set; } = new GameScore();
+    public PlayerSpawner PlayerSpawner => _playerSpawner;
     public GameObject ParticleSystem
     {
         get { return _particleSystem; }

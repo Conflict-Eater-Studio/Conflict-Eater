@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
-using UnityEditor.Animations;
 
 public class PlayerSpawner : MonoBehaviour
 {
@@ -29,6 +29,7 @@ public class PlayerSpawner : MonoBehaviour
         public PlayerRole AssignedRole;
     }
 
+    public static event EventHandler<RoleSelectionEventArgs> OnRoleSelectionStarted;
     public static event EventHandler<RoleSelectionEventArgs> OnRoleSelectionChanged;
     public static event EventHandler<RoleSelectionReleasedEventArgs> OnRoleSelectionReleased;
     public static event EventHandler<PlayerReadyEventArgs> OnPlayersReadyToSpawn;
@@ -46,15 +47,12 @@ public class PlayerSpawner : MonoBehaviour
     [SerializeField]
     private GameObject _ghostPrefab;
 
-    [SerializeField] private AnimatorController animationController;
+    [SerializeField]
+    private AnimatorController animationController;
 
     [Header("Role Selection Settings")]
     [SerializeField]
     private float _holdDuration = 1f;
-
-    [Tooltip("Time to stay on 'Ready' state before spawning players")]
-    [SerializeField]
-    private float _stayOnReadyTime = 1f;
 
     public static readonly Dictionary<PlayerRole, Color> RoleColors = new Dictionary<
         PlayerRole,
@@ -183,6 +181,19 @@ public class PlayerSpawner : MonoBehaviour
                     HoldTime = 0f,
                     IsConfirmed = false,
                 };
+                if (_gamepadToPlayerIndex.TryGetValue(gamepad, out int playerIndex))
+                {
+                    OnRoleSelectionStarted?.Invoke(
+                        this,
+                        new RoleSelectionEventArgs
+                        {
+                            PlayerIndex = playerIndex,
+                            SelectedRole = PlayerRole.Light,
+                            HoldProgress = 0f,
+                            IsConfirmed = false,
+                        }
+                    );
+                }
             }
 
             // Check if Shadow role is being claimed
@@ -195,6 +206,19 @@ public class PlayerSpawner : MonoBehaviour
                     HoldTime = 0f,
                     IsConfirmed = false,
                 };
+                if (_gamepadToPlayerIndex.TryGetValue(gamepad, out int playerIndex))
+                {
+                    OnRoleSelectionStarted?.Invoke(
+                        this,
+                        new RoleSelectionEventArgs
+                        {
+                            PlayerIndex = playerIndex,
+                            SelectedRole = PlayerRole.Shadow,
+                            HoldProgress = 0f,
+                            IsConfirmed = false,
+                        }
+                    );
+                }
             }
         }
     }
@@ -280,7 +304,8 @@ public class PlayerSpawner : MonoBehaviour
 
             if (lightConfirmed && shadowConfirmed)
             {
-                SpawnPlayers();
+                _playersSpawned = true;
+                OnPlayersReadyToSpawn?.Invoke(this, new PlayerReadyEventArgs() { });
             }
         }
     }
@@ -321,20 +346,9 @@ public class PlayerSpawner : MonoBehaviour
         );
     }
 
-    private void SpawnPlayers()
+    public void ExecutePlayerSpawn()
     {
-        _playersSpawned = true;
-        StartCoroutine(SpawnPlayersCoroutine());
-    }
-
-    private System.Collections.IEnumerator SpawnPlayersCoroutine()
-    {
-        // Wait before spawning players (stay on "Ready" state for a moment)
-        yield return new WaitForSeconds(_stayOnReadyTime);
-
-        OnPlayersReadyToSpawn?.Invoke(this, new PlayerReadyEventArgs() { });
-
-        // Enabled joining and spawn players
+        // Enable joining and spawn players
         _playerInputManager.EnableJoining();
 
         // Note: Player colors are already saved to PlayerColorManager during color selection
