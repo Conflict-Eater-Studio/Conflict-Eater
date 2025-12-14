@@ -1,7 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 
 /// <summary>
@@ -448,7 +450,7 @@ public class ShadowPlayerController : MonoBehaviour
         newController.IsShadowActive = true;
         newController.SetState(new ShadowActiveState());
 
-        StartCoroutine(PlaySwitchParticle(old, newController, activeColor));
+        StartCoroutine(PlaySwitchLaser(old, newController, activeColor));
 
         yield return new WaitForSeconds(0.3f);
         _canSwitch = true;
@@ -488,6 +490,74 @@ public class ShadowPlayerController : MonoBehaviour
         yield return new WaitForSeconds(1f);
         _activeParticles.Remove(psObj);
         Destroy(psObj);
+    }
+
+    private IEnumerator PlaySwitchLaser(ShadowController from, ShadowController to, Color color)
+    {
+        GameObject laserObj = new GameObject("SwitchLaser");
+        laserObj.transform.position = from.transform.position;
+        LineRenderer lr = laserObj.AddComponent<LineRenderer>();
+        lr.sortingLayerName = "Player";
+
+        lr.positionCount = 2;
+        lr.startWidth = 0.02f;
+        lr.endWidth = 0.02f;
+        lr.numCapVertices = 0;
+        lr.numCornerVertices = 0;
+
+        lr.material = new Material(Shader.Find("Unlit/Color"));
+        lr.material.color = Color.softRed;
+
+        Gradient gradient = new Gradient();
+        gradient.SetKeys(
+            new GradientColorKey[] { new GradientColorKey(color, 0f), new GradientColorKey(color, 1f) },
+            new GradientAlphaKey[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) }
+        );
+        lr.colorGradient = gradient;
+
+        Vector3 startPos = from.transform.position;
+        Vector3 endPos = to.transform.position;
+
+        GameObject lightObj = new GameObject("Laser2DLight");
+        lightObj.transform.position = startPos;
+        Light2D light2D = lightObj.AddComponent<Light2D>();
+        light2D.lightType = Light2D.LightType.Point;
+        light2D.color = color;
+        light2D.intensity = 12f;
+        light2D.pointLightOuterRadius = 1f;
+
+        float duration = 0.25f;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+
+            Vector3 wiggle = new Vector3(
+                Mathf.Sin(t * 20f) * 0.02f,
+                Mathf.Cos(t * 25f) * 0.02f,
+                0f
+            );
+
+            lr.SetPosition(1, Vector3.Lerp(startPos, endPos, t) + wiggle);
+            lr.SetPosition(0, Vector3.Lerp(startPos, endPos, t * 0.5f));
+
+            if (light2D != null)
+                light2D.transform.position = Vector3.Lerp(startPos, endPos, t);
+
+            yield return null;
+        }
+
+        lr.SetPosition(0, endPos);
+        lr.SetPosition(1, endPos);
+
+        UpdateAppearance();
+
+        yield return new WaitForSeconds(0.05f);
+
+        Destroy(laserObj);
+        Destroy(lightObj);
     }
 
     /// <summary>
