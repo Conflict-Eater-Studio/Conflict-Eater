@@ -117,8 +117,13 @@ public class Match : MonoBehaviour
     public void EndRound()
     {
         RoundTime = 0;
-        Rounds--; 
+        Rounds--;
         Pause();
+        if (Rounds <= 0) {
+            EndMatch();
+
+            return;
+        }
         OnRoundEnd?.Invoke(this, EventArgs.Empty);
     }
 
