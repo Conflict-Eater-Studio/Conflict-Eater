@@ -26,6 +26,13 @@ public class LightPlayerController : MonoBehaviour
     [Tooltip("How fast to snap to center when switching axis (multiplier of normal speed)")]
     [SerializeField] private float _snapSpeedMultiplier = 1.5f;
 
+    [SerializeField] private Animator _animator;
+
+    private const string AnimatorBoolIsMovingBottom = "IsMovingBottom";
+    private const string AnimatorBoolIsMovingUp = "IsMovingUp";
+    private const string AnimatorBoolIsMovingRight = "IsMovingRight";
+    private const string AnimatorBoolIsMovingLeft = "IsMovingLeft";
+
     public float Speed => _speed;
     
     private Grid _grid;
@@ -42,6 +49,7 @@ public class LightPlayerController : MonoBehaviour
     {
         _rb = GetComponentInParent<Rigidbody2D>();
         _grid = FindFirstObjectByType<Grid>();
+        _animator = GetComponentInParent<Animator>();
         _movement = new Movement(_rb, transform, _grid, _speed, _centerThreshold, _snapSpeedMultiplier);
 
         _playerInput = GetComponentInParent<PlayerInput>();
@@ -126,7 +134,8 @@ public class LightPlayerController : MonoBehaviour
     protected virtual void FixedUpdate()
     {
         _movement.FixedTick();
-        
+        UpdateAnimation();
+
         // NOTE: Marking tiles as active (potential issue)
         // If the player skips over a tile, it won't activate it.
         // This situation should not happen with proper movement speed and tile size.
@@ -152,4 +161,43 @@ public class LightPlayerController : MonoBehaviour
             GameManager.Instance.Timer.OnMatchResume -= Light_OnMatchResume;
         }
     }
+
+    private void UpdateAnimation()
+    {
+        bool isMoving = _moveInput.sqrMagnitude > 0.1f;
+        if (!isMoving)
+        {
+            _animator.SetBool(AnimatorBoolIsMovingUp, false);
+            _animator.SetBool(AnimatorBoolIsMovingBottom, false);
+            _animator.SetBool(AnimatorBoolIsMovingLeft, false);
+            _animator.SetBool(AnimatorBoolIsMovingRight, false);
+            return;
+        }
+
+        // Reset
+        _animator.SetBool(AnimatorBoolIsMovingUp, false);
+        _animator.SetBool(AnimatorBoolIsMovingBottom, false);
+        _animator.SetBool(AnimatorBoolIsMovingLeft, false);
+        _animator.SetBool(AnimatorBoolIsMovingRight, false);
+
+        switch (CurrentDirection)
+        {
+            case var d when d == Vector2Int.up:
+                _animator.SetBool(AnimatorBoolIsMovingUp, true);
+                break;
+
+            case var d when d == Vector2Int.down:
+                _animator.SetBool(AnimatorBoolIsMovingBottom, true);
+                break;
+
+            case var d when d == Vector2Int.left:
+                _animator.SetBool(AnimatorBoolIsMovingLeft, true);
+                break;
+
+            case var d when d == Vector2Int.right:
+                _animator.SetBool(AnimatorBoolIsMovingRight, true);
+                break;
+        }
+    }
+
 }

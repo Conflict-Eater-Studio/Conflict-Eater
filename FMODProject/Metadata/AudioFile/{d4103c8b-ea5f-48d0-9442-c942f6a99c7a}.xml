@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{d4103c8b-ea5f-48d0-9442-c942f6a99c7a}">
+		<property name="assetPath">
+			<value>SFX/click.mp3</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.0999985</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>8.9861224489795912</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{65ffc2d6-4f3a-4193-897f-c8a79228b97b}</destination>
+		</relationship>
+	</object>
+</objects>

@@ -23,8 +23,8 @@ public class ShadowController : MonoBehaviour
 {
     #region Inspector Fields
     [Header("Direct Indicator")]
-    [SerializeField] private GameObject _directGameObject;
-    [SerializeField] private float _directOffset = 0.37f;
+    [SerializeField] private Animator _animator;
+    [SerializeField] private Animator _faceAnimator;
 
     [Header("Movement Settings")]
     [SerializeField] protected float _speed = 10.5f;
@@ -47,6 +47,11 @@ public class ShadowController : MonoBehaviour
     private bool _isShadowActive = false;
     private ShadowPlayerController _owner;
     private bool _canBeSwitchedTo = true;
+
+    private const string AnimatorBoolIsMovingBottom = "IsMovingBottom";
+    private const string AnimatorBoolIsMovingUp = "IsMovingUp";
+    private const string AnimatorBoolIsMovingRight = "IsMovingRight";
+    private const string AnimatorBoolIsMovingLeft = "IsMovingLeft";
 
     public bool IsShadowActive
     {
@@ -235,7 +240,7 @@ public class ShadowController : MonoBehaviour
     /// </summary>
     private void UpdateDirectObjectPosition()
     {
-        if (_directGameObject == null)
+        if (_animator == null)
             return;
 
         Vector3 localPos = Vector3.zero;
@@ -243,20 +248,58 @@ public class ShadowController : MonoBehaviour
         switch (_currentDirection)
         {
             case var d when d == Vector2Int.up:
-                localPos = new Vector3(0f, _directOffset, 0f);
+                _animator.SetBool(AnimatorBoolIsMovingBottom, false);
+                _animator.SetBool(AnimatorBoolIsMovingRight, false);
+                _animator.SetBool(AnimatorBoolIsMovingLeft, false);
+
+                _animator.SetBool(AnimatorBoolIsMovingUp, true);
+
+                _faceAnimator.SetBool(AnimatorBoolIsMovingBottom, false);
+                _faceAnimator.SetBool(AnimatorBoolIsMovingRight, false);
+                _faceAnimator.SetBool(AnimatorBoolIsMovingLeft, false);
+
+                _faceAnimator.SetBool(AnimatorBoolIsMovingUp, true);
                 break;
             case var d when d == Vector2Int.down:
-                localPos = new Vector3(0f, -_directOffset, 0f);
+                _animator.SetBool(AnimatorBoolIsMovingUp, false);
+                _animator.SetBool(AnimatorBoolIsMovingRight, false);
+                _animator.SetBool(AnimatorBoolIsMovingLeft, false);
+
+                _animator.SetBool(AnimatorBoolIsMovingBottom, true);
+
+                _faceAnimator.SetBool(AnimatorBoolIsMovingUp, false);
+                _faceAnimator.SetBool(AnimatorBoolIsMovingRight, false);
+                _faceAnimator.SetBool(AnimatorBoolIsMovingLeft, false);
+
+                _faceAnimator.SetBool(AnimatorBoolIsMovingBottom, true);
                 break;
             case var d when d == Vector2Int.left:
-                localPos = new Vector3(-_directOffset, 0f, 0f);
+                _animator.SetBool(AnimatorBoolIsMovingUp, false);
+                _animator.SetBool(AnimatorBoolIsMovingBottom, false);
+                _animator.SetBool(AnimatorBoolIsMovingRight, false);
+
+                _animator.SetBool(AnimatorBoolIsMovingLeft, true);
+
+                _faceAnimator.SetBool(AnimatorBoolIsMovingUp, false);
+                _faceAnimator.SetBool(AnimatorBoolIsMovingBottom, false);
+                _faceAnimator.SetBool(AnimatorBoolIsMovingRight, false);
+
+                _faceAnimator.SetBool(AnimatorBoolIsMovingLeft, true);
                 break;
             case var d when d == Vector2Int.right:
-                localPos = new Vector3(_directOffset, 0f, 0f);
+                _animator.SetBool(AnimatorBoolIsMovingUp, false);
+                _animator.SetBool(AnimatorBoolIsMovingBottom, false);
+                _animator.SetBool(AnimatorBoolIsMovingLeft, false);
+
+                _animator.SetBool(AnimatorBoolIsMovingRight, true);
+
+                _faceAnimator.SetBool(AnimatorBoolIsMovingUp, false);
+                _faceAnimator.SetBool(AnimatorBoolIsMovingBottom, false);
+                _faceAnimator.SetBool(AnimatorBoolIsMovingLeft, false);
+
+                _faceAnimator.SetBool(AnimatorBoolIsMovingRight, true);
                 break;
         }
-
-        _directGameObject.transform.localPosition = localPos;
     }
 
     #endregion

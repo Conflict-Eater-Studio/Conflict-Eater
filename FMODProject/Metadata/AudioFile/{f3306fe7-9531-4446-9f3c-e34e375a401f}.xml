@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{f3306fe7-9531-4446-9f3c-e34e375a401f}">
+		<property name="assetPath">
+			<value>SFX/dream.mp3</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>48</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>10.007999999999999</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{65ffc2d6-4f3a-4193-897f-c8a79228b97b}</destination>
+		</relationship>
+	</object>
+</objects>

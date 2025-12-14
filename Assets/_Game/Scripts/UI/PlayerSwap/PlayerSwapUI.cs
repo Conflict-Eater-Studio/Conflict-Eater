@@ -1,4 +1,5 @@
 using System;
+using System.Data.Common;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -12,21 +13,13 @@ using UnityEngine.UI;
 public class PlayerSwapUI : MonoBehaviour
 {
     [Header("UI References - Fixed Player Positions")]
-    [Tooltip("Player 1's bar - always stays at top")]
+    [Tooltip("Light color indicator")]
     [SerializeField]
-    private RectTransform _player1Bar;
+    private Image _lightColorIndicator;
 
-    [Tooltip("Player 2's bar - always stays at bottom")]
+    [Tooltip("Shadow color indicator")]
     [SerializeField]
-    private RectTransform _player2Bar;
-
-    [Tooltip("Player 1's color indicator")]
-    [SerializeField]
-    private Image _player1ColorIndicator;
-
-    [Tooltip("Player 2's color indicator")]
-    [SerializeField]
-    private Image _player2ColorIndicator;
+    private Image _shadowColorIndicator;
 
     [Tooltip("Player 1's role text (Light/Shadow)")]
     [SerializeField]
@@ -38,9 +31,6 @@ public class PlayerSwapUI : MonoBehaviour
 
     [SerializeField]
     private CanvasGroup _canvasGroup;
-
-    [SerializeField]
-    private Image _flashOverlay;
 
     [Header("Animation Settings")]
     [SerializeField]
@@ -67,6 +57,19 @@ public class PlayerSwapUI : MonoBehaviour
     // Track current role assignment (true = Player1 is Light, false = Player1 is Shadow)
     private bool _player1IsLight = true;
 
+    /// <summary>
+    /// Gets whether Player 1 (index 0) currently has the Light role.
+    /// </summary>
+    public bool IsPlayer1Light => _player1IsLight;
+
+    /// <summary>
+    /// Gets the current role of Player 1 (index 0).
+    /// </summary>
+    public PlayerSpawner.PlayerRole GetPlayer1Role()
+    {
+        return _player1IsLight ? PlayerSpawner.PlayerRole.Light : PlayerSpawner.PlayerRole.Shadow;
+    }
+
     private void Awake()
     {
         if (_canvasGroup == null)
@@ -76,12 +79,6 @@ public class PlayerSwapUI : MonoBehaviour
             {
                 _canvasGroup = gameObject.AddComponent<CanvasGroup>();
             }
-        }
-
-        // Setup flash overlay
-        if (_flashOverlay != null)
-        {
-            _flashOverlay.color = new Color(1, 1, 1, 0);
         }
 
         // Start hidden
@@ -127,16 +124,31 @@ public class PlayerSwapUI : MonoBehaviour
     /// Shows the initial player/role assignment with fade in, holds for display duration, then fades out.
     /// Use onComplete callback to trigger match start after the display.
     /// </summary>
+    /// <param name="p1Role">The role that Player 1 (index 0) has selected</param>
     /// <param name="displayDuration">How long to display the role assignment before fading out</param>
     /// <param name="onComplete">Callback when the entire sequence (fade in, hold, fade out) completes</param>
-    public void ShowInitialAssignment(float displayDuration = 3f, Action onComplete = null)
+    public void ShowInitialAssignment(
+        PlayerSpawner.PlayerRole p1Role,
+        float displayDuration = 3f,
+        Action onComplete = null
+    )
     {
         _animationSequence?.Kill();
         gameObject.SetActive(true);
 
-        // Determine initial roles from PlayerManager
-        _player1IsLight = true;
-        UpdateBarsToCurrentState();
+        // Initialize role tracking based on Player 1's actual role
+        _player1IsLight = p1Role == PlayerSpawner.PlayerRole.Light;
+
+        _lightColorIndicator.transform.rotation = Quaternion.Euler(
+            0f,
+            0f,
+            _player1IsLight ? 0f : 180f
+        );
+        _shadowColorIndicator.transform.rotation = Quaternion.Euler(
+            0f,
+            0f,
+            _player1IsLight ? 180f : 0f
+        );
 
         // Create sequence: fade in -> hold -> fade out
         _animationSequence = DOTween.Sequence();
@@ -151,12 +163,7 @@ public class PlayerSwapUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Plays the complete player swap animation sequence:
-    /// 1. Role texts fly out to the sides and fade
-    /// 2. Role texts swap and fly back in from opposite sides
-    /// 3. Pulse bars
-    /// 4. Hold then fade out
-    /// 5. Trigger round countdown (if during gameplay)
+    /// Plays the complete player swap animation sequence
     /// </summary>
     public void PlaySwapAnimation()
     {
@@ -164,14 +171,14 @@ public class PlayerSwapUI : MonoBehaviour
         _animationSequence?.Kill();
 
         gameObject.SetActive(true);
-        _canvasGroup.alpha = 1f;
 
         // Swap the role state
         _player1IsLight = !_player1IsLight;
 
         _animationSequence = DOTween.Sequence();
-        _animationSequence.Append(AnimateRoleSwap());
-        _animationSequence.AppendInterval(_displayDuration);
+        _animationSequence.Append(_canvasGroup.DOFade(1f, _fadeInDuration));
+        _animationSequence.Append(RotateColorIndicators());
+        _animationSequence.AppendInterval(_roleSwapDuration);
         _animationSequence.Append(_canvasGroup.DOFade(0f, _fadeOutDuration));
 
         // Hide when done and trigger round countdown
@@ -188,103 +195,41 @@ public class PlayerSwapUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Animates the role texts swapping with dramatic fly-out and fly-in effect.
-    /// Texts fly out to opposite sides, swap content, then fly back in.
+    /// Animate 180 deg rotation of color indicators.
     /// </summary>
-    private Sequence AnimateRoleSwap()
+    private Sequence RotateColorIndicators()
     {
-        Sequence swapSeq = DOTween.Sequence();
+        Sequence s = DOTween.Sequence();
 
-        // Store original positions
-        Vector2 p1OriginalPos = _player1RoleText.rectTransform.anchoredPosition;
-        Vector2 p2OriginalPos = _player2RoleText.rectTransform.anchoredPosition;
-
-        // Player 1 text flies left
-        swapSeq.Join(
-            _player1RoleText
-                .rectTransform.DOAnchorPosX(
-                    p1OriginalPos.x - _textFlyoutDistance,
-                    _roleSwapDuration * 0.4f
+        s.Append(
+            _lightColorIndicator
+                .transform.DORotate(
+                    new Vector3(
+                        0f,
+                        0f,
+                        _lightColorIndicator.transform.rotation.eulerAngles.z + 180f
+                    ),
+                    _roleSwapDuration,
+                    RotateMode.FastBeyond360
                 )
-                .SetEase(Ease.InBack)
-        );
-        swapSeq.Join(_player1RoleText.DOFade(0f, _roleSwapDuration * 0.4f));
-
-        // Player 2 text flies right
-        swapSeq.Join(
-            _player2RoleText
-                .rectTransform.DOAnchorPosX(
-                    p2OriginalPos.x + _textFlyoutDistance,
-                    _roleSwapDuration * 0.4f
-                )
-                .SetEase(Ease.InBack)
-        );
-        swapSeq.Join(_player2RoleText.DOFade(0f, _roleSwapDuration * 0.4f));
-
-        // Swap the text content while invisible
-        swapSeq.AppendCallback(() =>
-        {
-            UpdateRoleTexts();
-        });
-
-        // Player 1 text flies in from right
-        _player1RoleText.rectTransform.anchoredPosition = new Vector2(
-            p1OriginalPos.x + _textFlyoutDistance,
-            p1OriginalPos.y
-        );
-        swapSeq.Append(
-            _player1RoleText
-                .rectTransform.DOAnchorPos(p1OriginalPos, _roleSwapDuration * 0.6f)
                 .SetEase(_roleSwapEase)
         );
-        swapSeq.Join(_player1RoleText.DOFade(1f, _roleSwapDuration * 0.6f));
 
-        // Player 2 text flies in from left
-        _player2RoleText.rectTransform.anchoredPosition = new Vector2(
-            p2OriginalPos.x - _textFlyoutDistance,
-            p2OriginalPos.y
-        );
-        swapSeq.Join(
-            _player2RoleText
-                .rectTransform.DOAnchorPos(p2OriginalPos, _roleSwapDuration * 0.6f)
+        s.Join(
+            _shadowColorIndicator
+                .transform.DORotate(
+                    new Vector3(
+                        0f,
+                        0f,
+                        _shadowColorIndicator.transform.rotation.eulerAngles.z + 180f
+                    ),
+                    _roleSwapDuration,
+                    RotateMode.FastBeyond360
+                )
                 .SetEase(_roleSwapEase)
         );
-        swapSeq.Join(_player2RoleText.DOFade(1f, _roleSwapDuration * 0.6f));
 
-        return swapSeq;
-    }
-
-    /// <summary>
-    /// Updates the bar colors (fixed per player) and role texts (based on current roles).
-    /// </summary>
-    private void UpdateBarsToCurrentState()
-    {
-        Debug.Log("Updating PlayerSwapUI bars to current state.");
-        Debug.Log("Player 1 Color: " + PlayerColorManager.Player1Color);
-        Debug.Log("Player 2 Color: " + PlayerColorManager.Player2Color);
-        if (_player1ColorIndicator != null)
-            _player1ColorIndicator.color = PlayerColor
-                .GetColor(PlayerColorManager.Player1Color)
-                .Color;
-
-        if (_player2ColorIndicator != null)
-            _player2ColorIndicator.color = PlayerColor
-                .GetColor(PlayerColorManager.Player2Color)
-                .Color;
-
-        UpdateRoleTexts();
-    }
-
-    /// <summary>
-    /// Updates role texts based on current _player1IsLight state.
-    /// </summary>
-    private void UpdateRoleTexts()
-    {
-        if (_player1RoleText != null)
-            _player1RoleText.text = _player1IsLight ? "LIGHT" : "SHADOW";
-
-        if (_player2RoleText != null)
-            _player2RoleText.text = _player1IsLight ? "SHADOW" : "LIGHT";
+        return s;
     }
 
     /// <summary>

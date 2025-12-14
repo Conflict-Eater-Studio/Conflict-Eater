@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 3764261226422265446}
   - component: {fileID: 4872231706367318677}
   - component: {fileID: 7473066534210367277}
+  - component: {fileID: 41609392263920116}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -81,6 +82,22 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: 44b41169-66a9-4d51-9f50-107b20b20b16
     m_ActionName: 'Gameplay/GhostSwitch[/DualSenseGamepadHID/buttonWest]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 9c122377-099a-428c-9550-26f75db5354a
+    m_ActionName: 'Gameplay/Pause[/XInputControllerWindows/start,/XInputControllerWindows1/start]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 4cad9a8a-0511-4c1e-9e09-48fa964db7f1
+    m_ActionName: 'Gameplay/PlayerSelect[/XInputControllerWindows/leftTrigger,/XInputControllerWindows1/leftTrigger,/XInputControllerWindows/rightTrigger,/XInputControllerWindows1/rightTrigger]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: c0933f50-ab5c-4757-936a-36724afa3797
+    m_ActionName: 'Gameplay/SwitchClyde[/XInputControllerWindows/leftShoulder,/XInputControllerWindows1/leftShoulder]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: eb4d716f-8bb9-41a6-bf93-4eb1fd59f282
+    m_ActionName: 'Gameplay/SwitchInky[/XInputControllerWindows/rightShoulder,/XInputControllerWindows1/rightShoulder]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Gameplay
@@ -101,6 +118,7 @@ MonoBehaviour:
   _speed: 20
   _centerThreshold: 0.06
   _snapSpeedMultiplier: 1.5
+  _animator: {fileID: 41609392263920116}
 --- !u!212 &3764261226422265446
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -146,7 +164,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1118452421
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 0
   m_Sprite: {fileID: -2311659948842064771, guid: b67c4f4991403ce49a90a503d66d63f1, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -222,3 +240,25 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
+--- !u!95 &41609392263920116
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4482556574938180535}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 8af526d7aba3d314f8039d07c07e9e5a, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

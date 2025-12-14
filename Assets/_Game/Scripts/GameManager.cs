@@ -10,6 +10,8 @@ using static GameScore;
 
 public class GameManager : Singleton<GameManager>
 {
+    [SerializeField] private GameObject _globalVolume;
+
     [SerializeField]
     public Match Timer;
 
@@ -64,6 +66,8 @@ public class GameManager : Singleton<GameManager>
         Timer.OnMatchEnd += OnMatchEnd;
 
         _endGamePanel.GetComponentInChildren<Button>().onClick.AddListener(BtnMainMenu);
+
+        _globalVolume.SetActive(true);
     }
 
     private void OnMatchEnd(object sender, EventArgs e)
