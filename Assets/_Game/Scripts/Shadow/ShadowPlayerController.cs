@@ -351,8 +351,8 @@ public class ShadowPlayerController : MonoBehaviour
         lr.sortingLayerName = "Player";
 
         lr.positionCount = 2;
-        lr.startWidth = 0.02f;
-        lr.endWidth = 0.02f;
+        lr.startWidth = 0.04f;
+        lr.endWidth = 0.04f;
         lr.numCapVertices = 0;
         lr.numCornerVertices = 0;
 
@@ -377,7 +377,7 @@ public class ShadowPlayerController : MonoBehaviour
         light2D.intensity = 12f;
         light2D.pointLightOuterRadius = 1f;
 
-        float duration = 0.25f;
+        float duration = 0.35f;
         float elapsed = 0f;
 
         while (elapsed < duration)
