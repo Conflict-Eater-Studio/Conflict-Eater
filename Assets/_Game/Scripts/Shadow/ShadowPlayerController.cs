@@ -377,7 +377,7 @@ public class ShadowPlayerController : MonoBehaviour
         light2D.intensity = 12f;
         light2D.pointLightOuterRadius = 1f;
 
-        float duration = 0.35f;
+        float duration = 0.25f;
         float elapsed = 0f;
 
         while (elapsed < duration)
