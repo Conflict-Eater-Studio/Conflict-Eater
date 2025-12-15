@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -20,6 +20,14 @@ public class ShadowIndicatorInitialState
     public Vector3 position;
 }
 
+[System.Serializable]
+public class ShadowIndicatorDebugInfo
+{
+    public int slotId;
+    public Color currentColor;
+}
+
+
 /// <summary>
 /// Handles the UI for switching between shadows (ghosts).
 /// Shows indicators for active and switchable shadows, and flashes buttons when a switch occurs.
@@ -40,7 +48,10 @@ public class ShadowSwitchUI : MonoBehaviour
     public Color inkyColor = Color.cyan;
     public Color clydeColor = new Color(1f, 0.7f, 0.3f);
 
-    private float _colorTolerance = 0.01f;
+    [Header("DEBUG")]
+    [SerializeField] private List<ShadowIndicatorDebugInfo> _debugIndicators;
+
+    private float _colorTolerance = 0.005f;
     #endregion
 
     #region Properties
@@ -89,6 +100,8 @@ public class ShadowSwitchUI : MonoBehaviour
     /// </summary>
     private void Update()
     {
+        UpdateDebugInfo();
+
         if (_isSubscribed) return;
 
         PlayerManager player = GameManager.Instance.PlayerManager;
@@ -108,9 +121,29 @@ public class ShadowSwitchUI : MonoBehaviour
         }
     }
 
+    private void UpdateDebugInfo()
+    {
+        if (_shadowIndicators == null) return;
+
+        if (_debugIndicators == null)
+            _debugIndicators = new List<ShadowIndicatorDebugInfo>();
+
+        _debugIndicators.Clear();
+
+        foreach (var slot in _shadowIndicators)
+        {
+            if (slot == null || slot.indicator == null) continue;
+
+            _debugIndicators.Add(new ShadowIndicatorDebugInfo
+            {
+                slotId = slot.id,
+                currentColor = slot.indicator.GetColor()
+            });
+        }
+    }
+
     private void PlayerController_OnActiveRandomSwitch()
     {
-        Debug.Log("CODFODKFPKDSOKFJKOSDLFK");
         Color rbSwitchColor = playerController.RBSwitchColor;
         Color lbSwitchColor = playerController.LBSwitchColor;
         Color aSwitchColor = playerController.ASwitchColor;
@@ -139,38 +172,59 @@ public class ShadowSwitchUI : MonoBehaviour
 
         if (lbSlot == null || aSlot == null || rbSlot == null)
         {
-            Debug.LogWarning("Nie znaleziono wszystkich slot�w kolor�w!");
+            Debug.LogWarning("Nie znaleziono wszystkich slotów kolorów!");
             return;
         }
 
-        AssignIndicatorToSlot(0, lbSlot.indicator);
-        AssignIndicatorToSlot(1, aSlot.indicator);
-        AssignIndicatorToSlot(2, rbSlot.indicator);
+        Debug.Log(
+            $"[RandomSwitch] Input colors → " +
+            $"LB: {ColorToString(lbSlot.indicator.GetColor())}, " +
+            $"A: {ColorToString(aSlot.indicator.GetColor())}, " +
+            $"RB: {ColorToString(rbSlot.indicator.GetColor())}"
+        );
+
+        ShadowIndicator lb = lbSlot.indicator;
+        ShadowIndicator a = aSlot.indicator;
+        ShadowIndicator rb = rbSlot.indicator;
+
+        GetSlotById(0).indicator = lb;
+        GetSlotById(1).indicator = a;
+        GetSlotById(2).indicator = rb;
+
+        SetIndicatorToSlotPosition(0);
+        SetIndicatorToSlotPosition(1);
+        SetIndicatorToSlotPosition(2);
+    }
+    private void SetIndicatorToSlotPosition(int slotId)
+    {
+        ShadowIndicatorSlot slot = GetSlotById(slotId);
+        if (slot == null || slot.indicator == null) return;
+
+        Vector3 targetPos = GetSlotPosition(slotId);
+
+        slot.indicator.transform.position = targetPos;
+    }
+
+    private Vector3 GetSlotPosition(int slotId)
+    {
+        ShadowIndicatorInitialState state =
+            _initialState.Find(s => s.slotId == slotId);
+
+        return state != null ? state.position : Vector3.zero;
+    }
+
+    private string ColorToString(Color c)
+    {
+        return $"RGBA({c.r:F2}, {c.g:F2}, {c.b:F2}, {c.a:F2})";
     }
 
     private bool ColorsEqual(Color a, Color b)
     {
-        return Mathf.Abs(a.r - b.r) <= _colorTolerance
-            && Mathf.Abs(a.g - b.g) <= _colorTolerance
-            && Mathf.Abs(a.b - b.b) <= _colorTolerance
-            && Mathf.Abs(a.a - b.a) <= _colorTolerance;
+        return Vector3.Distance(
+            new Vector3(a.r, a.g, a.b),
+            new Vector3(b.r, b.g, b.b)
+        ) <= _colorTolerance;
     }
-
-    private void AssignIndicatorToSlot(int slotId, ShadowIndicator indicator)
-    {
-        ShadowIndicatorSlot slot = GetSlotById(slotId);
-        if (slot == null) return;
-
-        slot.indicator = indicator;
-
-        ShadowIndicatorInitialState initial =
-            _initialState.Find(s => s.slotId == slotId);
-
-        if (initial == null) return;
-
-        indicator.transform.position = initial.position;
-    }
-
 
     #endregion
 
