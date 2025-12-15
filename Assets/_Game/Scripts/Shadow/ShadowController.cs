@@ -147,6 +147,19 @@ public class ShadowController : MonoBehaviour
         _shadowBehaviorCycle = GetComponent<ShadowBehaviorCycle>();
     }
 
+    private void Start()
+    {
+        GameManager.Instance.Timer.OnRoundEnd += Timer_OnRoundEnd;
+    }
+
+    private void Timer_OnRoundEnd(object sender, EventArgs e)
+    {
+        LightPlayerController lightPlayerController = GameManager.Instance.PlayerManager.
+            GetPlayerOfType(PlayerManager.PlayerType.Light).GetComponentInChildren<LightPlayerController>();
+
+        lightPlayerController.Movement.SetSpeed(lightPlayerController.Speed);
+    }
+
     void Update()
     {
         _currentState?.Update(this);
