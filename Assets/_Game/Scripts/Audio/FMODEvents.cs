@@ -31,6 +31,8 @@ public class FMODEvents : ScriptableObject
                 Debug.LogWarning($"[FMODEvents] SFX.PowerupPickup is not assigned in {name}");
             if (SFX.TimeDangerZone.IsNull)
                 Debug.LogWarning($"[FMODEvents] SFX.TimeDangerZone is not assigned in {name}");
+            if (SFX.EnemySwap.IsNull)
+                Debug.LogWarning($"[FMODEvents] SFX.TimeDangerZone is not assigned in {name}");
         }
 
         // Check BGM
@@ -55,6 +57,7 @@ namespace AudioEvents
         public EventReference LightPowerupPickup;
         public EventReference ShadowPowerupPickup;
         public EventReference TimeDangerZone;
+        public EventReference EnemySwap;
     }
 
     [System.Serializable]

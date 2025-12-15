@@ -34,6 +34,13 @@ MonoBehaviour:
         Data3: -1877252728
         Data4: -160276197
       Path: event:/SFX/Clock
+    EnemySwap:
+      Guid:
+        Data1: 2065288139
+        Data2: 1108095366
+        Data3: 1937007017
+        Data4: 1731565125
+      Path: event:/SFX/Swap
   Music:
     Music8Bit:
       Guid:

@@ -341,6 +341,8 @@ public class ShadowPlayerController : MonoBehaviour
     {
         _canSwitch = false;
 
+        AudioManager.Instance.PlayOneShot(AudioManager.Instance.FMODEvents.SFX.EnemySwap);
+
         bool isFrightened = GameManager.Instance.IsFrightenedShadowState;
 
         var old = _shadows[_activeShadowIndex].GetComponent<ShadowController>();
@@ -433,6 +435,8 @@ public class ShadowPlayerController : MonoBehaviour
     public IEnumerator SwitchShadowsRandomCoroutine()
     {
         _canSwitch = false;
+
+        AudioManager.Instance.PlayOneShot(AudioManager.Instance.FMODEvents.SFX.EnemySwap);
 
         bool isFrightened = GameManager.Instance.IsFrightenedShadowState;
 
