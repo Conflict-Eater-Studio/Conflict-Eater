@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
 
 [Serializable]
@@ -27,6 +28,9 @@ public enum LightPowerupType {
     SilentTreatment
 }
 public class PowerupCollision : MonoBehaviour {
+    [SerializeField] private GameObject cube;
+    [SerializeField] private Light2D _light;
+    [SerializeField] private ShadowController _shadowController;
     [SerializeField] private SpriteRenderer _spriteRenderer;
     [SerializeField] private LightPowerup lightPowerup;
     [SerializeField] private ShadowPowerup shadowPowerup;
@@ -97,10 +101,13 @@ public class PowerupCollision : MonoBehaviour {
     public void Enable() {
         _collected = false;
         _spriteRenderer.enabled = true;
-        
+        cube.SetActive(true);
+        _light.enabled = true;
     }
     public void Disable() {
         _collected = true;
         _spriteRenderer.enabled = false;
+        cube.SetActive(false);
+        _light.enabled = false;
     }
 }
