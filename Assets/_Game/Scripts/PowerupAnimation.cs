@@ -1,21 +1,36 @@
 using UnityEngine;
+using DG.Tweening;
 
 public class PowerupAnimation : MonoBehaviour
 {
-    [Header("Pulse Animation")]
-    [SerializeField] private float pulseSpeed = 3f;
-    [SerializeField] private float scaleAmount = 0.5f;
+    [Header("Rotation Settings")]
+    [SerializeField] private float rotationDuration = 0.3f;
+    [SerializeField] private float pauseDuration = 0.1f;
 
-    private Vector3 _baseScale;
-    void OnEnable() {
-        _baseScale = transform.localScale;
-    }
-    private void Update() {
-        if(gameObject.activeInHierarchy == false) return;
-        float t = (Mathf.Sin(Time.time * pulseSpeed) + 1f) * 0.5f;
-        float scaleMultiplier = Mathf.Lerp(1f - scaleAmount * 0.5f, 1f + scaleAmount * 0.5f, t);
+    private Sequence _rotationSequence;
 
-        transform.localScale = _baseScale * scaleMultiplier;
+    private void OnEnable()
+    {
+        StartRotation();
     }
 
+    private void OnDisable()
+    {
+        _rotationSequence?.Kill();
+    }
+
+    private void StartRotation()
+    {
+        _rotationSequence = DOTween.Sequence();
+
+        _rotationSequence
+            .Append(transform.DORotate(new Vector3(0, 90, 0), rotationDuration, RotateMode.LocalAxisAdd))
+            .AppendInterval(pauseDuration)
+        //    .Append(transform.DORotate(new Vector3(90, 0, 0), rotationDuration, RotateMode.LocalAxisAdd))
+          //  .AppendInterval(pauseDuration)
+            .Append(transform.DORotate(new Vector3(0, 90, 0), rotationDuration, RotateMode.LocalAxisAdd))
+            .AppendInterval(pauseDuration)
+            .SetLoops(-1)
+            .SetEase(Ease.Linear);
+    }
 }
