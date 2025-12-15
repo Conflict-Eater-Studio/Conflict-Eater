@@ -194,7 +194,7 @@ public class ShadowPlayerController : MonoBehaviour
 
         yield return new WaitUntil(() => _isRoundStarted);
 
-        controller.SetState(new ShadowExitBaseState());
+        controller.SetState(new ShadowActiveState());
 
         StartCoroutine(SpawnRemainingShadows());
     }
