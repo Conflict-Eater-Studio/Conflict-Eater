@@ -22,6 +22,7 @@ public class ShadowAppearanceManager : MonoBehaviour
 
     [Header("Active Colors")]
     [SerializeField] private GameObject _glow;
+    [SerializeField] private GameObject _showActive;
 
     [Header("Frightened Look")]
     public Color frightenedBlinkColor = Color.white;
