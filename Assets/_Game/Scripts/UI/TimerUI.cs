@@ -33,8 +33,10 @@ public class TimerUI : MonoBehaviour
     private float _matchDurationSeconds;
     private float _roundDurationSeconds;
     private bool _soundPlayed = false;
-
+    
+    private const string RoundProgressFormat = "ROUND {0} / {1}";
     private Match _timer;
+    private int _maxRounds;
     #endregion
 
     #region Unity Callbacks
@@ -139,15 +141,16 @@ public class TimerUI : MonoBehaviour
         _roundDurationSeconds = e.RoundDuration;
         _roundSlider.value = 1f;
         _roundSlider.fillRect.GetComponent<Image>().color = _timerDefaultColor;
-        _roundsLeft.text = e.MatchRounds.ToString();
+        _maxRounds = e.MatchRounds;
+        _roundsLeft.text = string.Format(RoundProgressFormat, e.CurrentRound, _maxRounds);
         _soundPlayed = false;
     }
 
-    private void TimerUI_OnRoundEnd(object sender, System.EventArgs e)
+    private void TimerUI_OnRoundEnd(object sender, OnRoundEndEventArgs e)
     {
         _roundSlider.value = 1f;
         _roundSlider.fillRect.GetComponent<Image>().color = _timerDefaultColor;
-        _roundsLeft.text = _timer.Rounds.ToString();
+        _roundsLeft.text = string.Format(RoundProgressFormat, e.CurrentRound, _maxRounds);
         _soundPlayed = false;
     }
 
