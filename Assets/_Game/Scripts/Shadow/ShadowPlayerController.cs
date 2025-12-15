@@ -25,6 +25,7 @@ public class ShadowPlayerController : MonoBehaviour
     private const string SwitchClydeActionName = "SwitchClyde";
     private const string SwitchInkyActionName = "SwitchInky";
     private const string PauseActionName = "Pause";
+    private const string ShowMyPlayerActionName = "ShowMyPlayer";
 
     private List<ShadowType> shadowTypes = new List<ShadowType>();
     private readonly List<GameObject> _shadows = new();
@@ -67,6 +68,8 @@ public class ShadowPlayerController : MonoBehaviour
 
             _playerInput.actions[SwitchClydeActionName].performed += OnLBSwitch;
             _playerInput.actions[SwitchInkyActionName].performed += OnRBSwitch;
+
+            _playerInput.actions[ShowMyPlayerActionName].performed += OnShowMyPlayer;
         }
 
         GameManager.Instance.Timer.OnRoundStart += Timer_OnRoundStart;
@@ -92,6 +95,8 @@ public class ShadowPlayerController : MonoBehaviour
 
             _playerInput.actions[SwitchClydeActionName].performed -= OnLBSwitch;
             _playerInput.actions[SwitchInkyActionName].performed -= OnRBSwitch;
+
+            _playerInput.actions[ShowMyPlayerActionName].performed -= OnShowMyPlayer;
         }
 
         if (GameManager.Instance != null)
@@ -157,6 +162,13 @@ public class ShadowPlayerController : MonoBehaviour
 
         _aSwitchColor = pomRB;
         _rbSwitchColor = pomA;
+    }
+
+    private void OnShowMyPlayer(InputAction.CallbackContext context)
+    {
+        ShadowAppearanceManager shadowAppearanceManager = _shadows[_activeShadowIndex].GetComponent<ShadowAppearanceManager>();
+
+        shadowAppearanceManager.FlashLight();
     }
     #endregion
 

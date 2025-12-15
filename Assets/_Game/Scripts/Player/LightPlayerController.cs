@@ -1,22 +1,20 @@
 using System;
-using System.Data;
-using Unity.VisualScripting;
-using UnityEditor.EditorTools;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
+using System.Collections;
+using UnityEngine.Rendering.Universal;
 
 public class LightPlayerController : MonoBehaviour
 {
     private const string MoveActionName = "Move";
     private const string PauseActionName = "Pause";
+    private const string ShowMyPlayerActionName = "ShowMyPlayer";
 
     private Rigidbody2D _rb;
     private Vector2 _moveInput;
     private Movement _movement;
     private PlayerInput _playerInput;
+    private Light2D _activeLight;
     public Movement Movement => _movement;
 
     [Tooltip("Movement speed in units per second")]
@@ -38,7 +36,7 @@ public class LightPlayerController : MonoBehaviour
     private const string AnimatorBoolIsMovingUp = "IsMovingUp";
     private const string AnimatorBoolIsMovingRight = "IsMovingRight";
     private const string AnimatorBoolIsMovingLeft = "IsMovingLeft";
-
+   
     public float Speed => _speed;
 
     private Grid _grid;
@@ -73,6 +71,8 @@ public class LightPlayerController : MonoBehaviour
 
             InputAction pauseAction = _playerInput.actions[PauseActionName];
             pauseAction.performed += OnPause;
+
+            _playerInput.actions[ShowMyPlayerActionName].performed += OnShowMyPlayer;
         }
 
         if (GameManager.Instance)
@@ -170,6 +170,8 @@ public class LightPlayerController : MonoBehaviour
         {
             var moveAction = _playerInput.actions[MoveActionName];
             moveAction.performed -= OnMove;
+
+            _playerInput.actions[ShowMyPlayerActionName].performed -= OnShowMyPlayer;
         }
 
         if (GameManager.Instance)
@@ -217,5 +219,46 @@ public class LightPlayerController : MonoBehaviour
                 _animator.SetBool(AnimatorBoolIsMovingRight, true);
                 break;
         }
+    }
+
+    public void FlashLight(float maxIntensity = 4f, float duration = 0.25f)
+    {
+        if (_activeLight == null) return;
+        StopAllCoroutines();
+        StartCoroutine(FlashLightCoroutine(maxIntensity, duration));
+    }
+
+    private IEnumerator FlashLightCoroutine(float maxIntensity, float duration)
+    {
+        float halfDuration = duration / 2f;
+        float elapsed = 0f;
+
+        while (elapsed < halfDuration)
+        {
+            elapsed += Time.deltaTime;
+            _activeLight.intensity = Mathf.Lerp(0f, maxIntensity, elapsed / halfDuration);
+            yield return null;
+        }
+
+        elapsed = 0f;
+
+        while (elapsed < halfDuration)
+        {
+            elapsed += Time.deltaTime;
+            _activeLight.intensity = Mathf.Lerp(maxIntensity, 0f, elapsed / halfDuration);
+            yield return null;
+        }
+
+        _activeLight.intensity = 0f;
+    }
+
+    public void SetActiveLight(Light2D light)
+    {
+        _activeLight = light;
+    }
+
+    private void OnShowMyPlayer(InputAction.CallbackContext context)
+    {
+        FlashLight();
     }
 }

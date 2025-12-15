@@ -5,6 +5,7 @@ using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
+using UnityEngine.Rendering.Universal;
 
 public class PlayerSpawner : MonoBehaviour
 {
@@ -44,8 +45,8 @@ public class PlayerSpawner : MonoBehaviour
     private Grid _grid;
 
     [Header("Prefabs & Positions")]
-    [SerializeField]
-    private GameObject _ghostPrefab;
+    [SerializeField] private GameObject _ghostPrefab;
+    [SerializeField] private GameObject _showLightPlayerPrefab;
 
     [SerializeField]
     private AnimatorController animationController;
@@ -397,6 +398,14 @@ public class PlayerSpawner : MonoBehaviour
         child.AddComponent<LightPlayerController>();
         var collider = child.AddComponent<CircleCollider2D>();
         collider.radius = 0.45f;
+
+        if (_showLightPlayerPrefab != null)
+        {
+            GameObject lightPrefabChild = Instantiate(_showLightPlayerPrefab, child.transform);
+            lightPrefabChild.name = _showLightPlayerPrefab.name;
+
+            child.GetComponent<LightPlayerController>().SetActiveLight(lightPrefabChild.GetComponent<Light2D>());
+        }
 
         GameManager.Instance.PlayerManager.AddPlayer(
             input.gameObject,

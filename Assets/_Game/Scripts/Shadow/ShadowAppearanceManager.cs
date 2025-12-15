@@ -1,6 +1,7 @@
-using UnityEngine;
-using System.Collections;
 using DG.Tweening;
+using System.Collections;
+using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
 /// <summary>
 /// Manages visual appearance of a shadow/ghost character in Unity.
@@ -34,6 +35,8 @@ public class ShadowAppearanceManager : MonoBehaviour
     private ShadowController controller;
     private Coroutine blinkRoutine;
 
+    private Light2D activeLight;
+   
     public Color colorBeforeFrightened = Color.white;
 
     public enum VisualState
@@ -52,6 +55,9 @@ public class ShadowAppearanceManager : MonoBehaviour
     private void Awake()
     {
         controller = GetComponent<ShadowController>();
+
+        if (_showActive != null)
+            activeLight = _showActive.GetComponent<Light2D>();
     }
     #endregion
 
@@ -217,4 +223,35 @@ public class ShadowAppearanceManager : MonoBehaviour
         }
     }
     #endregion
+
+    public void FlashLight(float maxIntensity = 4f, float duration = 0.25f)
+    {
+        if (activeLight == null) return;
+        StopAllCoroutines(); 
+        StartCoroutine(FlashLightCoroutine(maxIntensity, duration));
+    }
+
+    private IEnumerator FlashLightCoroutine(float maxIntensity, float duration)
+    {
+        float halfDuration = duration / 2f;
+        float elapsed = 0f;
+
+        while (elapsed < halfDuration)
+        {
+            elapsed += Time.deltaTime;
+            activeLight.intensity = Mathf.Lerp(0f, maxIntensity, elapsed / halfDuration);
+            yield return null;
+        }
+
+        elapsed = 0f;
+
+        while (elapsed < halfDuration)
+        {
+            elapsed += Time.deltaTime;
+            activeLight.intensity = Mathf.Lerp(maxIntensity, 0f, elapsed / halfDuration);
+            yield return null;
+        }
+
+        activeLight.intensity = 0f;
+    }
 }
