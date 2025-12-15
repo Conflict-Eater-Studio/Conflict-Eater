@@ -36,11 +36,16 @@ public class ShadowPlayerController : MonoBehaviour
     [SerializeField] private Color _rbSwitchColor;
     [SerializeField] private Color _lbSwitchColor;
     [SerializeField] private Color _aSwitchColor;
+
+    public Color RBSwitchColor => _rbSwitchColor;
+    public Color LBSwitchColor => _lbSwitchColor;
+    public Color ASwitchColor => _aSwitchColor;
     #endregion
 
     #region Events
     public event System.Action OnLBSwitchEvent;
     public event System.Action OnRBSwitchEvent;
+    public event System.Action OnActiveRandomSwitch;
     #endregion
 
     #region Public Fields
@@ -466,7 +471,22 @@ public class ShadowPlayerController : MonoBehaviour
             newController.GetComponent<ShadowAppearanceManager>();
         shadowAppearanceManager.SetActive();
 
-        yield return new WaitForSeconds(0.3f);
+        if(shadowAppearanceManager.GetCurrentColor() == _rbSwitchColor)
+        {
+            Color pom = _aSwitchColor;
+
+            _aSwitchColor = shadowAppearanceManager.GetCurrentColor();
+            _rbSwitchColor = pom;
+        } else if(shadowAppearanceManager.GetCurrentColor() == _lbSwitchColor)
+        {
+            Color pom = _aSwitchColor;
+
+            _aSwitchColor = shadowAppearanceManager.GetCurrentColor();
+            _lbSwitchColor = pom;
+        }
+        OnActiveRandomSwitch.Invoke();
+
+            yield return new WaitForSeconds(0.3f);
         _canSwitch = true;
     }
 

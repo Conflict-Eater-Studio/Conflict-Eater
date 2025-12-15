@@ -3,12 +3,21 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using DG.Tweening;
+using UnityEngine.UI;
 
 [System.Serializable]
 public class ShadowIndicatorSlot
 {
     public int id;
     public ShadowIndicator indicator;
+}
+
+[System.Serializable]
+public class ShadowIndicatorInitialState
+{
+    public int slotId;
+    public ShadowIndicator indicator;
+    public Vector3 position;
 }
 
 /// <summary>
@@ -20,6 +29,7 @@ public class ShadowSwitchUI : MonoBehaviour
     #region Inspector Fields
     [Header("UI Indicators")]
     [SerializeField] private List<ShadowIndicatorSlot> _shadowIndicators;
+    private List<ShadowIndicatorInitialState> _initialState;
 
     [Header("UI Controlers")]
     [SerializeField] private GameObject _l1;
@@ -29,6 +39,8 @@ public class ShadowSwitchUI : MonoBehaviour
     public Color blinkyColor = Color.red;
     public Color inkyColor = Color.cyan;
     public Color clydeColor = new Color(1f, 0.7f, 0.3f);
+
+    private float _colorTolerance = 0.01f;
     #endregion
 
     #region Properties
@@ -36,9 +48,42 @@ public class ShadowSwitchUI : MonoBehaviour
     private PlayerInput _playerInput;
     private const string SwitchClydeActionName = "SwitchClyde";
     private const string SwitchInkyActionName = "SwitchInky";
+    private ShadowPlayerController playerController;
     #endregion
 
     #region Unity Lifecycle
+    private void Awake()
+    {
+        CacheInitialState();
+    }
+
+    private void Start()
+    {
+        GameManager.Instance.Timer.OnRoundEnd += Timer_OnRoundEnd;
+    }
+
+    private void Timer_OnRoundEnd(object sender, System.EventArgs e)
+    {
+        ResetIndicators();
+    }
+
+    private void CacheInitialState()
+    {
+        _initialState = new List<ShadowIndicatorInitialState>();
+
+        foreach (var slot in _shadowIndicators)
+        {
+            if (slot.indicator == null) continue;
+
+            _initialState.Add(new ShadowIndicatorInitialState
+            {
+                slotId = slot.id,
+                indicator = slot.indicator,
+                position = slot.indicator.transform.position
+            });
+        }
+    }
+
     /// <summary>
     /// Per-frame check: subscribes to shadow events once the ShadowPlayerController is available.
     /// </summary>
@@ -55,10 +100,77 @@ public class ShadowSwitchUI : MonoBehaviour
         {
             _isSubscribed = true;
 
+            this.playerController = playerController;
             playerController.OnLBSwitchEvent += OnLBSwitch;
             playerController.OnRBSwitchEvent += OnRBSwitch;
+
+            playerController.OnActiveRandomSwitch += PlayerController_OnActiveRandomSwitch;
         }
     }
+
+    private void PlayerController_OnActiveRandomSwitch()
+    {
+        Debug.Log("CODFODKFPKDSOKFJKOSDLFK");
+        Color rbSwitchColor = playerController.RBSwitchColor;
+        Color lbSwitchColor = playerController.LBSwitchColor;
+        Color aSwitchColor = playerController.ASwitchColor;
+
+        ShadowIndicatorSlot lbSlot = null;
+        ShadowIndicatorSlot aSlot = null;
+        ShadowIndicatorSlot rbSlot = null;
+
+        foreach (var slot in _shadowIndicators)
+        {
+            Color indicatorColor = slot.indicator.GetColor();
+
+            if (ColorsEqual(indicatorColor, lbSwitchColor))
+            {
+                lbSlot = slot;
+            }
+            else if (ColorsEqual(indicatorColor, aSwitchColor))
+            {
+                aSlot = slot;
+            }
+            else if (ColorsEqual(indicatorColor, rbSwitchColor))
+            {
+                rbSlot = slot;
+            }
+        }
+
+        if (lbSlot == null || aSlot == null || rbSlot == null)
+        {
+            Debug.LogWarning("Nie znaleziono wszystkich slotów kolorów!");
+            return;
+        }
+
+        AssignIndicatorToSlot(0, lbSlot.indicator);
+        AssignIndicatorToSlot(1, aSlot.indicator);
+        AssignIndicatorToSlot(2, rbSlot.indicator);
+    }
+
+    private bool ColorsEqual(Color a, Color b)
+    {
+        return Mathf.Abs(a.r - b.r) <= _colorTolerance
+            && Mathf.Abs(a.g - b.g) <= _colorTolerance
+            && Mathf.Abs(a.b - b.b) <= _colorTolerance
+            && Mathf.Abs(a.a - b.a) <= _colorTolerance;
+    }
+
+    private void AssignIndicatorToSlot(int slotId, ShadowIndicator indicator)
+    {
+        ShadowIndicatorSlot slot = GetSlotById(slotId);
+        if (slot == null) return;
+
+        slot.indicator = indicator;
+
+        ShadowIndicatorInitialState initial =
+            _initialState.Find(s => s.slotId == slotId);
+
+        if (initial == null) return;
+
+        indicator.transform.position = initial.position;
+    }
+
 
     #endregion
 
@@ -131,4 +243,36 @@ public class ShadowSwitchUI : MonoBehaviour
     {
         return _shadowIndicators.Find(s => s.id == id);
     }
+
+    public void ResetIndicators()
+    {
+        if (_initialState == null || _initialState.Count == 0) return;
+
+        float duration = 0.25f;
+
+        foreach (var state in _initialState)
+        {
+            ShadowIndicatorSlot slot = GetSlotById(state.slotId);
+            if (slot == null) continue;
+
+            slot.indicator = state.indicator;
+
+            state.indicator.transform.DOKill();
+            state.indicator.transform.DOMove(state.position, duration)
+                .SetEase(Ease.OutCubic);
+        }
+    }
+
+    public void ResetIndicatorsInstant()
+    {
+        foreach (var state in _initialState)
+        {
+            ShadowIndicatorSlot slot = GetSlotById(state.slotId);
+            if (slot == null) continue;
+
+            slot.indicator = state.indicator;
+            state.indicator.transform.position = state.position;
+        }
+    }
+
 }
