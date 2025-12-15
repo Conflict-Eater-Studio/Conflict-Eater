@@ -22,11 +22,11 @@ MonoBehaviour:
       Path: event:/SFX/Pickup
     ShadowPowerupPickup:
       Guid:
-        Data1: 1157994065
-        Data2: 1332330553
-        Data3: -1896874829
-        Data4: -1819376328
-      Path: event:/SFX/Pickup 2
+        Data1: -77682939
+        Data2: 1202461994
+        Data3: -1179800169
+        Data4: -637923603
+      Path: event:/SFX/Pickup
     TimeDangerZone:
       Guid:
         Data1: -1062654896

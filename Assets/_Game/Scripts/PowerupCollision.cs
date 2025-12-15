@@ -56,8 +56,11 @@ public class PowerupCollision : MonoBehaviour {
             if (controller.CurrentState is not ShadowActiveState) return;
             HandleShadowPowerup(controller);
             Disable();
-            _particleSystem.Emit(50);
-            AudioManager.Instance.PlaySound(AudioManager.Instance.FMODEvents.SFX.ShadowPowerupPickup);
+            SpeedParticleSystem ps = other.GetComponent<SpeedParticleSystem>();
+            if (ps != null) {
+                ps.PlayFor(shadowPowerup._duration);
+            }
+                AudioManager.Instance.PlaySound(AudioManager.Instance.FMODEvents.SFX.ShadowPowerupPickup);
 
         }
     }
@@ -90,12 +93,10 @@ public class PowerupCollision : MonoBehaviour {
 
     private IEnumerator BoostShadowSpeed(ShadowController controller) {
         controller.Movement.SetSpeed(speedBoost);
-        Debug.Log("Shadow speed boosted to " + speedBoost);
         yield return new WaitForSeconds(shadowPowerup._duration);
 
         if (controller != null && controller.CurrentState is ShadowActiveState) {
             controller.Movement.ResetSpeed();
-            Debug.Log("Shadow speed boosted");
         }
     }
     public void Enable() {
