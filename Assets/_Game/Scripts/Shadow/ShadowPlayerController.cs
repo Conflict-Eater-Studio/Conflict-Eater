@@ -500,9 +500,10 @@ public class ShadowPlayerController : MonoBehaviour
             _aSwitchColor = shadowAppearanceManager.GetCurrentColor();
             _lbSwitchColor = pom;
         }
-        OnActiveRandomSwitch.Invoke();
 
-            yield return new WaitForSeconds(0.3f);
+        OnActiveRandomSwitch?.Invoke();
+
+        yield return new WaitForSeconds(0.3f);
         _canSwitch = true;
     }
 

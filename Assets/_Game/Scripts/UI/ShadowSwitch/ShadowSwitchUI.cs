@@ -112,7 +112,7 @@ public class ShadowSwitchUI : MonoBehaviour
             playerController.OnLBSwitchEvent += OnLBSwitch;
             playerController.OnRBSwitchEvent += OnRBSwitch;
 
-            //playerController.OnActiveRandomSwitch += PlayerController_OnActiveRandomSwitch;
+            playerController.OnActiveRandomSwitch += PlayerController_OnActiveRandomSwitch;
         }
     }
 
