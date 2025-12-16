@@ -43,11 +43,6 @@ public class ShadowSwitchUI : MonoBehaviour
     [SerializeField] private GameObject _l1;
     [SerializeField] private GameObject _r1;
 
-    [Header("Colors")]
-    public Color blinkyColor = Color.red;
-    public Color inkyColor = Color.cyan;
-    public Color clydeColor = new Color(1f, 0.7f, 0.3f);
-
     [Header("DEBUG")]
     [SerializeField] private List<ShadowIndicatorDebugInfo> _debugIndicators;
 
@@ -117,7 +112,7 @@ public class ShadowSwitchUI : MonoBehaviour
             playerController.OnLBSwitchEvent += OnLBSwitch;
             playerController.OnRBSwitchEvent += OnRBSwitch;
 
-            playerController.OnActiveRandomSwitch += PlayerController_OnActiveRandomSwitch;
+            //playerController.OnActiveRandomSwitch += PlayerController_OnActiveRandomSwitch;
         }
     }
 
@@ -154,6 +149,8 @@ public class ShadowSwitchUI : MonoBehaviour
 
         foreach (var slot in _shadowIndicators)
         {
+            if (slot?.indicator == null) continue;
+
             Color indicatorColor = slot.indicator.GetColor();
 
             if (ColorsEqual(indicatorColor, lbSwitchColor))
@@ -286,6 +283,11 @@ public class ShadowSwitchUI : MonoBehaviour
 
     private IEnumerator SwapAfterDelay(ShadowIndicatorSlot active, ShadowIndicatorSlot target, float delay)
     {
+        if (active.indicator == null || target.indicator == null)
+        {
+            yield break;
+        }
+
         yield return new WaitForSeconds(delay);
 
         ShadowIndicator temp = active.indicator;
