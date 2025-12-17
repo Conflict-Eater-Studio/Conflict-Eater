@@ -26,6 +26,8 @@ public class Match : MonoBehaviour
     [Tooltip("Round in single match")]
     [SerializeField][Range(1, 10)]
     private int _rounds = 3;
+    
+    private int _currentRound;
     #endregion
 
     #region Events
@@ -34,14 +36,13 @@ public class Match : MonoBehaviour
     public event EventHandler OnMatchEnd;
     public event EventHandler OnMatchPause;
     public event EventHandler OnMatchResume;
-    public event EventHandler OnRoundEnd;
+    public event EventHandler<OnRoundEndEventArgs> OnRoundEnd;
     public event EventHandler OnRoundStart;
 
     #endregion
 
     #region Private Fields
 
-    public int Rounds { get; private set; }
     public float CountdownRemaining { get; private set; }
     public float MatchTime { get; private set; }
     public float RoundTime { get; private set; }
@@ -57,7 +58,7 @@ public class Match : MonoBehaviour
             return;
 
         RoundTime += Time.deltaTime;
-        if (Rounds <= 0) {
+        if (_currentRound > 10) {
             EndMatch();
         }
         if (RoundTime >= _roundDurationSeconds)
@@ -72,7 +73,7 @@ public class Match : MonoBehaviour
 
     public void StartMatch()
     {
-        Rounds = _rounds;
+        _currentRound = 1;
         if (IsGameRunning)
             return;
         StartCoroutine(StartMatchCountdown(_matchCountdown));
@@ -117,14 +118,14 @@ public class Match : MonoBehaviour
     public void EndRound()
     {
         RoundTime = 0;
-        Rounds--;
+        _currentRound++;
         Pause();
-        if (Rounds <= 0) {
+        if (_currentRound > 10) {
             EndMatch();
 
             return;
         }
-        OnRoundEnd?.Invoke(this, EventArgs.Empty);
+        OnRoundEnd?.Invoke(this, new OnRoundEndEventArgs(_currentRound));
     }
 
     /// <summary>
@@ -178,14 +179,22 @@ public class Match : MonoBehaviour
 
 public class OnMatchStartEventArgs : EventArgs
 {
-    public OnMatchStartEventArgs(int matchRounds, float roundDuration)
+    public OnMatchStartEventArgs(int matchRounds, float roundDuration, int currentRound = 1)
     {
         MatchRounds = matchRounds;
+        CurrentRound = currentRound;
         RoundDuration = roundDuration;
     }
-
+    
+    public readonly int CurrentRound;
     public readonly int MatchRounds;
     public readonly float RoundDuration;
 }
 
+public class OnRoundEndEventArgs : EventArgs {
+    public OnRoundEndEventArgs(int currentRound) {
+        CurrentRound = currentRound;
+    }
+    public readonly int CurrentRound;
+}
 #endregion
