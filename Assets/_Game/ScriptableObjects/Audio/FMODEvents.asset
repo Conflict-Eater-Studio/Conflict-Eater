@@ -41,6 +41,13 @@ MonoBehaviour:
         Data3: 1937007017
         Data4: 1731565125
       Path: event:/SFX/Swap
+    ScoreBeep:
+      Guid:
+        Data1: -418134361
+        Data2: 1233956793
+        Data3: 1524126865
+        Data4: -1079670423
+      Path: event:/SFX/ScoreBeep
   Music:
     Music8Bit:
       Guid:

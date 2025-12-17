@@ -51,6 +51,13 @@ public class PlayerSwapUI : MonoBehaviour
     [SerializeField]
     private Ease _roleSwapEase = Ease.OutBack;
 
+    [Header("Score display")]
+    [SerializeField]
+    private TextMeshProUGUI _p1ScoreText;
+
+    [SerializeField]
+    private TextMeshProUGUI _p2ScoreText;
+
     private PlayerManager _playerManager;
     private Sequence _animationSequence;
 
@@ -136,6 +143,9 @@ public class PlayerSwapUI : MonoBehaviour
         _animationSequence?.Kill();
         gameObject.SetActive(true);
 
+        _p1ScoreText.text = FormatScoreText(GameScore.PlayerType.P1);
+        _p2ScoreText.text = FormatScoreText(GameScore.PlayerType.P2);
+
         // Initialize role tracking based on Player 1's actual role
         _player1IsLight = p1Role == PlayerSpawner.PlayerRole.Light;
 
@@ -162,6 +172,74 @@ public class PlayerSwapUI : MonoBehaviour
         });
     }
 
+    private string FormatScoreText(GameScore.PlayerType playerType)
+    {
+        if (playerType == GameScore.PlayerType.P1)
+        {
+            return $"Score: {GameManager.Instance?.Score.P1Score}";
+        }
+        else if (playerType == GameScore.PlayerType.P2)
+        {
+            return $"Score: {GameManager.Instance?.Score.P2Score}";
+        }
+        else
+        {
+            return "Score: 0";
+        }
+    }
+
+    private Tweener TweenScore(GameScore.PlayerType playerType)
+    {
+        int scoreOld = 0;
+        int scoreAdd = 0;
+
+        if (playerType == GameScore.PlayerType.P1 && GameManager.Instance?.Score != null)
+        {
+            scoreOld =
+                GameManager.Instance.Score.P1Score - GameManager.Instance.Score.P1ScoreThisRound;
+            scoreAdd = GameManager.Instance.Score.P1ScoreThisRound;
+        }
+        else if (playerType == GameScore.PlayerType.P2 && GameManager.Instance?.Score != null)
+        {
+            scoreOld =
+                GameManager.Instance.Score.P2Score - GameManager.Instance.Score.P2ScoreThisRound;
+            scoreAdd = GameManager.Instance.Score.P2ScoreThisRound;
+        }
+
+        float displayScore = scoreOld;
+
+        return DOTween
+            .To(x => displayScore = x, scoreOld, scoreOld + scoreAdd, 2f)
+            .SetEase(Ease.InOutSine)
+            .OnUpdate(() =>
+            {
+                string newText = $"Score: {Mathf.FloorToInt(displayScore)} (+{scoreAdd})";
+
+                if (
+                    newText
+                    != (
+                        playerType == GameScore.PlayerType.P1
+                            ? _p1ScoreText.text
+                            : _p2ScoreText.text
+                    )
+                )
+                {
+                    if (playerType == GameScore.PlayerType.P1)
+                    {
+                        _p1ScoreText.text = newText;
+                    }
+                    else if (playerType == GameScore.PlayerType.P2)
+                    {
+                        _p2ScoreText.text = newText;
+                    }
+
+                    AudioManager.Instance?.PlayOneShot(
+                        AudioManager.Instance.FMODEvents.SFX.ScoreBeep
+                    );
+                }
+            });
+    }
+
     /// <summary>
     /// Plays the complete player swap animation sequence
     /// </summary>
@@ -177,6 +255,8 @@ public class PlayerSwapUI : MonoBehaviour
 
         _animationSequence = DOTween.Sequence();
         _animationSequence.Append(_canvasGroup.DOFade(1f, _fadeInDuration));
+        _animationSequence.Append(TweenScore(GameScore.PlayerType.P1));
+        _animationSequence.Join(TweenScore(GameScore.PlayerType.P2));
         _animationSequence.Append(RotateColorIndicators());
         _animationSequence.AppendInterval(_roleSwapDuration);
         _animationSequence.Append(_canvasGroup.DOFade(0f, _fadeOutDuration));

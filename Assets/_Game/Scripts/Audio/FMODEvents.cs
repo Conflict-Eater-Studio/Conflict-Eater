@@ -24,7 +24,8 @@ public class FMODEvents : ScriptableObject
     private void ValidateEventReferences()
     {
         // Check SFX
-        if (SFX != null) {
+        if (SFX != null)
+        {
             if (SFX.LightPowerupPickup.IsNull)
                 Debug.LogWarning($"[FMODEvents] SFX.PowerupPickup is not assigned in {name}");
             if (SFX.ShadowPowerupPickup.IsNull)
@@ -33,6 +34,8 @@ public class FMODEvents : ScriptableObject
                 Debug.LogWarning($"[FMODEvents] SFX.TimeDangerZone is not assigned in {name}");
             if (SFX.EnemySwap.IsNull)
                 Debug.LogWarning($"[FMODEvents] SFX.TimeDangerZone is not assigned in {name}");
+            if (SFX.ScoreBeep.IsNull)
+                Debug.LogWarning($"[FMODEvents] SFX.ScoreBeep is not assigned in {name}");
         }
 
         // Check BGM
@@ -53,11 +56,13 @@ public class FMODEvents : ScriptableObject
 namespace AudioEvents
 {
     [System.Serializable]
-    public class SFX {
+    public class SFX
+    {
         public EventReference LightPowerupPickup;
         public EventReference ShadowPowerupPickup;
         public EventReference TimeDangerZone;
         public EventReference EnemySwap;
+        public EventReference ScoreBeep;
     }
 
     [System.Serializable]
