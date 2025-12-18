@@ -53,6 +53,10 @@ public class ShadowPlayerController : MonoBehaviour
     public IReadOnlyList<GameObject> Shadows => _shadows;
     #endregion
 
+    #region VFX Cleanup
+    private readonly List<GameObject> _roundVfxObjects = new();
+    #endregion
+
     #region Unity Lifecycle
     /// <summary>
     /// Initializes player input, subscribes to timer events, and starts spawning shadows.
@@ -377,6 +381,7 @@ public class ShadowPlayerController : MonoBehaviour
     private IEnumerator PlaySwitchLaser(ShadowController from, ShadowController to)
     {
         GameObject laserObj = new GameObject("SwitchLaser");
+        _roundVfxObjects.Add(laserObj);
         laserObj.transform.position = from.transform.position;
         LineRenderer lr = laserObj.AddComponent<LineRenderer>();
         lr.sortingLayerName = "Player";
@@ -401,6 +406,7 @@ public class ShadowPlayerController : MonoBehaviour
         Vector3 endPos = to.transform.position;
 
         GameObject lightObj = new GameObject("Laser2DLight");
+        _roundVfxObjects.Add(lightObj);
         lightObj.transform.position = startPos;
         Light2D light2D = lightObj.AddComponent<Light2D>();
         light2D.lightType = Light2D.LightType.Point;
@@ -436,9 +442,19 @@ public class ShadowPlayerController : MonoBehaviour
 
         yield return new WaitForSeconds(0.05f);
 
-        Destroy(laserObj);
-        Destroy(lightObj);
+        CleanupVfxObject(laserObj);
+        CleanupVfxObject(lightObj);
     }
+
+    private void CleanupVfxObject(GameObject obj)
+    {
+        if (obj == null)
+            return;
+
+        _roundVfxObjects.Remove(obj);
+        Destroy(obj);
+    }
+
 
     /// <summary>
     /// Randomly switches control to another shadow. Ensures it is not the current active shadow
@@ -521,6 +537,14 @@ public class ShadowPlayerController : MonoBehaviour
         _canSwitch = true;
         _isRoundStarted = false;
         GameManager.Instance.IsFrightenedShadowState = false;
+
+        foreach (var vfx in _roundVfxObjects)
+        {
+            if (vfx != null)
+                Destroy(vfx);
+        }
+
+        _roundVfxObjects.Clear();
 
         foreach (var ghost in _shadows)
         {
