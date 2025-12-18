@@ -13,6 +13,8 @@ public class GameScore
     private PlayerType _activePlayer = PlayerType.P1;
     private int _p1Score = 0;
     private int _p2Score = 0;
+    private int _p1ScoreThisRound = 0;
+    private int _p2ScoreThisRound = 0;
 
     public int P1Score
     {
@@ -21,6 +23,14 @@ public class GameScore
     public int P2Score
     {
         get { return _p2Score; }
+    }
+    public int P1ScoreThisRound
+    {
+        get { return _p1ScoreThisRound; }
+    }
+    public int P2ScoreThisRound
+    {
+        get { return _p2ScoreThisRound; }
     }
     public PlayerType ActivePlayer
     {
@@ -37,22 +47,32 @@ public class GameScore
         if (_activePlayer == PlayerType.P1)
         {
             _p1Score++;
+            _p1ScoreThisRound++;
         }
         else
         {
             _p2Score++;
+            _p2ScoreThisRound++;
         }
     }
 
-    public void AddScoreToActive(int  score)
+    public void ResetScoreThisRound()
+    {
+        _p1ScoreThisRound = 0;
+        _p2ScoreThisRound = 0;
+    }
+
+    public void AddScoreToActive(int score)
     {
         if (_activePlayer == PlayerType.P1)
         {
-            _p1Score+=score;
+            _p1Score += score;
+            _p1ScoreThisRound += score;
         }
         else
         {
-            _p2Score+=score;
+            _p2Score += score;
+            _p2ScoreThisRound += score;
         }
     }
 

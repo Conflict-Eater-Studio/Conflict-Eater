@@ -82,6 +82,7 @@ public class GameManager : Singleton<GameManager>
             PlayerManager.PlayerType.Shadow
         );
         Score.ToggleActivePlayer();
+        Score.ResetScoreThisRound();
 
         // Note: PlayerSwapUI listens to PlayerManager.OnPlayerSwapped and will show the animation.
         // The animation will call Timer.StartRoundCountdown() when complete.
