@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.Universal;
+
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
@@ -18,6 +18,7 @@ public class ShadowPlayerController : MonoBehaviour
     [SerializeField] private GameObject _shadowPrefab;
     [SerializeField] private int _shadowCount = 3;
     [SerializeField] private float _spawnDelay = 1f;
+    [SerializeField] private Material _laserMaterial;
     #endregion
 
     #region Private Fields
@@ -392,7 +393,7 @@ public class ShadowPlayerController : MonoBehaviour
         lr.numCapVertices = 0;
         lr.numCornerVertices = 0;
 
-        lr.material = new Material(Shader.Find("Unlit/Color"));
+        lr.material = _laserMaterial;
         lr.material.color = Color.softRed;
 
         Gradient gradient = new Gradient();
@@ -577,6 +578,13 @@ public class ShadowPlayerController : MonoBehaviour
     {
         var activeGhost = _shadows[_activeShadowIndex];
         return activeGhost.GetComponent<ShadowController>();
+    }
+    #endregion
+
+    #region Setters
+    public void SetLaserMaterial(Material material)
+    {
+        _laserMaterial = material;
     }
     #endregion
 }

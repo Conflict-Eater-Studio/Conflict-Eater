@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
@@ -49,7 +48,9 @@ public class PlayerSpawner : MonoBehaviour
     [SerializeField] private GameObject _showLightPlayerPrefab;
 
     [SerializeField]
-    private AnimatorController animationController;
+    private RuntimeAnimatorController animationController;
+    [SerializeField]
+    private Material _laserMaterial;
 
     [Header("Role Selection Settings")]
     [SerializeField]
@@ -429,6 +430,7 @@ public class PlayerSpawner : MonoBehaviour
         child.AddComponent<ShadowAppearanceManager>();
         var shadowController = child.AddComponent<ShadowPlayerController>();
         shadowController.SetShadowPrefab(_ghostPrefab);
+        shadowController.SetLaserMaterial(_laserMaterial);
 
         GameManager.Instance.PlayerManager.AddPlayer(
             input.gameObject,
