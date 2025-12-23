@@ -396,12 +396,12 @@ public class Grid : MonoBehaviour
     /// <param name="type">Player type</param>
     /// <param name="cellPosition">Cell position for spawn point</param>
     [Obsolete("Spawn points are now arrays. Use the editor to manage spawn points.")]
-    public void SetSpawnPoint(PlayerManager.PlayerType type, Vector3Int cellPosition)
+    public void SetSpawnPoint(PlayerManager.PlayerRole type, Vector3Int cellPosition)
     {
         Vector2Int coord = new Vector2Int(cellPosition.x, cellPosition.y);
         switch (type)
         {
-            case PlayerManager.PlayerType.Light:
+            case PlayerManager.PlayerRole.Light:
                 if (_lightSpawnCells.Count == 0)
                 {
                     _lightSpawnCells.Add(coord);
@@ -411,7 +411,7 @@ public class Grid : MonoBehaviour
                     _lightSpawnCells[0] = coord;
                 }
                 break;
-            case PlayerManager.PlayerType.Shadow:
+            case PlayerManager.PlayerRole.Skull:
                 _shadowSpawnCell = coord;
                 break;
         }
@@ -507,8 +507,8 @@ public class Grid : MonoBehaviour
     public void ResetMapState()
     {
         ClearLightTiles();
-        ResetPlayer(PlayerManager.PlayerType.Light, SpawnPointType.LightRandom);
-        ResetPlayer(PlayerManager.PlayerType.Shadow, SpawnPointType.Shadow);
+        ResetPlayer(PlayerManager.PlayerRole.Light, SpawnPointType.LightRandom);
+        ResetPlayer(PlayerManager.PlayerRole.Skull, SpawnPointType.Shadow);
 
         PowerUp[] powerUps = FindObjectsByType<PowerUp>(FindObjectsSortMode.None);
         foreach (var powerUp in powerUps)
@@ -524,12 +524,12 @@ public class Grid : MonoBehaviour
     /// </summary>
     /// <param name="playerType">Player type to reset</param>
     /// <param name="spawnPointType">Spawn point type to reset</param>
-    private void ResetPlayer(PlayerManager.PlayerType playerType, SpawnPointType spawnPointType)
+    private void ResetPlayer(PlayerManager.PlayerRole playerType, SpawnPointType spawnPointType)
     {
         var player = GameManager.Instance.PlayerManager.GetPlayerOfType(playerType);
         player.transform.position = GetSpawnPoint(spawnPointType);
 
-        if (playerType == PlayerManager.PlayerType.Light)
+        if (playerType == PlayerManager.PlayerRole.Light)
         {
             player.GetComponentInChildren<LightPlayerController>().Movement.Stop();
         }

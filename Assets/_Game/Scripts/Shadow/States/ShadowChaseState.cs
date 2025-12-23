@@ -13,10 +13,10 @@ public class ShadowChaseState : IShadowState
     #region Constants and Fields
     private static readonly Vector2Int[] Directions =
     {
-        new(0, 1),   
-        new(-1, 0),  
-        new(1, 0),   
-        new(0, -1)   
+        new(0, 1),
+        new(-1, 0),
+        new(1, 0),
+        new(0, -1),
     };
 
     private const float DecisionInterval = 0.13f;
@@ -64,7 +64,12 @@ public class ShadowChaseState : IShadowState
 
         Vector2Int targetCell = CalculateTargetCell(shadow);
 
-        var nextDirection = ChooseBestDirection(grid, _currentCell, shadow.CurrentDirection, targetCell);
+        var nextDirection = ChooseBestDirection(
+            grid,
+            _currentCell,
+            shadow.CurrentDirection,
+            targetCell
+        );
 
         if (nextDirection != Vector2Int.zero && nextDirection != shadow.CurrentDirection)
         {
@@ -103,7 +108,11 @@ public class ShadowChaseState : IShadowState
     private Vector2Int CalculateTargetCellForBlinky()
     {
         // Blinky directly chases the player
-        Vector3Int playerPos = Grid.WorldToCell(GameManager.Instance.PlayerManager.GetPlayerOfType(PlayerManager.PlayerType.Light).transform.position);
+        Vector3Int playerPos = Grid.WorldToCell(
+            GameManager
+                .Instance.PlayerManager.GetPlayerOfType(PlayerManager.PlayerRole.Light)
+                .transform.position
+        );
         Vector2Int target = new Vector2Int(playerPos.x, playerPos.y);
         return target;
     }
@@ -111,10 +120,14 @@ public class ShadowChaseState : IShadowState
     private Vector2Int CalculateTargetCellForPinky()
     {
         // Pinky tries to ambush the player 4 tiles ahead
-        var playerGO = GameManager.Instance.PlayerManager.GetPlayerOfType(PlayerManager.PlayerType.Light);
+        var playerGO = GameManager.Instance.PlayerManager.GetPlayerOfType(
+            PlayerManager.PlayerRole.Light
+        );
         Vector3Int playerCell = Grid.WorldToCell(playerGO.transform.position);
 
-        Vector2Int playerDirection = playerGO.GetComponentInChildren<LightPlayerController>().CurrentDirection;
+        Vector2Int playerDirection = playerGO
+            .GetComponentInChildren<LightPlayerController>()
+            .CurrentDirection;
 
         Vector2Int target = new Vector2Int(playerCell.x, playerCell.y);
 
@@ -130,25 +143,30 @@ public class ShadowChaseState : IShadowState
         return target;
     }
 
-
     private Vector2Int CalculateTargetCellForInky()
     {
         // Inky depends on both the player and Blinky
-        var playerGO = GameManager.Instance.PlayerManager.GetPlayerOfType(PlayerManager.PlayerType.Light);
+        var playerGO = GameManager.Instance.PlayerManager.GetPlayerOfType(
+            PlayerManager.PlayerRole.Light
+        );
         Vector3Int playerCell = Grid.WorldToCell(playerGO.transform.position);
 
-        Vector2Int playerDirection = playerGO.GetComponentInChildren<LightPlayerController>().CurrentDirection;
+        Vector2Int playerDirection = playerGO
+            .GetComponentInChildren<LightPlayerController>()
+            .CurrentDirection;
 
         Vector2Int pointAhead = new Vector2Int(playerCell.x, playerCell.y);
         if (playerDirection == Vector2Int.up)
-            pointAhead += new Vector2Int(-2, 2); 
+            pointAhead += new Vector2Int(-2, 2);
         else
             pointAhead += playerDirection * 2;
 
-        var shadowPlayerController = GameManager.Instance.PlayerManager.GetPlayerOfType(PlayerManager.PlayerType.Shadow)
-                                               .GetComponentInChildren<ShadowPlayerController>();
+        var shadowPlayerController = GameManager
+            .Instance.PlayerManager.GetPlayerOfType(PlayerManager.PlayerRole.Skull)
+            .GetComponentInChildren<ShadowPlayerController>();
         var blinky = shadowPlayerController.Shadows[0];
-        if (blinky == null) return pointAhead;
+        if (blinky == null)
+            return pointAhead;
 
         Vector3Int blinkyCell = Grid.WorldToCell(blinky.transform.position);
 
@@ -163,13 +181,18 @@ public class ShadowChaseState : IShadowState
     private Vector2Int CalculateTargetCellForClyde()
     {
         // Clyde alternates between chasing and scattering
-        var playerGO = GameManager.Instance.PlayerManager.GetPlayerOfType(PlayerManager.PlayerType.Light);
+        var playerGO = GameManager.Instance.PlayerManager.GetPlayerOfType(
+            PlayerManager.PlayerRole.Light
+        );
         Vector3Int playerCell3D = Grid.WorldToCell(playerGO.transform.position);
         Vector2Int playerCell = new Vector2Int(playerCell3D.x, playerCell3D.y);
 
-        var shadowPlayerController = GameManager.Instance.PlayerManager.GetPlayerOfType(PlayerManager.PlayerType.Shadow)
-                                       .GetComponentInChildren<ShadowPlayerController>();
-        Vector3Int clydeCell3D = Grid.WorldToCell(shadowPlayerController.Shadows[2].gameObject.transform.position);
+        var shadowPlayerController = GameManager
+            .Instance.PlayerManager.GetPlayerOfType(PlayerManager.PlayerRole.Skull)
+            .GetComponentInChildren<ShadowPlayerController>();
+        Vector3Int clydeCell3D = Grid.WorldToCell(
+            shadowPlayerController.Shadows[2].gameObject.transform.position
+        );
         Vector2Int clydeCell = new Vector2Int(clydeCell3D.x, clydeCell3D.y);
 
         float distance = Vector2Int.Distance(clydeCell, playerCell);
@@ -189,7 +212,12 @@ public class ShadowChaseState : IShadowState
     /// <summary>
     /// Chooses the optimal direction to move based on target cell, avoiding reversing.
     /// </summary>
-    private Vector2Int ChooseBestDirection(Grid grid, Vector3Int currentCell, Vector2Int currentDirection, Vector2Int targetCell)
+    private Vector2Int ChooseBestDirection(
+        Grid grid,
+        Vector3Int currentCell,
+        Vector2Int currentDirection,
+        Vector2Int targetCell
+    )
     {
         var targetWorldPos = Grid.GetCellCenterWorld(new Vector3Int(targetCell.x, targetCell.y, 0));
 
@@ -216,7 +244,7 @@ public class ShadowChaseState : IShadowState
             { x: -1, y: 0 } => 1,
             { x: 1, y: 0 } => 2,
             { x: 0, y: -1 } => 3,
-            _ => int.MaxValue
+            _ => int.MaxValue,
         };
     }
     #endregion

@@ -1,10 +1,14 @@
+using System.Linq;
 using TMPro;
 using UnityEngine;
 
 public class GameScoreUI : MonoBehaviour
 {
-    [SerializeField] private TextMeshProUGUI _p1Score;
-    [SerializeField] private TextMeshProUGUI _p2Score;
+    [SerializeField]
+    private TextMeshProUGUI _p1Score;
+
+    [SerializeField]
+    private TextMeshProUGUI _p2Score;
 
     private void Start()
     {
@@ -20,11 +24,15 @@ public class GameScoreUI : MonoBehaviour
     {
         if (_p1Score != null)
         {
-            _p1Score.text = GameManager.Instance.Score.P1Score.ToString();
+            _p1Score.text = GameManager
+                .Instance.PlayerManager.Players.First(p => p.Role == PlayerManager.PlayerRole.Light)
+                .Score.ToString();
         }
         if (_p2Score != null)
         {
-            _p2Score.text = GameManager.Instance.Score.P2Score.ToString();
+            _p2Score.text = GameManager
+                .Instance.PlayerManager.Players.First(p => p.Role == PlayerManager.PlayerRole.Skull)
+                .Score.ToString();
         }
     }
 }

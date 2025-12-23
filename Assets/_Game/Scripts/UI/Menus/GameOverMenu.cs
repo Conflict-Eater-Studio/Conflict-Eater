@@ -1,3 +1,4 @@
+using System.Linq;
 using TMPro;
 using UnityEngine;
 
@@ -20,8 +21,30 @@ public class GameOverMenu : MenuBase
 
     public void UpdateText()
     {
-        _winnerText.SetText(GameManager.Instance.Score.GetWinnerText());
-        _p1ScoreText.SetText("Score: " + GameManager.Instance.Score.P1Score);
-        _p2ScoreText.SetText("Score: " + GameManager.Instance.Score.P2Score);
+        var winner = GameManager
+            .Instance.PlayerManager.Players.OrderByDescending(p => p.Score)
+            .First()
+            .Index;
+
+        string winnerStr =
+            winner == PlayerManager.PlayerIndex.P1 ? "Player 1 Wins!" : "Player 2 Wins!";
+
+        _winnerText.SetText(winnerStr);
+        _p1ScoreText.SetText(
+            "Score: "
+                + GameManager
+                    .Instance.PlayerManager.Players.First(p =>
+                        p.Index == PlayerManager.PlayerIndex.P1
+                    )
+                    .Score
+        );
+        _p2ScoreText.SetText(
+            "Score: "
+                + GameManager
+                    .Instance.PlayerManager.Players.First(p =>
+                        p.Index == PlayerManager.PlayerIndex.P2
+                    )
+                    .Score
+        );
     }
 }

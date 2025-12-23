@@ -1,43 +1,91 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Users;
-using UnityEngine.Rendering;
 
 /// <summary>
 /// Manages players in the game, including their types, input devices, and swapping gamepads.
 /// </summary>
+[Serializable]
 public class PlayerManager
 {
     #region Nested Types
 
     [Serializable]
-    public struct PlayerData
+    public class PlayerData
     {
-        public GameObject PlayerObject;
-        public PlayerType Type;
-        public PlayerInput Input;
+        public GameObject PlayerObject { get; private set; }
+        public PlayerRole Role { get; private set; }
+        public PlayerIndex Index { get; private set; }
+        public PlayerInput Input { get; private set; }
+        public int Score { get; private set; }
+        public List<int> RoundScores { get; private set; }
 
-        public PlayerData(GameObject obj, PlayerType type, PlayerInput input)
+        public PlayerData(GameObject obj, PlayerRole role, PlayerIndex index, PlayerInput input)
         {
             PlayerObject = obj;
-            Type = type;
+            Role = role;
+            Index = index;
             Input = input;
+            Score = 0;
+            RoundScores = new() { 0 };
+        }
+
+        public void AddScore(int points, int? toRound = null)
+        {
+            Score += points;
+            if (toRound != null && toRound >= 0 && toRound < RoundScores.Count)
+            {
+                // Add points to specific round (if ever needed)
+                RoundScores[toRound.Value] += points;
+                return;
+            }
+            else
+            {
+                // Add points to current round
+                RoundScores[RoundScores.Count - 1] += points;
+            }
+        }
+
+        public void StartNewRound()
+        {
+            RoundScores.Add(0);
+        }
+
+        public void SwapRole(PlayerRole newRole)
+        {
+            Role = newRole;
+        }
+
+        public void SetPlayerObject(GameObject obj)
+        {
+            PlayerObject = obj;
+            // Update Input reference to match the new GameObject
+            Input = obj.GetComponent<PlayerInput>();
         }
     }
 
-    public enum PlayerType
+    public enum PlayerRole
     {
         Light,
-        Shadow,
+        Skull,
+        None,
+    }
+
+    public enum PlayerIndex
+    {
+        P1 = 1,
+        P2 = 2,
     }
     #endregion
 
     #region Fields
 
-    private List<PlayerData> _players = new List<PlayerData>(); // List of all players
+    private List<PlayerData> _players = new List<PlayerData>();
+    public IReadOnlyList<PlayerData> Players => _players.AsReadOnly();
     #endregion
 
     #region Events
@@ -50,9 +98,14 @@ public class PlayerManager
     /// <summary>
     /// Adds a new player to the manager.
     /// </summary>
-    public void AddPlayer(GameObject playerObj, PlayerType type, PlayerInput input)
+    public void AddPlayer(
+        GameObject playerObj,
+        PlayerRole type,
+        PlayerIndex index,
+        PlayerInput input
+    )
     {
-        _players.Add(new PlayerData(playerObj, type, input));
+        _players.Add(new PlayerData(playerObj, type, index, input));
         OnPlayerConnected?.Invoke(this, EventArgs.Empty);
     }
 
@@ -67,26 +120,23 @@ public class PlayerManager
     /// <summary>
     /// Returns a list of all players, optionally filtered by type.
     /// </summary>
-    public List<PlayerData> GetPlayers(PlayerType? type = null)
+    public List<PlayerData> GetPlayers(PlayerRole? type = null)
     {
         if (type == null)
             return new List<PlayerData>(_players);
 
-        return _players.FindAll(p => p.Type == type.Value);
+        return _players.FindAll(p => p.Role == type.Value);
     }
 
     /// <summary>
     /// Returns the GameObject of the first player with the specified type.
     /// Returns null if no such player exists.
     /// </summary>
-    public GameObject GetPlayerOfType(PlayerType type)
+    public GameObject GetPlayerOfType(PlayerRole type)
     {
-        foreach (var player in _players)
-        {
-            if (player.Type == type)
-                return player.PlayerObject;
-        }
-        return null;
+        if (_players.Count == 0)
+            return null;
+        return _players.First(p => p.Role == type).PlayerObject ?? null;
     }
 
     #endregion
@@ -94,31 +144,44 @@ public class PlayerManager
     #region Input & Gamepad Management
 
     /// <summary>
-    /// Swaps the gamepads between two players.
-    /// Useful for switching control between Light and Shadow players.
+    /// Swaps the GameObjects and Roles between two players.
+    /// Each player keeps their PlayerIndex, Score, and Gamepad, but controls the other player's character.
     /// </summary>
-    public void SwapPlayerGamepads(PlayerType typeA, PlayerType typeB)
+    public void SwapPlayerRoles(PlayerRole typeA, PlayerRole typeB)
     {
-        var playerA = _players.Find(p => p.Type == typeA);
-        var playerB = _players.Find(p => p.Type == typeB);
+        var playerA = _players.Find(p => p.Role == typeA);
+        var playerB = _players.Find(p => p.Role == typeB);
 
-        if (playerA.Input == null || playerB.Input == null)
+        if (playerA == null || playerB == null)
             return;
 
-        Gamepad padA = playerA.Input.devices.FirstOrDefault(d => d is Gamepad) as Gamepad;
-        Gamepad padB = playerB.Input.devices.FirstOrDefault(d => d is Gamepad) as Gamepad;
+        // Get the gamepads before swapping
+        Gamepad padA = playerA.Input?.devices.FirstOrDefault(d => d is Gamepad) as Gamepad;
+        Gamepad padB = playerB.Input?.devices.FirstOrDefault(d => d is Gamepad) as Gamepad;
 
         if (padA == null || padB == null)
             return;
 
+        // Unpair gamepads from current PlayerInputs
         playerA.Input.user.UnpairDevice(padA);
         playerB.Input.user.UnpairDevice(padB);
 
-        InputUser.PerformPairingWithDevice(padB, playerA.Input.user);
-        InputUser.PerformPairingWithDevice(padA, playerB.Input.user);
+        // Swap GameObjects - each player now controls the other's character
+        GameObject tempGameObject = playerA.PlayerObject;
+        playerA.SetPlayerObject(playerB.PlayerObject); // This updates Input reference
+        playerB.SetPlayerObject(tempGameObject); // This updates Input reference
 
-        // HACK: Swapping the players in the list to keep the track of their role for UI
-        _players.TrySwap(_players.IndexOf(playerA), _players.IndexOf(playerB), out _);
+        // Now pair gamepads to the new PlayerInputs
+        // P1 keeps padA, but now it's paired to the GameObject they swapped to
+        InputUser.PerformPairingWithDevice(padA, playerA.Input.user);
+        InputUser.PerformPairingWithDevice(padB, playerB.Input.user);
+
+        // Swap roles
+        PlayerRole tempRole = playerA.Role;
+        playerA.SwapRole(playerB.Role);
+        playerB.SwapRole(tempRole);
+
+        // Note: PlayerIndex, Score, and Gamepad stay with the original player
 
         OnPlayerSwapped?.Invoke(this, EventArgs.Empty);
     }

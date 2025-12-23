@@ -1,12 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using static GameScore;
 
 public class GameManager : Singleton<GameManager>
 {
@@ -26,7 +21,6 @@ public class GameManager : Singleton<GameManager>
 
     public PlayerManager PlayerManager { get; private set; }
     public Grid Grid { get; private set; }
-    public GameScore Score { get; private set; } = new GameScore();
     public PlayerSpawner PlayerSpawner => _playerSpawner;
     public GameObject ParticleSystem
     {
@@ -39,7 +33,7 @@ public class GameManager : Singleton<GameManager>
         if (Grid == null)
         {
             Grid = grid;
-            Grid.OnNewLightTile += Score.GameScore_OnNewLightTile;
+            Grid.OnNewLightTile += GameManager_OnNewLightTile;
             Grid.OnAllLightTiles += GameManager_OnAllLightTiles;
         }
     }
@@ -74,18 +68,22 @@ public class GameManager : Singleton<GameManager>
         MenuManager.Instance.GetScript<GameOverMenu>(MenuManager.Menu.GameOver).UpdateText();
     }
 
+    private void GameManager_OnNewLightTile(object sender, EventArgs e)
+    {
+        PlayerManager.Players.First(p => p.Role == PlayerManager.PlayerRole.Light).AddScore(1);
+    }
+
     private void OnRoundEnd(object sender, EventArgs e)
     {
         // Swap players and update score
-        PlayerManager.SwapPlayerGamepads(
-            PlayerManager.PlayerType.Light,
-            PlayerManager.PlayerType.Shadow
+        PlayerManager.SwapPlayerRoles(
+            PlayerManager.PlayerRole.Light,
+            PlayerManager.PlayerRole.Skull
         );
-        Score.ToggleActivePlayer();
-        Score.ResetScoreThisRound();
-
-        // Note: PlayerSwapUI listens to PlayerManager.OnPlayerSwapped and will show the animation.
-        // The animation will call Timer.StartRoundCountdown() when complete.
+        foreach (var p in PlayerManager.Players)
+        {
+            p.StartNewRound();
+        }
     }
 
     private void GameManager_OnAllLightTiles(object sender, EventArgs e)
@@ -98,7 +96,7 @@ public class GameManager : Singleton<GameManager>
         Timer.OnRoundEnd -= OnRoundEnd;
         if (Grid != null)
         {
-            Grid.OnNewLightTile -= Score.GameScore_OnNewLightTile;
+            Grid.OnNewLightTile -= GameManager_OnNewLightTile;
         }
     }
 }

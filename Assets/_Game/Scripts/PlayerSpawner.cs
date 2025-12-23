@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
@@ -11,28 +12,16 @@ public class PlayerSpawner : MonoBehaviour
     #region Events
     public class RoleSelectionEventArgs : EventArgs
     {
-        public int PlayerIndex; // 0 or 1
-        public PlayerRole SelectedRole;
+        public PlayerManager.PlayerIndex PlayerIndex;
+        public PlayerManager.PlayerRole PlayerRole;
         public float HoldProgress; // 0 to 1 inclusive
         public bool IsConfirmed;
     }
 
-    public class RoleSelectionReleasedEventArgs : EventArgs
-    {
-        public int PlayerIndex; // 0 or 1
-        public PlayerRole ReleasedRole;
-    }
-
-    public class PlayerReadyEventArgs : EventArgs
-    {
-        public int PlayerIndex; // 0 or 1
-        public PlayerRole AssignedRole;
-    }
-
     public static event EventHandler<RoleSelectionEventArgs> OnRoleSelectionStarted;
     public static event EventHandler<RoleSelectionEventArgs> OnRoleSelectionChanged;
-    public static event EventHandler<RoleSelectionReleasedEventArgs> OnRoleSelectionReleased;
-    public static event EventHandler<PlayerReadyEventArgs> OnPlayersReadyToSpawn;
+    public static event EventHandler<RoleSelectionEventArgs> OnRoleSelectionReleased;
+    public static event EventHandler OnPlayersReadyToSpawn;
     #endregion
 
     #region Fields
@@ -44,11 +33,15 @@ public class PlayerSpawner : MonoBehaviour
     private Grid _grid;
 
     [Header("Prefabs & Positions")]
-    [SerializeField] private GameObject _ghostPrefab;
-    [SerializeField] private GameObject _showLightPlayerPrefab;
+    [SerializeField]
+    private GameObject _ghostPrefab;
+
+    [SerializeField]
+    private GameObject _showLightPlayerPrefab;
 
     [SerializeField]
     private RuntimeAnimatorController animationController;
+
     [SerializeField]
     private Material _laserMaterial;
 
@@ -56,62 +49,27 @@ public class PlayerSpawner : MonoBehaviour
     [SerializeField]
     private float _holdDuration = 1f;
 
-    public static readonly Dictionary<PlayerRole, Color> RoleColors = new Dictionary<
-        PlayerRole,
+    public static readonly Dictionary<PlayerManager.PlayerRole, Color> RoleColors = new Dictionary<
+        PlayerManager.PlayerRole,
         Color
     >
     {
-        { PlayerRole.Light, Color.yellow },
-        { PlayerRole.Shadow, Color.red },
+        { PlayerManager.PlayerRole.Light, Color.yellow },
+        { PlayerManager.PlayerRole.Skull, Color.red },
     };
 
-    // Role selection state
-    public enum PlayerRole
-    {
-        None,
-        Light,
-        Shadow,
-    }
-
-    private struct JoinRequest
+    private class JoinRequest
     {
         public Gamepad Gamepad;
-        public PlayerRole SelectedRole;
+        public PlayerManager.PlayerRole SelectedRole;
         public float HoldTime;
         public bool IsConfirmed;
+        public PlayerManager.PlayerIndex PlayerIndex;
     }
 
-    // Track 2 players by their gamepad
-    private Dictionary<Gamepad, int> _gamepadToPlayerIndex = new Dictionary<Gamepad, int>();
-
-    // Track role requests for each join request
-    private Dictionary<PlayerRole, JoinRequest> _roleRequests =
-        new Dictionary<PlayerRole, JoinRequest>();
+    private List<JoinRequest> _activeRequests = new List<JoinRequest>();
 
     private bool _playersSpawned = false;
-    private int _nextPlayerIndex = 0;
-    #endregion
-
-    #region Public Methods
-    /// <summary>
-    /// Gets the role assigned to Player 1 (index 0).
-    /// Returns PlayerRole.None if Player 1 hasn't selected a role yet.
-    /// </summary>
-    public PlayerRole GetPlayer1Role()
-    {
-        // Find the role request for player index 0
-        foreach (var kvp in _roleRequests)
-        {
-            if (_gamepadToPlayerIndex.TryGetValue(kvp.Value.Gamepad, out int playerIndex))
-            {
-                if (playerIndex == 0)
-                {
-                    return kvp.Value.SelectedRole;
-                }
-            }
-        }
-        return PlayerRole.None;
-    }
     #endregion
 
     #region Unity Lifecycle
@@ -131,7 +89,6 @@ public class PlayerSpawner : MonoBehaviour
 
         var gamepads = Gamepad.all;
 
-        HandleColorSelection(gamepads);
         DetectGamepadInput(gamepads);
         UpdateRoleSelection();
     }
@@ -139,15 +96,10 @@ public class PlayerSpawner : MonoBehaviour
 
     #region Player Join Logic
 
-    private void HandleColorSelection(ReadOnlyArray<Gamepad> gamepads)
-    {
-        if (_playersSpawned)
-            return;
-
-        // This method is kept for compatibility but player index assignment
-        // now happens in DetectGamepadInput when a trigger is first pressed
-    }
-
+    /// <summary>
+    /// Initial detection of gamepad input for joining players.
+    /// </summary>
+    /// <param name="gamepads"></param>
     private void DetectGamepadInput(ReadOnlyArray<Gamepad> gamepads)
     {
         foreach (var gamepad in gamepads)
@@ -155,195 +107,178 @@ public class PlayerSpawner : MonoBehaviour
             float leftTrigger = gamepad.leftTrigger.ReadValue();
             float rightTrigger = gamepad.rightTrigger.ReadValue();
 
-            // Check if this gamepad is already claiming a role
-            bool gamepadAlreadyClaimed = _roleRequests.Values.Any(r => r.Gamepad == gamepad);
-
-            // Gamepad already has a role, skip it
-            if (gamepadAlreadyClaimed)
+            // Skip if no input detected
+            if (leftTrigger <= 0.5f && rightTrigger <= 0.5f)
                 continue;
 
-            // Assign player index when first trigger is pressed
-            if (!_gamepadToPlayerIndex.ContainsKey(gamepad))
-            {
-                if (_nextPlayerIndex >= 2)
-                    continue;
+            // Gamepad already has a role, skip it
+            if (_activeRequests.Any(r => r.Gamepad == gamepad) || _activeRequests.Count >= 2)
+                continue;
 
-                // First gamepad to press a trigger gets index 0
-                int playerIndex = _nextPlayerIndex++;
-                _gamepadToPlayerIndex[gamepad] = playerIndex;
+            // Determine available player index
+            PlayerManager.PlayerIndex? availableIndex = null;
+            if (!_activeRequests.Any(r => r.PlayerIndex == PlayerManager.PlayerIndex.P1))
+                availableIndex = PlayerManager.PlayerIndex.P1;
+            else if (!_activeRequests.Any(r => r.PlayerIndex == PlayerManager.PlayerIndex.P2))
+                availableIndex = PlayerManager.PlayerIndex.P2;
+            if (availableIndex == null)
+                continue;
+
+            // Init new join request with gamepad assigned for given player index and empty role
+            JoinRequest newRequest = new JoinRequest
+            {
+                Gamepad = gamepad,
+                HoldTime = 0f,
+                IsConfirmed = false,
+                PlayerIndex = availableIndex.Value,
+                SelectedRole = PlayerManager.PlayerRole.None,
+            };
+
+            if (
+                leftTrigger > 0.5f
+                && !_activeRequests.Any(r => r.SelectedRole == PlayerManager.PlayerRole.Light)
+            )
+            {
+                // L2 held, light role available -> claim Light role, add request to active list and fire event
+                newRequest.SelectedRole = PlayerManager.PlayerRole.Light;
+                Debug.Log($"Player {newRequest.PlayerIndex} claimed Light role.");
+            }
+            else if (
+                rightTrigger > 0.5f
+                && !_activeRequests.Any(r => r.SelectedRole == PlayerManager.PlayerRole.Skull)
+            )
+            {
+                // R2 held, skull role available -> claim Skull role, add request to active list and fire event
+                newRequest.SelectedRole = PlayerManager.PlayerRole.Skull;
+                Debug.Log($"Player {newRequest.PlayerIndex} claimed Skull role.");
+            }
+            else
+            {
+                // Desired role not available, skip
+                Debug.Log($"Player {availableIndex.Value} tried to join but role not available.");
+                continue;
             }
 
-            // Check if Light role is being claimed
-            if (leftTrigger > 0.5f && !_roleRequests.ContainsKey(PlayerRole.Light))
-            {
-                _roleRequests[PlayerRole.Light] = new JoinRequest
+            _activeRequests.Add(newRequest);
+            OnRoleSelectionStarted?.Invoke(
+                this,
+                new RoleSelectionEventArgs
                 {
-                    Gamepad = gamepad,
-                    SelectedRole = PlayerRole.Light,
-                    HoldTime = 0f,
-                    IsConfirmed = false,
-                };
-                if (_gamepadToPlayerIndex.TryGetValue(gamepad, out int playerIndex))
-                {
-                    OnRoleSelectionStarted?.Invoke(
-                        this,
-                        new RoleSelectionEventArgs
-                        {
-                            PlayerIndex = playerIndex,
-                            SelectedRole = PlayerRole.Light,
-                            HoldProgress = 0f,
-                            IsConfirmed = false,
-                        }
-                    );
+                    PlayerIndex = newRequest.PlayerIndex,
+                    PlayerRole = newRequest.SelectedRole,
+                    HoldProgress = Mathf.Clamp(newRequest.HoldTime / _holdDuration, 0f, 1f),
+                    IsConfirmed = newRequest.IsConfirmed,
                 }
-            }
-
-            // Check if Shadow role is being claimed
-            if (rightTrigger > 0.5f && !_roleRequests.ContainsKey(PlayerRole.Shadow))
-            {
-                _roleRequests[PlayerRole.Shadow] = new JoinRequest
-                {
-                    Gamepad = gamepad,
-                    SelectedRole = PlayerRole.Shadow,
-                    HoldTime = 0f,
-                    IsConfirmed = false,
-                };
-                if (_gamepadToPlayerIndex.TryGetValue(gamepad, out int playerIndex))
-                {
-                    OnRoleSelectionStarted?.Invoke(
-                        this,
-                        new RoleSelectionEventArgs
-                        {
-                            PlayerIndex = playerIndex,
-                            SelectedRole = PlayerRole.Shadow,
-                            HoldProgress = 0f,
-                            IsConfirmed = false,
-                        }
-                    );
-                }
-            }
+            );
         }
     }
 
     private void UpdateRoleSelection()
     {
         // Update hold times for each role request
-        var rolesToRemove = new List<PlayerRole>();
-        var updates = new List<(PlayerRole, JoinRequest)>();
+        var removeForPlayer = new List<PlayerManager.PlayerIndex>();
 
-        foreach (var kvp in _roleRequests)
+        for (int i = 0; i < _activeRequests.Count; i++)
         {
-            PlayerRole role = kvp.Key;
-            var request = kvp.Value;
-
-            if (request.IsConfirmed)
+            // Skip requests that are already confirmed
+            if (_activeRequests[i].IsConfirmed)
                 continue;
 
-            var gamepad = request.Gamepad;
-            if (gamepad == null)
+            // If gamepad is null, mark for removal from active requests
+            if (_activeRequests[i].Gamepad == null)
             {
-                rolesToRemove.Add(role);
+                removeForPlayer.Add(_activeRequests[i].PlayerIndex);
                 continue;
             }
 
-            float leftTrigger = gamepad.leftTrigger.ReadValue();
-            float rightTrigger = gamepad.rightTrigger.ReadValue();
+            float leftTrigger = _activeRequests[i].Gamepad.leftTrigger.ReadValue();
+            float rightTrigger = _activeRequests[i].Gamepad.rightTrigger.ReadValue();
 
             // Check if the player is still holding their claimed role's trigger
-            bool isStillHoldingRole = role switch
+            bool isStillHoldingRole = _activeRequests[i].SelectedRole switch
             {
-                PlayerRole.Light => leftTrigger > 0.5f,
-                PlayerRole.Shadow => rightTrigger > 0.5f,
+                PlayerManager.PlayerRole.Light => leftTrigger > 0.5f,
+                PlayerManager.PlayerRole.Skull => rightTrigger > 0.5f,
                 _ => false,
             };
 
             if (isStillHoldingRole)
             {
-                request.HoldTime += Time.deltaTime;
+                _activeRequests[i].HoldTime += Time.deltaTime;
 
-                if (request.HoldTime >= _holdDuration && !request.IsConfirmed)
+                if (_activeRequests[i].HoldTime >= _holdDuration && !_activeRequests[i].IsConfirmed)
                 {
-                    request.IsConfirmed = true;
-                    RaiseRoleSelectionChangedEvent(role, request);
+                    _activeRequests[i].IsConfirmed = true;
+                    Debug.Log(
+                        $"Player {_activeRequests[i].PlayerIndex} confirmed {_activeRequests[i].SelectedRole} role."
+                    );
+                    RaiseRoleSelectionChangedEvent(_activeRequests[i]);
                 }
-                else if (!request.IsConfirmed)
+                else if (!_activeRequests[i].IsConfirmed)
                 {
-                    RaiseRoleSelectionChangedEvent(role, request);
+                    RaiseRoleSelectionChangedEvent(_activeRequests[i]);
                 }
-
-                // Collect update to apply after enumeration
-                updates.Add((role, request));
             }
             else
             {
                 // Trigger was released - fire event and mark for removal
-                RaiseRoleSelectionReleasedEvent(role, role);
-                rolesToRemove.Add(role);
+                Debug.Log(
+                    $"Player {_activeRequests[i].PlayerIndex} released {_activeRequests[i].SelectedRole} role."
+                );
+                RaiseRoleSelectionReleasedEvent(_activeRequests[i]);
+                removeForPlayer.Add(_activeRequests[i].PlayerIndex);
             }
         }
 
-        // Apply updates
-        foreach (var (role, request) in updates)
-        {
-            _roleRequests[role] = request;
-        }
-
         // Remove released roles
-        foreach (var role in rolesToRemove)
+        foreach (var playerIndex in removeForPlayer)
         {
-            _roleRequests.Remove(role);
+            _activeRequests.RemoveAll(r => r.PlayerIndex == playerIndex);
         }
 
         // Check if both roles are claimed and confirmed
-        if (_roleRequests.Count == 2)
+        if (_activeRequests.Count == 2)
         {
-            bool lightConfirmed =
-                _roleRequests.ContainsKey(PlayerRole.Light)
-                && _roleRequests[PlayerRole.Light].IsConfirmed;
-            bool shadowConfirmed =
-                _roleRequests.ContainsKey(PlayerRole.Shadow)
-                && _roleRequests[PlayerRole.Shadow].IsConfirmed;
+            bool lightConfirmed = _activeRequests.Any(r =>
+                r.SelectedRole == PlayerManager.PlayerRole.Light && r.IsConfirmed
+            );
+            bool shadowConfirmed = _activeRequests.Any(r =>
+                r.SelectedRole == PlayerManager.PlayerRole.Skull && r.IsConfirmed
+            );
 
             if (lightConfirmed && shadowConfirmed)
             {
                 _playersSpawned = true;
-                OnPlayersReadyToSpawn?.Invoke(this, new PlayerReadyEventArgs() { });
+                Debug.Log("Both players confirmed roles. Ready to spawn.");
+                OnPlayersReadyToSpawn?.Invoke(this, EventArgs.Empty);
             }
         }
     }
 
-    private void RaiseRoleSelectionChangedEvent(PlayerRole role, JoinRequest request)
+    private void RaiseRoleSelectionChangedEvent(JoinRequest request)
     {
-        if (!_gamepadToPlayerIndex.TryGetValue(request.Gamepad, out int playerIndex))
-            playerIndex = -1;
-
         OnRoleSelectionChanged?.Invoke(
             this,
             new RoleSelectionEventArgs
             {
-                PlayerIndex = playerIndex,
-                SelectedRole = request.SelectedRole,
-                HoldProgress = request.HoldTime / _holdDuration,
+                PlayerIndex = request.PlayerIndex,
+                PlayerRole = request.SelectedRole,
+                HoldProgress = Mathf.Clamp(request.HoldTime / _holdDuration, 0f, 1f),
                 IsConfirmed = request.IsConfirmed,
             }
         );
     }
 
-    private void RaiseRoleSelectionReleasedEvent(PlayerRole role, PlayerRole releasedRole)
+    private void RaiseRoleSelectionReleasedEvent(JoinRequest request)
     {
-        if (!_roleRequests.TryGetValue(role, out JoinRequest request))
-            return;
-
-        Gamepad gamepad = request.Gamepad;
-        if (gamepad == null || !_gamepadToPlayerIndex.TryGetValue(gamepad, out int playerIndex))
-            playerIndex = -1;
-
         OnRoleSelectionReleased?.Invoke(
             this,
-            new RoleSelectionReleasedEventArgs
+            new RoleSelectionEventArgs
             {
-                PlayerIndex = playerIndex,
-                ReleasedRole = releasedRole,
+                PlayerIndex = request.PlayerIndex,
+                PlayerRole = request.SelectedRole,
+                HoldProgress = Mathf.Clamp(request.HoldTime / _holdDuration, 0f, 1f),
+                IsConfirmed = request.IsConfirmed,
             }
         );
     }
@@ -353,42 +288,44 @@ public class PlayerSpawner : MonoBehaviour
         // Enable joining and spawn players
         _playerInputManager.EnableJoining();
 
-        // Note: Player colors are already saved to PlayerColorManager during color selection
-        // via HandleColorSelection methods, so we don't need to set them again here
-
-        int playerIndex = 0;
-        foreach (var kvp in _roleRequests)
+        foreach (var request in _activeRequests)
         {
-            PlayerRole role = kvp.Key;
-            var request = kvp.Value;
+            Debug.Log($"Spawning player {request.PlayerIndex} as {request.SelectedRole}");
 
             // Join the player using PlayerInputManager
-            var input = _playerInputManager.JoinPlayer(playerIndex, -1, null, request.Gamepad);
+            var input = _playerInputManager.JoinPlayer(
+                (int)request.PlayerIndex - 1,
+                -1,
+                null,
+                request.Gamepad
+            );
 
-            var renderer = input.GetComponent<Renderer>();
-            string childName = role == PlayerRole.Light ? "LightAnchor" : "ShadowAnchor";
+            string childName =
+                request.SelectedRole == PlayerManager.PlayerRole.Light
+                    ? "LightAnchor"
+                    : "ShadowAnchor";
 
             GameObject child = new GameObject(childName);
             child.transform.SetParent(input.transform);
             child.transform.localPosition = Vector3.zero;
 
-            if (role == PlayerRole.Light)
+            if (request.SelectedRole == PlayerManager.PlayerRole.Light)
             {
-                SetupLightPlayer(input, child, renderer);
+                SetupLightPlayer(input, child, request.PlayerIndex);
             }
-            else if (role == PlayerRole.Shadow)
+            else if (request.SelectedRole == PlayerManager.PlayerRole.Skull)
             {
-                SetupShadowPlayer(input, child);
+                SetupSkullPlayer(input, child, request.PlayerIndex);
             }
-
-            playerIndex++;
         }
     }
 
-    private void SetupLightPlayer(PlayerInput input, GameObject child, Renderer renderer)
+    private void SetupLightPlayer(
+        PlayerInput input,
+        GameObject child,
+        PlayerManager.PlayerIndex playerIndex
+    )
     {
-        Debug.Log("Player 1 joined as LightPlayerController");
-
         input.name = "LightControllerRoot";
         input.transform.position = _grid.GetSpawnPoint(Grid.SpawnPointType.Light);
         input.gameObject.AddComponent<Animator>();
@@ -405,20 +342,27 @@ public class PlayerSpawner : MonoBehaviour
             GameObject lightPrefabChild = Instantiate(_showLightPlayerPrefab, child.transform);
             lightPrefabChild.name = _showLightPlayerPrefab.name;
 
-            child.GetComponent<LightPlayerController>().SetActiveLight(lightPrefabChild.GetComponent<Light2D>());
+            child
+                .GetComponent<LightPlayerController>()
+                .SetActiveLight(lightPrefabChild.GetComponent<Light2D>());
         }
 
         GameManager.Instance.PlayerManager.AddPlayer(
             input.gameObject,
-            PlayerManager.PlayerType.Light,
+            PlayerManager.PlayerRole.Light,
+            playerIndex,
             input
         );
+
+        Debug.Log($"Light player spawned for {playerIndex}.");
     }
 
-    private void SetupShadowPlayer(PlayerInput input, GameObject child)
+    private void SetupSkullPlayer(
+        PlayerInput input,
+        GameObject child,
+        PlayerManager.PlayerIndex playerIndex
+    )
     {
-        Debug.Log("Player 2 joined as ShadowPlayerController");
-
         input.name = "ShadowControllerRoot";
         input.transform.position = _grid.GetSpawnPoint(Grid.SpawnPointType.Shadow);
 
@@ -434,9 +378,12 @@ public class PlayerSpawner : MonoBehaviour
 
         GameManager.Instance.PlayerManager.AddPlayer(
             input.gameObject,
-            PlayerManager.PlayerType.Shadow,
+            PlayerManager.PlayerRole.Skull,
+            playerIndex,
             input
         );
+
+        Debug.Log($"Shadow player spawned for {playerIndex}.");
     }
     #endregion
 }

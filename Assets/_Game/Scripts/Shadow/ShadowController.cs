@@ -8,9 +8,9 @@ using UnityEngine;
 public enum ShadowType
 {
     Blinky, // Red - chases the player directly
-    Pinky,  // Pink - tries to ambush the player from the front
-    Inky,   // Blue - unpredictable, depends on other ghosts
-    Clyde   // Orange - alternates between chasing and retreating
+    Pinky, // Pink - tries to ambush the player from the front
+    Inky, // Blue - unpredictable, depends on other ghosts
+    Clyde, // Orange - alternates between chasing and retreating
 }
 
 [RequireComponent(typeof(Rigidbody2D))]
@@ -23,20 +23,32 @@ public class ShadowController : MonoBehaviour
 {
     #region Inspector Fields
     [Header("Direct Indicator")]
-    [SerializeField] private Animator _animator;
-    [SerializeField] private Animator _faceAnimator;
+    [SerializeField]
+    private Animator _animator;
+
+    [SerializeField]
+    private Animator _faceAnimator;
 
     [Header("Movement Settings")]
-    [SerializeField] protected float _speed = 10.5f;
-    [SerializeField] private float _centerThreshold = 0.15f;
-    [SerializeField] private float _snapSpeedMultiplier = 1.5f;
+    [SerializeField]
+    protected float _speed = 10.5f;
+
+    [SerializeField]
+    private float _centerThreshold = 0.15f;
+
+    [SerializeField]
+    private float _snapSpeedMultiplier = 1.5f;
 
     [Header("AI Settings")]
-    [SerializeField] private bool _enableAIMovement = true;
-    [SerializeField] private float _directionChangeDelay = 0.5f;
+    [SerializeField]
+    private bool _enableAIMovement = true;
+
+    [SerializeField]
+    private float _directionChangeDelay = 0.5f;
 
     [Header("Shadow Identity")]
-    [SerializeField] private ShadowType _shadowType;
+    [SerializeField]
+    private ShadowType _shadowType;
     #endregion
 
     #region Properties
@@ -59,7 +71,8 @@ public class ShadowController : MonoBehaviour
         set { _isShadowActive = value; }
     }
 
-    public Vector2Int CurrentDirection{
+    public Vector2Int CurrentDirection
+    {
         get => _currentDirection;
         set
         {
@@ -71,10 +84,7 @@ public class ShadowController : MonoBehaviour
     public bool CanBeSwitchedTo
     {
         get => _canBeSwitchedTo;
-        set
-        {
-            _canBeSwitchedTo = value;
-        }
+        set { _canBeSwitchedTo = value; }
     }
     public Movement Movement => _movement;
     public ShadowBehaviorCycle ShadowBehaviorCycle => _shadowBehaviorCycle;
@@ -143,7 +153,14 @@ public class ShadowController : MonoBehaviour
     {
         _rb = GetComponent<Rigidbody2D>();
         _grid = FindFirstObjectByType<Grid>();
-        _movement = new Movement(_rb, transform, _grid, _speed, _centerThreshold, _snapSpeedMultiplier);
+        _movement = new Movement(
+            _rb,
+            transform,
+            _grid,
+            _speed,
+            _centerThreshold,
+            _snapSpeedMultiplier
+        );
         _shadowBehaviorCycle = GetComponent<ShadowBehaviorCycle>();
     }
 
@@ -154,8 +171,9 @@ public class ShadowController : MonoBehaviour
 
     private void Timer_OnRoundEnd(object sender, EventArgs e)
     {
-        LightPlayerController lightPlayerController = GameManager.Instance.PlayerManager.
-            GetPlayerOfType(PlayerManager.PlayerType.Light).GetComponentInChildren<LightPlayerController>();
+        LightPlayerController lightPlayerController = GameManager
+            .Instance.PlayerManager.GetPlayerOfType(PlayerManager.PlayerRole.Light)
+            .GetComponentInChildren<LightPlayerController>();
 
         lightPlayerController.Movement.SetSpeed(lightPlayerController.Speed);
     }
@@ -185,27 +203,29 @@ public class ShadowController : MonoBehaviour
         if (collision.CompareTag("PlayerLight"))
         {
             Debug.Log("Collisin with light");
-            if(GameManager.Instance.IsFrightenedShadowState)
+            if (GameManager.Instance.IsFrightenedShadowState)
             {
-                if(_isShadowActive)
+                if (_isShadowActive)
                 {
                     _owner = GetComponentInParent<ShadowPlayerController>();
                     _owner.StartCoroutine(_owner.SwitchShadowsRandomCoroutine());
                 }
                 SetState(new ShadowEatenState());
             }
-            else if(_currentState.State == ShadowState.Eaten)
+            else if (_currentState.State == ShadowState.Eaten)
             {
                 return;
             }
-            else {
-                if(_isShadowActive)
+            else
+            {
+                if (_isShadowActive)
                 {
                     GameManager.Instance.Timer.EndRound();
                 }
                 else
                 {
-                    LightPlayerController lightPlayerController = collision.GetComponentInChildren<LightPlayerController>();
+                    LightPlayerController lightPlayerController =
+                        collision.GetComponentInChildren<LightPlayerController>();
                     lightPlayerController.Movement.SetSpeed(lightPlayerController.Speed * 0.5f);
                 }
             }
@@ -216,7 +236,8 @@ public class ShadowController : MonoBehaviour
     {
         if (collision.CompareTag("PlayerLight"))
         {
-            LightPlayerController lightPlayerController = collision.GetComponentInChildren<LightPlayerController>();
+            LightPlayerController lightPlayerController =
+                collision.GetComponentInChildren<LightPlayerController>();
             StartCoroutine(LightPlayerSpeedReset(lightPlayerController));
         }
     }

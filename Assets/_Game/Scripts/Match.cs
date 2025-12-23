@@ -22,12 +22,17 @@ public class Match : MonoBehaviour
     [Tooltip("Round duration in seconds")]
     [SerializeField]
     private float _roundDurationSeconds = 10f;
-    
+
     [Tooltip("Round in single match")]
-    [SerializeField][Range(1, 10)]
+    [SerializeField]
+    [Range(1, 10)]
     private int _rounds = 3;
-    
+
     private int _currentRound;
+    public int CurrentRound
+    {
+        get => _currentRound;
+    }
     #endregion
 
     #region Events
@@ -58,7 +63,8 @@ public class Match : MonoBehaviour
             return;
 
         RoundTime += Time.deltaTime;
-        if (_currentRound > 10) {
+        if (_currentRound > 10)
+        {
             EndMatch();
         }
         if (RoundTime >= _roundDurationSeconds)
@@ -93,10 +99,7 @@ public class Match : MonoBehaviour
         MatchTime = 0;
         RoundTime = 0;
 
-        OnMatchStart?.Invoke(
-            this,
-            new OnMatchStartEventArgs(_rounds, _roundDurationSeconds)
-        );
+        OnMatchStart?.Invoke(this, new OnMatchStartEventArgs(_rounds, _roundDurationSeconds));
         OnRoundStart?.Invoke(this, EventArgs.Empty);
     }
 
@@ -120,7 +123,8 @@ public class Match : MonoBehaviour
         RoundTime = 0;
         _currentRound++;
         Pause();
-        if (_currentRound > 10) {
+        if (_currentRound > 10)
+        {
             EndMatch();
 
             return;
@@ -185,16 +189,19 @@ public class OnMatchStartEventArgs : EventArgs
         CurrentRound = currentRound;
         RoundDuration = roundDuration;
     }
-    
+
     public readonly int CurrentRound;
     public readonly int MatchRounds;
     public readonly float RoundDuration;
 }
 
-public class OnRoundEndEventArgs : EventArgs {
-    public OnRoundEndEventArgs(int currentRound) {
+public class OnRoundEndEventArgs : EventArgs
+{
+    public OnRoundEndEventArgs(int currentRound)
+    {
         CurrentRound = currentRound;
     }
+
     public readonly int CurrentRound;
 }
 #endregion

@@ -14,10 +14,10 @@ public class ShadowEatenState : IShadowState
     #region Constants and Fields
     private static readonly Vector2Int[] Directions =
     {
-        new(0, 1),  
-        new(-1, 0),  
-        new(1, 0),   
-        new(0, -1)   
+        new(0, 1),
+        new(-1, 0),
+        new(1, 0),
+        new(0, -1),
     };
 
     private const float DecisionInterval = 0.13f;
@@ -36,7 +36,9 @@ public class ShadowEatenState : IShadowState
     /// </summary>
     public void Enter(ShadowController shadow)
     {
-        GameManager.Instance.Score.AddScoreToActive(10);
+        GameManager
+            .Instance.PlayerManager.Players.First(p => p.Role == PlayerManager.PlayerRole.Light)
+            .AddScore(10);
         _homeTargets = GameManager.Instance.Grid.GetShadowHomeTargets();
         _currentTargetIndex = 0;
         _lastDirection = Vector2Int.zero;
@@ -73,21 +75,26 @@ public class ShadowEatenState : IShadowState
         var currentPosition = shadow.transform.position;
         _currentCell = Grid.WorldToCell(currentPosition);
 
-        Vector2Int targetCell = _currentTargetIndex < _homeTargets.Count
-                                 ? _homeTargets[_currentTargetIndex]
-                                 : _homeTargets.Last();
+        Vector2Int targetCell =
+            _currentTargetIndex < _homeTargets.Count
+                ? _homeTargets[_currentTargetIndex]
+                : _homeTargets.Last();
 
         if ((Vector2Int)_currentCell == targetCell)
         {
             _currentTargetIndex++;
 
-            if (_currentTargetIndex >= _homeTargets.Count && (Vector2Int)_currentCell == _homeTargets.Last())
+            if (
+                _currentTargetIndex >= _homeTargets.Count
+                && (Vector2Int)_currentCell == _homeTargets.Last()
+            )
             {
                 var appearance = shadow.GetComponent<ShadowAppearanceManager>();
                 appearance.SetColorAfterEaten();
                 appearance.SetColorBeforeFrightened();
 
-                ShadowPlayerController owner = shadow.GetComponentInParent<ShadowPlayerController>();
+                ShadowPlayerController owner =
+                    shadow.GetComponentInParent<ShadowPlayerController>();
                 if (owner != null)
                     shadow.StartCoroutine(DelayedUpdateAppearance(shadow));
 
@@ -152,9 +159,8 @@ public class ShadowEatenState : IShadowState
             { x: -1, y: 0 } => 1,
             { x: 1, y: 0 } => 2,
             { x: 0, y: -1 } => 3,
-            _ => int.MaxValue
+            _ => int.MaxValue,
         };
     }
     #endregion
-
 }

@@ -1,5 +1,5 @@
 using System;
-using System.Data.Common;
+using System.Linq;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -62,20 +62,7 @@ public class PlayerSwapUI : MonoBehaviour
     private Sequence _animationSequence;
 
     // Track current role assignment (true = Player1 is Light, false = Player1 is Shadow)
-    private bool _player1IsLight = true;
-
-    /// <summary>
-    /// Gets whether Player 1 (index 0) currently has the Light role.
-    /// </summary>
-    public bool IsPlayer1Light => _player1IsLight;
-
-    /// <summary>
-    /// Gets the current role of Player 1 (index 0).
-    /// </summary>
-    public PlayerSpawner.PlayerRole GetPlayer1Role()
-    {
-        return _player1IsLight ? PlayerSpawner.PlayerRole.Light : PlayerSpawner.PlayerRole.Shadow;
-    }
+    private bool _isP1Light = true;
 
     private void Awake()
     {
@@ -134,31 +121,21 @@ public class PlayerSwapUI : MonoBehaviour
     /// <param name="p1Role">The role that Player 1 (index 0) has selected</param>
     /// <param name="displayDuration">How long to display the role assignment before fading out</param>
     /// <param name="onComplete">Callback when the entire sequence (fade in, hold, fade out) completes</param>
-    public void ShowInitialAssignment(
-        PlayerSpawner.PlayerRole p1Role,
-        float displayDuration = 3f,
-        Action onComplete = null
-    )
+    public void ShowInitialAssignment(float displayDuration = 3f, Action onComplete = null)
     {
         _animationSequence?.Kill();
         gameObject.SetActive(true);
 
-        _p1ScoreText.text = FormatScoreText(GameScore.PlayerType.P1);
-        _p2ScoreText.text = FormatScoreText(GameScore.PlayerType.P2);
+        _p1ScoreText.text = FormatScoreText(PlayerManager.PlayerIndex.P1);
+        _p2ScoreText.text = FormatScoreText(PlayerManager.PlayerIndex.P2);
 
-        // Initialize role tracking based on Player 1's actual role
-        _player1IsLight = p1Role == PlayerSpawner.PlayerRole.Light;
+        _isP1Light =
+            GameManager
+                .Instance.PlayerManager.Players.First(p => p.Index == PlayerManager.PlayerIndex.P1)
+                .Role == PlayerManager.PlayerRole.Light;
 
-        _lightColorIndicator.transform.rotation = Quaternion.Euler(
-            0f,
-            0f,
-            _player1IsLight ? 0f : 180f
-        );
-        _shadowColorIndicator.transform.rotation = Quaternion.Euler(
-            0f,
-            0f,
-            _player1IsLight ? 180f : 0f
-        );
+        _lightColorIndicator.transform.rotation = Quaternion.Euler(0f, 0f, _isP1Light ? 0f : 180f);
+        _shadowColorIndicator.transform.rotation = Quaternion.Euler(0f, 0f, _isP1Light ? 180f : 0f);
 
         // Create sequence: fade in -> hold -> fade out
         _animationSequence = DOTween.Sequence();
@@ -172,15 +149,15 @@ public class PlayerSwapUI : MonoBehaviour
         });
     }
 
-    private string FormatScoreText(GameScore.PlayerType playerType)
+    private string FormatScoreText(PlayerManager.PlayerIndex playerIndex)
     {
-        if (playerType == GameScore.PlayerType.P1)
+        if (playerIndex == PlayerManager.PlayerIndex.P1)
         {
-            return $"Score: {GameManager.Instance?.Score.P1Score}";
+            return $"Score: {GameManager.Instance?.PlayerManager.Players.First(p => p.Index == PlayerManager.PlayerIndex.P1).Score ?? 0}";
         }
-        else if (playerType == GameScore.PlayerType.P2)
+        else if (playerIndex == PlayerManager.PlayerIndex.P2)
         {
-            return $"Score: {GameManager.Instance?.Score.P2Score}";
+            return $"Score: {GameManager.Instance?.PlayerManager.Players.First(p => p.Index == PlayerManager.PlayerIndex.P2).Score ?? 0}";
         }
         else
         {
@@ -188,56 +165,74 @@ public class PlayerSwapUI : MonoBehaviour
         }
     }
 
-    private Tweener TweenScore(GameScore.PlayerType playerType)
+    private Tween TweenScore(PlayerManager.PlayerIndex playerIndex)
     {
-        int scoreOld = 0;
-        int scoreAdd = 0;
+        var player = GameManager.Instance.PlayerManager.Players.First(p => p.Index == playerIndex);
 
-        if (playerType == GameScore.PlayerType.P1 && GameManager.Instance?.Score != null)
-        {
-            scoreOld =
-                GameManager.Instance.Score.P1Score - GameManager.Instance.Score.P1ScoreThisRound;
-            scoreAdd = GameManager.Instance.Score.P1ScoreThisRound;
-        }
-        else if (playerType == GameScore.PlayerType.P2 && GameManager.Instance?.Score != null)
-        {
-            scoreOld =
-                GameManager.Instance.Score.P2Score - GameManager.Instance.Score.P2ScoreThisRound;
-            scoreAdd = GameManager.Instance.Score.P2ScoreThisRound;
-        }
+        // CurrentRound has incremented in EndRound event
+        // CurrentRound - 2 gives us the index of the round that just completed
+        int completedRoundIndex = GameManager.Instance.Timer.CurrentRound - 2;
+        if (completedRoundIndex < 0)
+            completedRoundIndex = 0;
+
+        // Sum of scores up to (but not including) the completed round
+        int scoreOld = player.RoundScores.Take(completedRoundIndex).Sum();
+
+        // Score for the round that just completed
+        int scoreAdd =
+            completedRoundIndex < player.RoundScores.Count
+                ? player.RoundScores[completedRoundIndex]
+                : 0;
+
+        TextMeshProUGUI scoreText =
+            playerIndex == PlayerManager.PlayerIndex.P1 ? _p1ScoreText : _p2ScoreText;
+
+        Sequence scoreTween = DOTween.Sequence();
 
         float displayScore = scoreOld;
+        float remainingAdd = scoreAdd;
+        int lastDisplayValue = -1;
 
-        return DOTween
-            .To(x => displayScore = x, scoreOld, scoreOld + scoreAdd, 2f)
-            .SetEase(Ease.InOutSine)
-            .OnUpdate(() =>
-            {
-                string newText = $"Score: {Mathf.FloorToInt(displayScore)} (+{scoreAdd})";
-
-                if (
-                    newText
-                    != (
-                        playerType == GameScore.PlayerType.P1
-                            ? _p1ScoreText.text
-                            : _p2ScoreText.text
-                    )
-                )
+        // Tween displayScore from scoreOld to scoreOld + scoreAdd
+        // Tween remainingAdd from scoreAdd to 0
+        // Both happen simultaneously
+        scoreTween.Append(
+            DOTween
+                .To(() => displayScore, x => displayScore = x, scoreOld + scoreAdd, 2f)
+                .SetEase(Ease.InOutSine)
+                .OnUpdate(() =>
                 {
-                    if (playerType == GameScore.PlayerType.P1)
+                    remainingAdd = scoreAdd - (displayScore - scoreOld);
+
+                    int currentDisplay = Mathf.FloorToInt(displayScore);
+                    int currentRemaining = Mathf.CeilToInt(remainingAdd);
+
+                    if (currentDisplay != lastDisplayValue)
                     {
-                        _p1ScoreText.text = newText;
-                    }
-                    else if (playerType == GameScore.PlayerType.P2)
-                    {
-                        _p2ScoreText.text = newText;
+                        lastDisplayValue = currentDisplay;
+                        AudioManager.Instance?.PlayOneShot(
+                            AudioManager.Instance.FMODEvents.SFX.ScoreBeep
+                        );
                     }
 
-                    AudioManager.Instance?.PlayOneShot(
-                        AudioManager.Instance.FMODEvents.SFX.ScoreBeep
-                    );
-                }
-            });
+                    if (currentRemaining > 0)
+                    {
+                        scoreText.text = $"Score: {currentDisplay} (+{currentRemaining})";
+                    }
+                    else
+                    {
+                        scoreText.text = $"Score: {currentDisplay}";
+                    }
+                })
+        );
+
+        // Ensure final value is set
+        scoreTween.OnComplete(() =>
+        {
+            scoreText.text = $"Score: {scoreOld + scoreAdd}";
+        });
+
+        return scoreTween;
     }
 
     /// <summary>
@@ -251,12 +246,12 @@ public class PlayerSwapUI : MonoBehaviour
         gameObject.SetActive(true);
 
         // Swap the role state
-        _player1IsLight = !_player1IsLight;
+        _isP1Light = !_isP1Light;
 
         _animationSequence = DOTween.Sequence();
         _animationSequence.Append(_canvasGroup.DOFade(1f, _fadeInDuration));
-        _animationSequence.Append(TweenScore(GameScore.PlayerType.P1));
-        _animationSequence.Join(TweenScore(GameScore.PlayerType.P2));
+        _animationSequence.Append(TweenScore(PlayerManager.PlayerIndex.P1));
+        _animationSequence.Join(TweenScore(PlayerManager.PlayerIndex.P2));
         _animationSequence.Append(RotateColorIndicators());
         _animationSequence.AppendInterval(_roleSwapDuration);
         _animationSequence.Append(_canvasGroup.DOFade(0f, _fadeOutDuration));

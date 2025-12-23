@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -107,15 +108,16 @@ public class PlayerSelectUI : MonoBehaviour
     [SerializeField]
     private PlayerSwapUI _playerSwapUI;
 
-    private Dictionary<int, PlayerSpawner.PlayerRole> _playerRoles =
-        new Dictionary<int, PlayerSpawner.PlayerRole>();
-    private Dictionary<int, bool> _playerReady = new Dictionary<int, bool>();
+    private Dictionary<PlayerManager.PlayerIndex, PlayerManager.PlayerRole> _playerRoles =
+        new Dictionary<PlayerManager.PlayerIndex, PlayerManager.PlayerRole>();
+    private Dictionary<PlayerManager.PlayerIndex, bool> _playerReady =
+        new Dictionary<PlayerManager.PlayerIndex, bool>();
 
     private Tween _p1Tween;
     private Tween _p2Tween;
 
-    private PlayerSpawner.PlayerRole _p1IndicatorState = PlayerSpawner.PlayerRole.None;
-    private PlayerSpawner.PlayerRole _p2IndicatorState = PlayerSpawner.PlayerRole.None;
+    private PlayerManager.PlayerRole _p1IndicatorState = PlayerManager.PlayerRole.None;
+    private PlayerManager.PlayerRole _p2IndicatorState = PlayerManager.PlayerRole.None;
 
     private void Start()
     {
@@ -140,8 +142,8 @@ public class PlayerSelectUI : MonoBehaviour
         }
 
         // Initialize indicator visuals to neutral
-        ApplyIndicatorStateInstant(0, PlayerSpawner.PlayerRole.None);
-        ApplyIndicatorStateInstant(1, PlayerSpawner.PlayerRole.None);
+        ApplyIndicatorStateInstant(0, PlayerManager.PlayerRole.None);
+        ApplyIndicatorStateInstant(1, PlayerManager.PlayerRole.None);
     }
 
     private void OnEnable()
@@ -170,36 +172,39 @@ public class PlayerSelectUI : MonoBehaviour
 
     private void HandleRoleSelectionStarted(object sender, PlayerSpawner.RoleSelectionEventArgs e)
     {
-        UpdateRoleSelectionVisuals(e.PlayerIndex, e.SelectedRole);
+        UpdateRoleSelectionVisuals(e.PlayerIndex, e.PlayerRole);
     }
 
     private void HandleRoleSelectionChanged(object sender, PlayerSpawner.RoleSelectionEventArgs e)
     {
-        int playerIndex = e.PlayerIndex;
-        if (playerIndex < 0 || playerIndex > 1)
+        PlayerManager.PlayerIndex playerIndex = e.PlayerIndex;
+        if (
+            playerIndex != PlayerManager.PlayerIndex.P1
+            && playerIndex != PlayerManager.PlayerIndex.P2
+        )
             return;
 
         // Track which role this player is selecting
-        _playerRoles[playerIndex] = e.SelectedRole;
+        _playerRoles[playerIndex] = e.PlayerRole;
 
         // Get the appropriate progress bar based on player
         Slider progressBar = null;
         RawImage characterImage = null;
 
-        if (playerIndex == 0)
+        if (playerIndex == PlayerManager.PlayerIndex.P1)
         {
             progressBar = _p1Progress;
             progressBar.fillRect.GetComponent<Image>().color = PlayerSpawner.RoleColors[
-                e.SelectedRole
+                e.PlayerRole
             ];
             _p1Tween?.Kill();
             characterImage = _p1CharacterRawImage;
         }
-        else if (playerIndex == 1)
+        else if (playerIndex == PlayerManager.PlayerIndex.P2)
         {
             progressBar = _p2Progress;
             progressBar.fillRect.GetComponent<Image>().color = PlayerSpawner.RoleColors[
-                e.SelectedRole
+                e.PlayerRole
             ];
             _p2Tween?.Kill();
             characterImage = _p2CharacterRawImage;
@@ -209,7 +214,7 @@ public class PlayerSelectUI : MonoBehaviour
         if (characterImage != null)
         {
             characterImage.texture =
-                e.SelectedRole == PlayerSpawner.PlayerRole.Light ? _lightRawImage : _shadowRawImage;
+                e.PlayerRole == PlayerManager.PlayerRole.Light ? _lightRawImage : _shadowRawImage;
         }
 
         // Update progress bar
@@ -225,8 +230,12 @@ public class PlayerSelectUI : MonoBehaviour
         }
 
         // Handle ready state
-        Transform readyText = playerIndex == 0 ? _p1ReadyTextTransform : _p2ReadyTextTransform;
-        TextMeshProUGUI playerText = playerIndex == 0 ? _p1Text : _p2Text;
+        Transform readyText =
+            playerIndex == PlayerManager.PlayerIndex.P1
+                ? _p1ReadyTextTransform
+                : _p2ReadyTextTransform;
+        TextMeshProUGUI playerText =
+            playerIndex == PlayerManager.PlayerIndex.P1 ? _p1Text : _p2Text;
         bool wasReady = _playerReady.ContainsKey(playerIndex) && _playerReady[playerIndex];
 
         if (e.IsConfirmed && !wasReady)
@@ -237,12 +246,7 @@ public class PlayerSelectUI : MonoBehaviour
                 readyText.gameObject.SetActive(true);
                 readyText.localScale = Vector3.zero;
                 playerText
-                    .DOColor(
-                        playerIndex == 0
-                            ? PlayerSpawner.RoleColors[e.SelectedRole]
-                            : PlayerSpawner.RoleColors[e.SelectedRole],
-                        _playerTextTransitionDuration
-                    )
+                    .DOColor(PlayerSpawner.RoleColors[e.PlayerRole], _playerTextTransitionDuration)
                     .SetEase(_playerTextTransitionEase);
                 readyText
                     .DOScale(Vector3.one, _playerReadyScaleDuration)
@@ -263,7 +267,7 @@ public class PlayerSelectUI : MonoBehaviour
     private void UpdateCharacterImagePosition(
         Slider slider,
         RawImage characterImage,
-        int playerIndex
+        PlayerManager.PlayerIndex playerIndex
     )
     {
         if (slider == null || characterImage == null || slider.fillRect == null)
@@ -280,7 +284,7 @@ public class PlayerSelectUI : MonoBehaviour
         float finalPosition;
 
         // P1 fills from left to right, P2 fills from right to left
-        if (playerIndex == 0)
+        if (playerIndex == PlayerManager.PlayerIndex.P1)
         {
             float minX = -sliderWidth * sliderRect.pivot.x;
             float edgePosition = minX + fillWidth;
@@ -301,54 +305,65 @@ public class PlayerSelectUI : MonoBehaviour
         characterRect.anchoredPosition = anchoredPos;
     }
 
-    private void UpdateRoleSelectionVisuals(int playerIndex, PlayerSpawner.PlayerRole selectedRole)
+    private void UpdateRoleSelectionVisuals(
+        PlayerManager.PlayerIndex playerIndex,
+        PlayerManager.PlayerRole selectedRole
+    )
     {
         // Show character image when selection starts
-        RawImage characterImage = playerIndex == 0 ? _p1CharacterRawImage : _p2CharacterRawImage;
+        RawImage characterImage =
+            playerIndex == PlayerManager.PlayerIndex.P1
+                ? _p1CharacterRawImage
+                : _p2CharacterRawImage;
         if (characterImage != null && !characterImage.gameObject.activeSelf)
         {
             characterImage.gameObject.SetActive(true);
         }
 
         // Decide target states for both players based on who started selection and which role
-        if (selectedRole == PlayerSpawner.PlayerRole.Light)
+        if (selectedRole == PlayerManager.PlayerRole.Light)
         {
-            if (playerIndex == 0)
+            if (playerIndex == PlayerManager.PlayerIndex.P1)
             {
-                SetIndicatorState(0, PlayerSpawner.PlayerRole.Light);
-                SetIndicatorState(1, PlayerSpawner.PlayerRole.Shadow);
+                SetIndicatorState(PlayerManager.PlayerIndex.P1, PlayerManager.PlayerRole.Light);
+                SetIndicatorState(PlayerManager.PlayerIndex.P2, PlayerManager.PlayerRole.Skull);
             }
-            else if (playerIndex == 1)
+            else if (playerIndex == PlayerManager.PlayerIndex.P2)
             {
-                SetIndicatorState(1, PlayerSpawner.PlayerRole.Light);
-                SetIndicatorState(0, PlayerSpawner.PlayerRole.Shadow);
+                SetIndicatorState(PlayerManager.PlayerIndex.P2, PlayerManager.PlayerRole.Light);
+                SetIndicatorState(PlayerManager.PlayerIndex.P1, PlayerManager.PlayerRole.Skull);
             }
         }
         else
         {
-            if (playerIndex == 0)
+            if (playerIndex == PlayerManager.PlayerIndex.P1)
             {
-                SetIndicatorState(0, PlayerSpawner.PlayerRole.Shadow);
-                SetIndicatorState(1, PlayerSpawner.PlayerRole.Light);
+                SetIndicatorState(PlayerManager.PlayerIndex.P1, PlayerManager.PlayerRole.Skull);
+                SetIndicatorState(PlayerManager.PlayerIndex.P2, PlayerManager.PlayerRole.Light);
             }
-            else if (playerIndex == 1)
+            else if (playerIndex == PlayerManager.PlayerIndex.P2)
             {
-                SetIndicatorState(1, PlayerSpawner.PlayerRole.Shadow);
-                SetIndicatorState(0, PlayerSpawner.PlayerRole.Light);
+                SetIndicatorState(PlayerManager.PlayerIndex.P2, PlayerManager.PlayerRole.Skull);
+                SetIndicatorState(PlayerManager.PlayerIndex.P1, PlayerManager.PlayerRole.Light);
             }
         }
     }
 
-    void HandleRoleSelectionReleased(object sender, PlayerSpawner.RoleSelectionReleasedEventArgs e)
+    void HandleRoleSelectionReleased(object sender, PlayerSpawner.RoleSelectionEventArgs e)
     {
-        int playerIndex = e.PlayerIndex;
-        if (playerIndex < 0 || playerIndex > 1)
+        PlayerManager.PlayerIndex playerIndex = e.PlayerIndex;
+        if (
+            playerIndex != PlayerManager.PlayerIndex.P1
+            && playerIndex != PlayerManager.PlayerIndex.P2
+        )
             return;
 
-        Transform readyText = playerIndex == 0 ? _p1ReadyTextTransform : _p2ReadyTextTransform;
-
+        Transform readyText =
+            playerIndex == PlayerManager.PlayerIndex.P1
+                ? _p1ReadyTextTransform
+                : _p2ReadyTextTransform;
         // Reset the progress bar for the released role
-        if (playerIndex == 0 && _p1Progress != null)
+        if (playerIndex == PlayerManager.PlayerIndex.P1 && _p1Progress != null)
         {
             _p1Tween?.Kill();
             _p1Tween = DOTween
@@ -363,11 +378,15 @@ public class PlayerSelectUI : MonoBehaviour
                 {
                     if (_p1CharacterRawImage != null && _p1CharacterRawImage.gameObject.activeSelf)
                     {
-                        UpdateCharacterImagePosition(_p1Progress, _p1CharacterRawImage, 0);
+                        UpdateCharacterImagePosition(
+                            _p1Progress,
+                            _p1CharacterRawImage,
+                            playerIndex
+                        );
                     }
                 });
         }
-        else if (playerIndex == 1 && _p2Progress != null)
+        else if (playerIndex == PlayerManager.PlayerIndex.P2 && _p2Progress != null)
         {
             _p2Tween?.Kill();
             _p2Tween = DOTween
@@ -382,7 +401,11 @@ public class PlayerSelectUI : MonoBehaviour
                 {
                     if (_p2CharacterRawImage != null && _p2CharacterRawImage.gameObject.activeSelf)
                     {
-                        UpdateCharacterImagePosition(_p2Progress, _p2CharacterRawImage, 1);
+                        UpdateCharacterImagePosition(
+                            _p2Progress,
+                            _p2CharacterRawImage,
+                            playerIndex
+                        );
                     }
                 });
         }
@@ -402,7 +425,7 @@ public class PlayerSelectUI : MonoBehaviour
 
         // Refresh visuals: if the other player is still selecting, reflect their state;
         // otherwise clear indicator visuals to neutral
-        int other = playerIndex == 0 ? 1 : 0;
+        PlayerManager.PlayerIndex other = (PlayerManager.PlayerIndex)(((int)playerIndex % 2) + 1);
         if (_playerRoles.ContainsKey(other))
         {
             UpdateRoleSelectionVisuals(other, _playerRoles[other]);
@@ -410,8 +433,8 @@ public class PlayerSelectUI : MonoBehaviour
         else
         {
             // No one selecting — reset to neutral
-            SetIndicatorState(0, PlayerSpawner.PlayerRole.None);
-            SetIndicatorState(1, PlayerSpawner.PlayerRole.None);
+            SetIndicatorState(PlayerManager.PlayerIndex.P1, PlayerManager.PlayerRole.None);
+            SetIndicatorState(PlayerManager.PlayerIndex.P2, PlayerManager.PlayerRole.None);
         }
     }
 
@@ -451,23 +474,17 @@ public class PlayerSelectUI : MonoBehaviour
             {
                 // Get Player 1's role from PlayerSpawner
                 PlayerSpawner spawner = FindFirstObjectByType<PlayerSpawner>();
-                PlayerSpawner.PlayerRole p1Role =
-                    spawner != null ? spawner.GetPlayer1Role() : PlayerSpawner.PlayerRole.Light;
+
+                // Spawn players before starting the match
+                if (GameManager.Instance != null && GameManager.Instance.PlayerSpawner != null)
+                {
+                    GameManager.Instance.PlayerSpawner.ExecutePlayerSpawn();
+                }
 
                 _playerSwapUI.ShowInitialAssignment(
-                    p1Role,
                     displayDuration: 3f,
                     onComplete: () =>
                     {
-                        // Spawn players before starting the match
-                        if (
-                            GameManager.Instance != null
-                            && GameManager.Instance.PlayerSpawner != null
-                        )
-                        {
-                            GameManager.Instance.PlayerSpawner.ExecutePlayerSpawn();
-                        }
-
                         // Start the match countdown after displaying roles
                         if (GameManager.Instance != null && GameManager.Instance.Timer != null)
                         {
@@ -481,9 +498,12 @@ public class PlayerSelectUI : MonoBehaviour
         s.Play();
     }
 
-    private void SetIndicatorState(int playerIndex, PlayerSpawner.PlayerRole newState)
+    private void SetIndicatorState(
+        PlayerManager.PlayerIndex playerIndex,
+        PlayerManager.PlayerRole newState
+    )
     {
-        if (playerIndex == 0)
+        if (playerIndex == PlayerManager.PlayerIndex.P1)
         {
             if (_p1IndicatorState == newState)
                 return;
@@ -491,7 +511,7 @@ public class PlayerSelectUI : MonoBehaviour
             _p1IndicatorState = newState;
             switch (newState)
             {
-                case PlayerSpawner.PlayerRole.Light:
+                case PlayerManager.PlayerRole.Light:
                     _p1L2Image
                         .DOColor(_colorActive, _indicatorTransitionDuration)
                         .SetEase(_indicatorTransitionEase);
@@ -505,7 +525,7 @@ public class PlayerSelectUI : MonoBehaviour
                         .DOColor(_colorInactive, _indicatorTransitionDuration)
                         .SetEase(_indicatorTransitionEase);
                     break;
-                case PlayerSpawner.PlayerRole.Shadow:
+                case PlayerManager.PlayerRole.Skull:
                     _p1L2Image
                         .DOColor(_colorInactive, _indicatorTransitionDuration)
                         .SetEase(_indicatorTransitionEase);
@@ -519,7 +539,7 @@ public class PlayerSelectUI : MonoBehaviour
                         .DOColor(_colorActive, _indicatorTransitionDuration)
                         .SetEase(_indicatorTransitionEase);
                     break;
-                case PlayerSpawner.PlayerRole.None:
+                case PlayerManager.PlayerRole.None:
                 default:
                     _p1L2Image
                         .DOColor(_colorActive, _indicatorTransitionDuration)
@@ -536,7 +556,7 @@ public class PlayerSelectUI : MonoBehaviour
                     break;
             }
         }
-        else if (playerIndex == 1)
+        else if (playerIndex == PlayerManager.PlayerIndex.P2)
         {
             if (_p2IndicatorState == newState)
                 return;
@@ -544,7 +564,7 @@ public class PlayerSelectUI : MonoBehaviour
             _p2IndicatorState = newState;
             switch (newState)
             {
-                case PlayerSpawner.PlayerRole.Light:
+                case PlayerManager.PlayerRole.Light:
                     _p2L2Image
                         .DOColor(_colorActive, _indicatorTransitionDuration)
                         .SetEase(_indicatorTransitionEase);
@@ -558,7 +578,7 @@ public class PlayerSelectUI : MonoBehaviour
                         .DOColor(_colorInactive, _indicatorTransitionDuration)
                         .SetEase(_indicatorTransitionEase);
                     break;
-                case PlayerSpawner.PlayerRole.Shadow:
+                case PlayerManager.PlayerRole.Skull:
                     _p2L2Image
                         .DOColor(_colorInactive, _indicatorTransitionDuration)
                         .SetEase(_indicatorTransitionEase);
@@ -572,7 +592,7 @@ public class PlayerSelectUI : MonoBehaviour
                         .DOColor(_colorActive, _indicatorTransitionDuration)
                         .SetEase(_indicatorTransitionEase);
                     break;
-                case PlayerSpawner.PlayerRole.None:
+                case PlayerManager.PlayerRole.None:
                 default:
                     _p2L2Image
                         .DOColor(_colorActive, _indicatorTransitionDuration)
@@ -591,17 +611,17 @@ public class PlayerSelectUI : MonoBehaviour
         }
     }
 
-    private void ApplyIndicatorStateInstant(int playerIndex, PlayerSpawner.PlayerRole state)
+    private void ApplyIndicatorStateInstant(int playerIndex, PlayerManager.PlayerRole state)
     {
         Color lightColor = _colorActive;
         Color shadowColor = _colorActive;
 
-        if (state == PlayerSpawner.PlayerRole.Light)
+        if (state == PlayerManager.PlayerRole.Light)
         {
             lightColor = _colorActive;
             shadowColor = _colorInactive;
         }
-        else if (state == PlayerSpawner.PlayerRole.Shadow)
+        else if (state == PlayerManager.PlayerRole.Skull)
         {
             lightColor = _colorInactive;
             shadowColor = _colorActive;
