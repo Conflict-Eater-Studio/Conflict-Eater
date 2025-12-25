@@ -38,10 +38,10 @@ public class PlayerSelectUI : MonoBehaviour
     #region Player Indicator Properties
     [Header("Player Button indicators")]
     [SerializeField]
-    private RawImage _p1R2Image;
+    private Image _p1R2Image;
 
     [SerializeField]
-    private RawImage _p1L2Image;
+    private Image _p1L2Image;
 
     [SerializeField]
     private TextMeshProUGUI _p1ShadowText;
@@ -50,10 +50,10 @@ public class PlayerSelectUI : MonoBehaviour
     private TextMeshProUGUI _p1LightText;
 
     [SerializeField]
-    private RawImage _p2R2Image;
+    private Image _p2R2Image;
 
     [SerializeField]
-    private RawImage _p2L2Image;
+    private Image _p2L2Image;
 
     [SerializeField]
     private TextMeshProUGUI _p2ShadowText;

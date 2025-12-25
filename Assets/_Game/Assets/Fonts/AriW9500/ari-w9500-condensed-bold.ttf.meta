@@ -1,0 +1,23 @@
+fileFormatVersion: 2
+guid: 17f0df5ec5a5518469f1eee7d5d28fa6
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 11
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontNames:
+  - Ari-W9500 Condensed
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: c8782d15295892a4b9b22bd4b57a4ee2, type: 3}
+  - {fileID: 12800000, guid: 74101574eff1e2f47997cadc81bc2a79, type: 3}
+  customCharacters: 
+  fontRenderingMode: 2
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
