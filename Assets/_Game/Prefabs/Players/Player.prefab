@@ -98,6 +98,42 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: eb4d716f-8bb9-41a6-bf93-4eb1fd59f282
     m_ActionName: 'Gameplay/SwitchInky[/XInputControllerWindows/rightShoulder,/XInputControllerWindows1/rightShoulder]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 85bd451e-5568-4466-8fd5-86031983a59b
+    m_ActionName: 'Gameplay/ShowMyPlayer[/XInputControllerWindows/buttonWest,/XInputControllerWindows1/buttonWest]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 4da0e645-0b6c-4e10-afc9-5e35955ec716
+    m_ActionName: 'UI/Navigate[/XInputControllerWindows/leftStick,/XInputControllerWindows1/leftStick,/XInputControllerWindows/dpad,/XInputControllerWindows1/dpad,/Keyboard/w,/Keyboard/s,/Keyboard/a,/Keyboard/d,/Keyboard/upArrow,/Keyboard/downArrow,/Keyboard/leftArrow,/Keyboard/rightArrow]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 0f0cbf50-b54d-472b-9a5a-437209bed975
+    m_ActionName: 'UI/Submit[/XInputControllerWindows/buttonSouth,/XInputControllerWindows1/buttonSouth,/Keyboard/enter,/Keyboard/space]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: b3d597e8-7adb-4cf7-9358-aad9c3dd9b25
+    m_ActionName: 'UI/Cancel[/XInputControllerWindows/buttonEast,/XInputControllerWindows1/buttonEast,/Keyboard/escape]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 31c33ca1-f7ea-4485-a987-2389c5b2949f
+    m_ActionName: 'UI/Point[/Mouse/position]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 0d7c82d2-1c81-48fb-98f1-d0989cf217ce
+    m_ActionName: 'UI/LeftClick[/Mouse/leftButton]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: d512ab00-34c2-4069-bdbc-2f65283bc0de
+    m_ActionName: 'UI/MiddleClick[/Mouse/middleButton]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: c9034a5e-2f39-47fe-a7d2-38550cc32f06
+    m_ActionName: 'UI/RightClick[/Mouse/rightButton]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 5d73e04f-8dab-4a83-be79-7227d860a99a
+    m_ActionName: 'UI/ScrollWheel[/Mouse/scroll]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Gameplay

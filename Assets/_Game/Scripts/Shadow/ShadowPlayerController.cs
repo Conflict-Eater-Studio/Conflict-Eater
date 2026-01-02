@@ -11,7 +11,7 @@ using UnityEngine.SceneManagement;
 /// Handles the player's control over multiple shadows/ghosts.
 /// Manages input, spawning, switching between shadows, round events, and appearance updates.
 /// </summary>
-public class ShadowPlayerController : MonoBehaviour
+public class ShadowPlayerController : PlayerController
 {
     #region Inspector Fields
     [Header("Shadow Settings")]
@@ -58,8 +58,10 @@ public class ShadowPlayerController : MonoBehaviour
     /// <summary>
     /// Initializes player input, subscribes to timer events, and starts spawning shadows.
     /// </summary>
-    private void Start()
+    protected override void Start()
     {
+        base.Start();
+
         _playerInput = GetComponentInParent<PlayerInput>();
 
         if (_playerInput != null)

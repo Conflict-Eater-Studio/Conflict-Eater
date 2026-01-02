@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 using System.Collections;
 using UnityEngine.Rendering.Universal;
 
-public class LightPlayerController : MonoBehaviour
+public class LightPlayerController : PlayerController
 {
     private const string MoveActionName = "Move";
     private const string PauseActionName = "Pause";
@@ -83,6 +83,11 @@ public class LightPlayerController : MonoBehaviour
             GameManager.Instance.Timer.OnMatchPause += Light_OnMatchPause;
             GameManager.Instance.Timer.OnMatchResume += Light_OnMatchResume;
         }
+    }
+
+    protected override void Start()
+    {
+        base.Start();
     }
 
     private void Light_OnMatchResume(object sender, EventArgs e)

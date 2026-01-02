@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using Unity.VisualScripting;
+using UnityEditor.PackageManager.Requests;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
@@ -327,6 +329,9 @@ public class PlayerSpawner : MonoBehaviour
     )
     {
         input.name = "LightControllerRoot";
+
+        GameObject playerNameObj = input.GetComponentInChildren<Canvas>().gameObject;
+
         input.transform.position = _grid.GetSpawnPoint(Grid.SpawnPointType.Light);
         input.gameObject.AddComponent<Animator>();
         input.gameObject.GetComponent<Animator>().runtimeAnimatorController = animationController;
@@ -334,6 +339,19 @@ public class PlayerSpawner : MonoBehaviour
         input.gameObject.tag = "PlayerLight";
 
         child.AddComponent<LightPlayerController>();
+
+        PlayerController playerController = child.GetComponent<LightPlayerController>();
+        if (playerController != null)
+        { 
+            playerController.SetPlayerNameObj(input.GetComponentInChildren<Canvas>().gameObject);
+            playerController.SetPlayerNick(
+                playerIndex == PlayerManager.PlayerIndex.P1 ? "Player 1" : "Player 2"
+            );
+            playerController.SetAnotherPlayerNick(
+                playerIndex == PlayerManager.PlayerIndex.P2 ? "Player 1" : "Player 2"
+            );
+        }
+
         var collider = child.AddComponent<CircleCollider2D>();
         collider.radius = 0.45f;
 
@@ -364,6 +382,7 @@ public class PlayerSpawner : MonoBehaviour
     )
     {
         input.name = "ShadowControllerRoot";
+
         input.transform.position = _grid.GetSpawnPoint(Grid.SpawnPointType.Shadow);
 
         Destroy(input.GetComponent<Renderer>());
@@ -373,6 +392,20 @@ public class PlayerSpawner : MonoBehaviour
 
         child.AddComponent<ShadowAppearanceManager>();
         var shadowController = child.AddComponent<ShadowPlayerController>();
+
+        PlayerController playerController = shadowController;
+
+        if (playerController != null)
+        {
+            playerController.SetPlayerNameObj(input.GetComponentInChildren<Canvas>().gameObject);
+            playerController.SetPlayerNick(
+                playerIndex == PlayerManager.PlayerIndex.P1 ? "Player 1" : "Player 2"
+            );
+            playerController.SetAnotherPlayerNick(
+                playerIndex == PlayerManager.PlayerIndex.P2 ? "Player 1" : "Player 2"
+                );
+        }
+
         shadowController.SetShadowPrefab(_ghostPrefab);
         shadowController.SetLaserMaterial(_laserMaterial);
 
