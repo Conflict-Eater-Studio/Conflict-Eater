@@ -97,8 +97,6 @@ public class ShadowSwitchUI : MonoBehaviour
     /// </summary>
     private void Update()
     {
-        //PrintEatenShadows();
-
         UpdateDebugInfo();
 
         if (_isSubscribed && _isShadowLinked)
@@ -249,11 +247,7 @@ public class ShadowSwitchUI : MonoBehaviour
         StartCoroutine(ApplyRotationAfterDelay(indicators, direction, duration));
     }
 
-    private IEnumerator ApplyRotationAfterDelay(
-    ShadowIndicator[] indicators,
-    int direction,
-    float delay
-)
+    private IEnumerator ApplyRotationAfterDelay(ShadowIndicator[] indicators, int direction, float delay)
     {
         yield return new WaitForSeconds(delay);
 
@@ -326,41 +320,4 @@ public class ShadowSwitchUI : MonoBehaviour
             state.indicator.transform.position = state.position;
         }
     }
-
-    private bool IsShadowEaten(ShadowIndicator indicator)
-    {
-        if (indicator == null)
-            return true;
-
-        // Get the shadow GameObject linked to this indicator
-        GameObject shadowGO = indicator.LinkedShadow; // <-- You need a reference in ShadowIndicator
-        if (shadowGO == null)
-            return true;
-
-        var controller = shadowGO.GetComponent<ShadowController>();
-        return controller == null || controller.CurrentState.State == ShadowState.Eaten;
-    }
-
-    public void PrintEatenShadows()
-    {
-        if (_shadowIndicators == null || _shadowIndicators.Count == 0)
-        {
-            Debug.Log("No shadow indicators available.");
-            return;
-        }
-
-        Debug.Log("=== Shadow Eaten Status ===");
-
-        foreach (var slot in _shadowIndicators)
-        {
-            if (slot == null || slot.indicator == null)
-                continue;
-
-            string shadowName = slot.indicator.LinkedShadow != null ? slot.indicator.LinkedShadow.name : "NoLinkedShadow";
-
-            bool eaten = IsShadowEaten(slot.indicator);
-            Debug.Log($"Slot {slot.id} ({shadowName}) is {(eaten ? "EATEN" : "Alive")}");
-        }
-    }
-
 }
