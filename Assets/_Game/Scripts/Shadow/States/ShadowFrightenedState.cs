@@ -103,18 +103,16 @@ public class ShadowFrightenedState : IShadowState
 
         if (validDirections.Count == 0)
         {
-            Vector3Int upCell = currentCell + Vector3Int.up;
-
-            if (grid.IsWalkable(upCell))
-            {
-                return Vector2Int.up;
-            }
-            return Vector2Int.zero;
+            if (_lastDirection != Vector2Int.zero)
+                return -_lastDirection;
+            else
+                return Vector2Int.up; 
         }
 
         int randomIndex = Random.Range(0, validDirections.Count);
         return validDirections[randomIndex];
     }
+
 
     #endregion
 }

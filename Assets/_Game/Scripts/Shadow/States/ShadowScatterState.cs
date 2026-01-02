@@ -74,23 +74,32 @@ public class ShadowScatterState : IShadowState
 
     /// <summary>
     /// Chooses the best direction to move based on distance to scatter target and walkable tiles.
-    /// Prevents moving directly backwards.
+    /// Avoids reversing if possible, but will reverse if no other move is allowed.
     /// </summary>
     private Vector2Int ChooseBestDirection(Grid grid, Vector3Int currentCell)
     {
         var targetWorldPos = Grid.GetCellCenterWorld(new Vector3Int(_targetCell.x, _targetCell.y, 0));
 
-        return Directions
-            .Where(dir => dir != -_lastDirection)                 
-            .Where(dir => grid.IsWalkable(currentCell + (Vector3Int)dir))
+        var possibleDirections = Directions
+            .Where(dir => dir != -_lastDirection)
+            .Where(dir => grid.IsWalkableForShadow(currentCell + (Vector3Int)dir))
             .OrderBy(dir =>
             {
                 var nextWorld = Grid.GetCellCenterWorld(currentCell + (Vector3Int)dir);
                 return Vector2.Distance(nextWorld, targetWorldPos);
             })
             .ThenBy(GetDirectionPriority)
-            .FirstOrDefault();
+            .ToList();
+
+        if (possibleDirections.Count > 0)
+            return possibleDirections[0];
+
+        if (grid.IsWalkableForShadow(currentCell + (Vector3Int)(-_lastDirection)))
+            return -_lastDirection;
+
+        return Vector2Int.zero;
     }
+
 
     /// <summary>
     /// Returns a fixed priority for directions to break ties.

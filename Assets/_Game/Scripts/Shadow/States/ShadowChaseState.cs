@@ -210,7 +210,8 @@ public class ShadowChaseState : IShadowState
 
     #region Direction Selection
     /// <summary>
-    /// Chooses the optimal direction to move based on target cell, avoiding reversing.
+    /// Chooses the optimal direction to move based on target cell.
+    /// Avoids reversing if possible, but will reverse if no other move is allowed.
     /// </summary>
     private Vector2Int ChooseBestDirection(
         Grid grid,
@@ -221,16 +222,24 @@ public class ShadowChaseState : IShadowState
     {
         var targetWorldPos = Grid.GetCellCenterWorld(new Vector3Int(targetCell.x, targetCell.y, 0));
 
-        return Directions
+        var possibleDirections = Directions
             .Where(dir => dir != -currentDirection)
-            .Where(dir => grid.IsWalkable(currentCell + (Vector3Int)dir))
+            .Where(dir => grid.IsWalkableForShadow(currentCell + (Vector3Int)dir))
             .OrderBy(dir =>
             {
                 var nextWorld = Grid.GetCellCenterWorld(currentCell + (Vector3Int)dir);
                 return Vector2.Distance(nextWorld, targetWorldPos);
             })
             .ThenBy(GetDirectionPriority)
-            .FirstOrDefault();
+            .ToList();
+
+        if (possibleDirections.Count > 0)
+            return possibleDirections[0];
+
+        if (grid.IsWalkableForShadow(currentCell + (Vector3Int)(-currentDirection)))
+            return -currentDirection;
+
+        return Vector2Int.zero;
     }
 
     /// <summary>
