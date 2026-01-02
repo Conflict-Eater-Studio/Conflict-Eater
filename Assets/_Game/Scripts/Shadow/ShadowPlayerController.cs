@@ -28,7 +28,7 @@ public class ShadowPlayerController : MonoBehaviour
     private const string PauseActionName = "Pause";
     private const string ShowMyPlayerActionName = "ShowMyPlayer";
 
-    private List<ShadowType> shadowTypes = new List<ShadowType>();
+    private List<ShadowType> _roundShadowTypes;
     private readonly List<GameObject> _shadows = new();
     private readonly List<GameObject> _nextActiveCharacters = new();
     private PlayerInput _playerInput;
@@ -79,9 +79,7 @@ public class ShadowPlayerController : MonoBehaviour
         GameManager.Instance.Timer.OnMatchPause += Shadow_OnMatchPause;
         GameManager.Instance.Timer.OnMatchResume += Shadow_OnMatchResume;
 
-        shadowTypes.Add(ShadowType.Blinky);
-        shadowTypes.Add(ShadowType.Inky);
-        shadowTypes.Add(ShadowType.Clyde);
+        PrepareRoundShadowTypes();
 
         StartCoroutine(SpawnFirstShadow());
     }
@@ -187,7 +185,7 @@ public class ShadowPlayerController : MonoBehaviour
 
         var controller = ghost.GetComponent<ShadowController>();
         controller.Owner = this;
-        controller.SetShadowType(shadowTypes[0]);
+        controller.SetShadowType(_roundShadowTypes[0]);
         controller.IsShadowActive = true;
 
         ShadowAppearanceManager appearanceManager = controller.GetComponent<ShadowAppearanceManager>();
@@ -220,7 +218,7 @@ public class ShadowPlayerController : MonoBehaviour
             ghost.name = $"Ghost_{i + 1}";
 
             var controller = ghost.GetComponent<ShadowController>();
-            controller.SetShadowType(shadowTypes[(i % _shadowCount)]);
+            controller.SetShadowType(_roundShadowTypes[i]);
             controller.IsShadowActive = false;
             controller.SetState(new ShadowExitBaseState());
 
@@ -228,13 +226,13 @@ public class ShadowPlayerController : MonoBehaviour
                 controller.GetComponent<ShadowAppearanceManager>();
             ShadowType type = controller.Type;
 
-            if (type == ShadowType.Inky)
+            if (i == 1)
             {
                 appearanceManager.colorBeforeFrightened = appearanceManager.inkyColor;
                 appearanceManager.SetCustomColor(appearanceManager.inkyColor);
             }
 
-            if (type == ShadowType.Clyde)
+            if (i == 2)
             {
                 appearanceManager.colorBeforeFrightened = appearanceManager.clydeColor;
                 appearanceManager.SetCustomColor(appearanceManager.clydeColor);
@@ -559,6 +557,7 @@ public class ShadowPlayerController : MonoBehaviour
         _activeShadowIndex = 0;
         UpdateASwitchColor();
 
+        PrepareRoundShadowTypes();
         StartCoroutine(RespawnAfterDelay(0.25f));
     }
 
@@ -666,4 +665,28 @@ public class ShadowPlayerController : MonoBehaviour
     }
 
     #endregion
+
+    /// <summary>
+    /// Generates a randomized list of unique shadow types for the current round.
+    /// </summary>
+    private void PrepareRoundShadowTypes()
+    {
+        List<ShadowType> availableTypes = new List<ShadowType>
+        {
+            ShadowType.Blinky,
+            ShadowType.Inky,
+            ShadowType.Clyde,
+            ShadowType.Pinky
+        };
+
+        for (int i = 0; i < availableTypes.Count; i++)
+        {
+            int randomIndex = Random.Range(i, availableTypes.Count);
+            (availableTypes[i], availableTypes[randomIndex]) =
+                (availableTypes[randomIndex], availableTypes[i]);
+        }
+
+        _roundShadowTypes = availableTypes.GetRange(0, _shadowCount);
+    }
+
 }
