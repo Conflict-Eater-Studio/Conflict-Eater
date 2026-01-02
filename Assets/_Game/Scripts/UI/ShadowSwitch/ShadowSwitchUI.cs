@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 
 [System.Serializable]
 public class ShadowIndicatorSlot
@@ -153,88 +152,39 @@ public class ShadowSwitchUI : MonoBehaviour
 
     private void PlayerController_OnActiveRandomSwitch()
     {
-        Color rbSwitchColor = playerController.RBSwitchColor;
-        Color lbSwitchColor = playerController.LBSwitchColor;
-        Color aSwitchColor = playerController.ASwitchColor;
+        Color activeColor = playerController.ASwitchColor;
 
-        ShadowIndicatorSlot lbSlot = null;
-        ShadowIndicatorSlot aSlot = null;
-        ShadowIndicatorSlot rbSlot = null;
+        int activeSlotIndex = -1;
 
-        foreach (var slot in _shadowIndicators)
+        for (int i = 0; i < _shadowIndicators.Count; i++)
         {
-            if (slot?.indicator == null)
-                continue;
-
-            Color indicatorColor = slot.indicator.GetColor();
-
-            if (ColorsEqual(indicatorColor, lbSwitchColor))
+            if (_shadowIndicators[i].indicator.GetColor() == activeColor)
             {
-                lbSlot = slot;
-            }
-            else if (ColorsEqual(indicatorColor, aSwitchColor))
-            {
-                aSlot = slot;
-            }
-            else if (ColorsEqual(indicatorColor, rbSwitchColor))
-            {
-                rbSlot = slot;
+                activeSlotIndex = i;
+                break;
             }
         }
 
-        if (lbSlot == null || aSlot == null || rbSlot == null)
+        if (activeSlotIndex == -1)
         {
-            Debug.LogWarning("Nie znaleziono wszystkich slotów kolorów!");
+            Debug.LogWarning("Active shadow not found in UI indicators");
             return;
         }
 
-        Debug.Log(
-            $"[RandomSwitch] Input colors → "
-                + $"LB: {ColorToString(lbSlot.indicator.GetColor())}, "
-                + $"A: {ColorToString(aSlot.indicator.GetColor())}, "
-                + $"RB: {ColorToString(rbSlot.indicator.GetColor())}"
-        );
+        int steps = 1 - activeSlotIndex;
 
-        ShadowIndicator lb = lbSlot.indicator;
-        ShadowIndicator a = aSlot.indicator;
-        ShadowIndicator rb = rbSlot.indicator;
-
-        GetSlotById(0).indicator = lb;
-        GetSlotById(1).indicator = a;
-        GetSlotById(2).indicator = rb;
-
-        SetIndicatorToSlotPosition(0);
-        SetIndicatorToSlotPosition(1);
-        SetIndicatorToSlotPosition(2);
-    }
-
-    private void SetIndicatorToSlotPosition(int slotId)
-    {
-        ShadowIndicatorSlot slot = GetSlotById(slotId);
-        if (slot == null || slot.indicator == null)
+        if (steps == 0)
             return;
 
-        Vector3 targetPos = GetSlotPosition(slotId);
-
-        slot.indicator.transform.position = targetPos;
+        RotateIndicators(steps > 0 ? +1 : -1);
     }
+
 
     private Vector3 GetSlotPosition(int slotId)
     {
         ShadowIndicatorInitialState state = _initialState.Find(s => s.slotId == slotId);
 
         return state != null ? state.position : Vector3.zero;
-    }
-
-    private string ColorToString(Color c)
-    {
-        return $"RGBA({c.r:F2}, {c.g:F2}, {c.b:F2}, {c.a:F2})";
-    }
-
-    private bool ColorsEqual(Color a, Color b)
-    {
-        return Vector3.Distance(new Vector3(a.r, a.g, a.b), new Vector3(b.r, b.g, b.b))
-            <= _colorTolerance;
     }
 
     #endregion
@@ -246,7 +196,7 @@ public class ShadowSwitchUI : MonoBehaviour
     /// </summary>
     private void OnLBSwitch()
     {
-        SwapActiveColor(GetSlotById(0));
+        RotateIndicators(+1);
         StartCoroutine(FlashButton(_l1, 0.3f));
     }
 
@@ -256,9 +206,60 @@ public class ShadowSwitchUI : MonoBehaviour
     /// </summary>
     private void OnRBSwitch()
     {
-        SwapActiveColor(GetSlotById(2));
+        RotateIndicators(-1);
         StartCoroutine(FlashButton(_r1, 0.3f));
     }
+
+    private void RotateIndicators(int direction)
+    {
+        float duration = 0.25f;
+
+        int count = _shadowIndicators.Count;
+        if (count <= 1)
+            return;
+
+        Vector3[] positions = new Vector3[count];
+        ShadowIndicator[] indicators = new ShadowIndicator[count];
+
+        for (int i = 0; i < count; i++)
+        {
+            positions[i] = _shadowIndicators[i].indicator.transform.position;
+            indicators[i] = _shadowIndicators[i].indicator;
+        }
+
+        for (int i = 0; i < count; i++)
+        {
+            int targetIndex = (i + direction + count) % count;
+            indicators[i].transform.DOMove(positions[targetIndex], duration)
+                .SetEase(Ease.InOutCubic);
+        }
+
+        StartCoroutine(ApplyRotationAfterDelay(indicators, direction, duration));
+    }
+
+    private IEnumerator ApplyRotationAfterDelay(
+    ShadowIndicator[] indicators,
+    int direction,
+    float delay
+)
+    {
+        yield return new WaitForSeconds(delay);
+
+        int count = _shadowIndicators.Count;
+        ShadowIndicator[] rotated = new ShadowIndicator[count];
+
+        for (int i = 0; i < count; i++)
+        {
+            int targetIndex = (i + direction + count) % count;
+            rotated[targetIndex] = indicators[i];
+        }
+
+        for (int i = 0; i < count; i++)
+        {
+            _shadowIndicators[i].indicator = rotated[i];
+        }
+    }
+
 
     /// <summary>
     /// Coroutine to flash a UI button for a short duration.
@@ -275,53 +276,6 @@ public class ShadowSwitchUI : MonoBehaviour
         button.SetActive(false);
     }
     #endregion
-
-    /// <summary>
-    /// Swaps the currently active indicator with the given target indicator.
-    /// </summary>
-    /// <param name="target">The indicator whose color will be applied to the active indicator.</param>
-    private void SwapActiveColor(ShadowIndicatorSlot target)
-    {
-        ShadowIndicatorSlot active = GetSlotById(1);
-
-        if (active == null || target == null)
-            return;
-
-        Vector3 targetPos = new Vector3(
-            target.indicator.transform.position.x,
-            active.indicator.transform.position.y,
-            active.indicator.transform.position.z
-        );
-        Vector3 activePos = new Vector3(
-            active.indicator.transform.position.x,
-            target.indicator.transform.position.y,
-            target.indicator.transform.position.z
-        );
-
-        float duration = 0.25f;
-        active.indicator.transform.DOMoveX(targetPos.x, duration).SetEase(Ease.InOutCubic);
-        target.indicator.transform.DOMoveX(activePos.x, duration).SetEase(Ease.InOutCubic);
-
-        StartCoroutine(SwapAfterDelay(active, target, duration));
-    }
-
-    private IEnumerator SwapAfterDelay(
-        ShadowIndicatorSlot active,
-        ShadowIndicatorSlot target,
-        float delay
-    )
-    {
-        if (active.indicator == null || target.indicator == null)
-        {
-            yield break;
-        }
-
-        yield return new WaitForSeconds(delay);
-
-        ShadowIndicator temp = active.indicator;
-        active.indicator = target.indicator;
-        target.indicator = temp;
-    }
 
     private ShadowIndicatorSlot GetSlotById(int id)
     {

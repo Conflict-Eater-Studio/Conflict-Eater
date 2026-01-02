@@ -30,18 +30,13 @@ public class ShadowPlayerController : MonoBehaviour
 
     private List<ShadowType> shadowTypes = new List<ShadowType>();
     private readonly List<GameObject> _shadows = new();
+    private readonly List<GameObject> _nextActiveCharacters = new();
     private PlayerInput _playerInput;
     private int _activeShadowIndex;
     private bool _canSwitch = true;
     private bool _isRoundStarted = false;
 
-    [SerializeField] private Color _rbSwitchColor;
-    [SerializeField] private Color _lbSwitchColor;
     [SerializeField] private Color _aSwitchColor;
-
-    public Color RBSwitchColor => _rbSwitchColor;
-    public Color LBSwitchColor => _lbSwitchColor;
-    public Color ASwitchColor => _aSwitchColor;
     #endregion
 
     #region Events
@@ -52,6 +47,7 @@ public class ShadowPlayerController : MonoBehaviour
 
     #region Public Fields
     public IReadOnlyList<GameObject> Shadows => _shadows;
+    public Color ASwitchColor => _aSwitchColor;
     #endregion
 
     #region VFX Cleanup
@@ -132,7 +128,7 @@ public class ShadowPlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// Switches to Clyde if possible.
+    /// Switches control to the previous available shadow in the cycle (to the left).
     /// </summary>
     private void OnLBSwitch(InputAction.CallbackContext context)
     {
@@ -141,17 +137,11 @@ public class ShadowPlayerController : MonoBehaviour
 
         OnLBSwitchEvent?.Invoke();
 
-        SwitchToGhostByColor(_lbSwitchColor);
-        Color pomA = _aSwitchColor;
-        Color pomLB = _lbSwitchColor;
-
-        _aSwitchColor = pomLB;
-        _lbSwitchColor = pomA;
-
+        SwitchLeft();
     }
 
     /// <summary>
-    /// Switches to Inky if possible.
+    /// Switches control to the next available shadow in the cycle (to the right).
     /// </summary>
     private void OnRBSwitch(InputAction.CallbackContext context)
     {
@@ -160,15 +150,13 @@ public class ShadowPlayerController : MonoBehaviour
 
         OnRBSwitchEvent?.Invoke();
 
-        SwitchToGhostByColor(_rbSwitchColor);
-
-        Color pomA = _aSwitchColor;
-        Color pomRB = _rbSwitchColor;
-
-        _aSwitchColor = pomRB;
-        _rbSwitchColor = pomA;
+        SwitchRight();
     }
 
+    /// <summary>
+    /// Triggers a visual highlight on the currently active shadow,
+    /// making it easier for the player to locate their controlled character.
+    /// </summary>
     private void OnShowMyPlayer(InputAction.CallbackContext context)
     {
         ShadowAppearanceManager shadowAppearanceManager = _shadows[_activeShadowIndex].GetComponent<ShadowAppearanceManager>();
@@ -178,11 +166,6 @@ public class ShadowPlayerController : MonoBehaviour
     #endregion
 
     #region Shadow Spawning
-    public void SetShadowPrefab(GameObject gameObject)
-    {
-        _shadowPrefab = gameObject;
-    }
-
     /// <summary>
     /// Spawns the first shadow and sets it active.
     /// </summary>
@@ -199,15 +182,14 @@ public class ShadowPlayerController : MonoBehaviour
         controller.IsShadowActive = true;
 
         ShadowAppearanceManager appearanceManager = controller.GetComponent<ShadowAppearanceManager>();
-        _lbSwitchColor = appearanceManager.clydeColor;
-        _rbSwitchColor = appearanceManager.inkyColor;
-        _aSwitchColor = appearanceManager.blinkyColor;
 
         appearanceManager.colorBeforeFrightened = appearanceManager.blinkyColor;
         appearanceManager.SetCustomColor(appearanceManager.blinkyColor);
 
         _shadows.Add(ghost);
+        _nextActiveCharacters.Add(ghost);
         _activeShadowIndex = 0;
+        UpdateASwitchColor();
 
         yield return new WaitUntil(() => _isRoundStarted);
 
@@ -250,11 +232,11 @@ public class ShadowPlayerController : MonoBehaviour
             }
 
             _shadows.Add(ghost);
+            _nextActiveCharacters.Add(ghost);
 
             yield return new WaitForSeconds(_spawnDelay);
         }
     }
-
     #endregion
 
     #region Pause Handling
@@ -320,34 +302,47 @@ public class ShadowPlayerController : MonoBehaviour
 
     #region Switching Logic
     /// <summary>
-    /// Switches control to a shadow with the specified color if possible.
+    /// Attempts to switch control to the next valid shadow in the right (forward) direction.
     /// </summary>
-    private void SwitchToGhostByColor(Color targetColor)
+    private void SwitchRight()
     {
-        if (!_canSwitch || _shadows.Count == 0)
-            return;
+        int nextIndex = GetNextValidIndex(+1);
+        if (nextIndex != -1)
+            StartCoroutine(SwitchToIndexCoroutine(nextIndex));
+    }
 
-        int targetIndex = -1;
+    /// <summary>
+    /// Attempts to switch control to the next valid shadow in the left (backward) direction.
+    /// </summary>
+    private void SwitchLeft()
+    {
+        int nextIndex = GetNextValidIndex(-1);
+        if (nextIndex != -1)
+            StartCoroutine(SwitchToIndexCoroutine(nextIndex));
+    }
+
+    /// <summary>
+    /// Finds the next valid shadow index in the specified direction, skipping any that are "Eaten".
+    /// </summary>
+    /// <param name="direction">+1 to search forward/right, -1 to search backward/left.</param>
+    /// <returns>The index of the next valid shadow, or -1 if none are available.</returns>
+    private int GetNextValidIndex(int direction)
+    {
+        if (_shadows.Count <= 1)
+            return -1;
+
+        int index = _activeShadowIndex;
 
         for (int i = 0; i < _shadows.Count; i++)
         {
-            var controller = _shadows[i].GetComponent<ShadowController>();
-            var appearance = controller.GetComponent<ShadowAppearanceManager>();
+            index = (index + direction + _shadows.Count) % _shadows.Count;
 
-            if (appearance.GetCurrentColor() == targetColor &&
-                controller.CurrentState.State != ShadowState.Eaten)
-            {
-                targetIndex = i;
-                break;
-            }
+            var controller = _shadows[index].GetComponent<ShadowController>();
+            if (controller.CurrentState.State != ShadowState.Eaten)
+                return index;
         }
 
-        if (targetIndex == -1)
-        {
-            return;
-        }
-
-        StartCoroutine(SwitchToIndexCoroutine(targetIndex));
+        return -1;
     }
 
     /// <summary>
@@ -364,20 +359,21 @@ public class ShadowPlayerController : MonoBehaviour
 
         var old = _shadows[_activeShadowIndex].GetComponent<ShadowController>();
         old.IsShadowActive = false;
-
         old.SetState(isFrightened ? new ShadowFrightenedState() : new ShadowScatterState());
 
         _activeShadowIndex = newIndex;
+        UpdateASwitchColor();
 
-        var newController = _shadows[_activeShadowIndex].GetComponent<ShadowController>();
-        newController.IsShadowActive = true;
-        newController.SetState(new ShadowActiveState());
+        var next = _shadows[_activeShadowIndex].GetComponent<ShadowController>();
+        next.IsShadowActive = true;
+        next.SetState(new ShadowActiveState());
 
-        StartCoroutine(PlaySwitchLaser(old, newController));
+        StartCoroutine(PlaySwitchLaser(old, next));
 
         yield return new WaitForSeconds(0.3f);
         _canSwitch = true;
     }
+
 
     private IEnumerator PlaySwitchLaser(ShadowController from, ShadowController to)
     {
@@ -496,6 +492,8 @@ public class ShadowPlayerController : MonoBehaviour
 
         _activeShadowIndex = randomIndex;
 
+        UpdateASwitchColor();
+
         var newController = _shadows[_activeShadowIndex].GetComponent<ShadowController>();
         newController.IsShadowActive = true;
         newController.SetState(new ShadowActiveState());
@@ -503,20 +501,6 @@ public class ShadowPlayerController : MonoBehaviour
         ShadowAppearanceManager shadowAppearanceManager =
             newController.GetComponent<ShadowAppearanceManager>();
         shadowAppearanceManager.SetActive();
-
-        if(shadowAppearanceManager.GetCurrentColor() == _rbSwitchColor)
-        {
-            Color pom = _aSwitchColor;
-
-            _aSwitchColor = shadowAppearanceManager.GetCurrentColor();
-            _rbSwitchColor = pom;
-        } else if(shadowAppearanceManager.GetCurrentColor() == _lbSwitchColor)
-        {
-            Color pom = _aSwitchColor;
-
-            _aSwitchColor = shadowAppearanceManager.GetCurrentColor();
-            _lbSwitchColor = pom;
-        }
 
         OnActiveRandomSwitch?.Invoke();
 
@@ -554,7 +538,9 @@ public class ShadowPlayerController : MonoBehaviour
         }
 
         _shadows.Clear();
+        _nextActiveCharacters.Clear();
         _activeShadowIndex = 0;
+        UpdateASwitchColor();
 
         StartCoroutine(RespawnAfterDelay(0.25f));
     }
@@ -586,5 +572,22 @@ public class ShadowPlayerController : MonoBehaviour
     {
         _laserMaterial = material;
     }
+
+    public void SetShadowPrefab(GameObject gameObject)
+    {
+        _shadowPrefab = gameObject;
+    }
+
+    private void UpdateASwitchColor()
+    {
+        if (_shadows.Count == 0)
+            return;
+
+        var appearance = _shadows[_activeShadowIndex]
+            .GetComponent<ShadowAppearanceManager>();
+
+        _aSwitchColor = appearance.GetCurrentColor();
+    }
+
     #endregion
 }

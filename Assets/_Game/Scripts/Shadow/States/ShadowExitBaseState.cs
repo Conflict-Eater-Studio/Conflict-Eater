@@ -19,7 +19,7 @@ public class ShadowExitBaseState : IShadowState
 
     #region Fields
     private Phase _phase = Phase.MovingUp;
-    private Vector2Int _targetCell = new Vector2Int(-1, 2);
+    private Vector2Int _targetCell = new Vector2Int(-1, 1);
     private Vector2Int _sideDir;
     private bool _directionChosen = false;
     #endregion
