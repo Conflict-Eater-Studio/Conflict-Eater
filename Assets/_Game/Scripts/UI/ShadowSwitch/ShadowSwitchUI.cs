@@ -36,6 +36,7 @@ public class ShadowSwitchUI : MonoBehaviour
     [Header("UI Indicators")]
     [SerializeField]
     private List<ShadowIndicatorSlot> _shadowIndicators;
+    private List<ShadowIndicatorSlot> _initialSlotsOrder;
     private List<ShadowIndicatorInitialState> _initialState;
 
     [Header("UI Controlers")]
@@ -59,6 +60,7 @@ public class ShadowSwitchUI : MonoBehaviour
     #region Unity Lifecycle
     private void Awake()
     {
+        _initialSlotsOrder = new List<ShadowIndicatorSlot>(_shadowIndicators);
         CacheInitialState();
     }
 
@@ -67,11 +69,37 @@ public class ShadowSwitchUI : MonoBehaviour
         GameManager.Instance.Timer.OnRoundEnd += Timer_OnRoundEnd;
     }
 
+    /// <summary>
+    /// Called when the round ends.
+    /// Restores the shadow indicator UI to its initial state by:
+    /// - resetting indicator positions instantly,
+    /// - restoring the original slot order,
+    /// - clearing all linked shadow references,
+    /// - allowing shadows to be re-linked in the next round.
+    /// </summary>
+    /// <param name="sender">Event sender.</param>
+    /// <param name="e">Event arguments.</param>
     private void Timer_OnRoundEnd(object sender, System.EventArgs e)
     {
-        ResetIndicators();
+        ResetIndicatorsInstant();
+
+        _shadowIndicators.Clear();
+        _shadowIndicators.AddRange(_initialSlotsOrder);
+
+        foreach (var slot in _shadowIndicators)
+        {
+            if (slot?.indicator != null)
+                slot.indicator.LinkedShadow = null;
+        }
+
+        _isShadowLinked = false;
     }
 
+    /// <summary>
+    /// Caches the initial state of all shadow indicators.
+    /// Stores each indicator's slot ID, reference, and starting position
+    /// so the UI can be correctly restored after rotations or round resets.
+    /// </summary>
     private void CacheInitialState()
     {
         _initialState = new List<ShadowIndicatorInitialState>();
@@ -135,6 +163,12 @@ public class ShadowSwitchUI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Updates runtime debug information for shadow indicators.
+    /// Collects the current visual state of each indicator (slot ID and color)
+    /// to assist with debugging and inspector visualization.
+    /// This method is intended for development and debugging purposes only.
+    /// </summary>
     private void UpdateDebugInfo()
     {
         if (_shadowIndicators == null)
@@ -160,6 +194,12 @@ public class ShadowSwitchUI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Handles a random active shadow switch triggered by the player controller.
+    /// Determines which UI indicator represents the newly active shadow
+    /// based on its color, then rotates the indicator list so that the
+    /// active shadow is positioned in the middle slot.
+    /// </summary>
     private void PlayerController_OnActiveRandomSwitch()
     {
         Color activeColor = playerController.ASwitchColor;
@@ -188,38 +228,87 @@ public class ShadowSwitchUI : MonoBehaviour
 
         RotateIndicators(steps > 0 ? +1 : -1);
     }
-
-
-    private Vector3 GetSlotPosition(int slotId)
-    {
-        ShadowIndicatorInitialState state = _initialState.Find(s => s.slotId == slotId);
-
-        return state != null ? state.position : Vector3.zero;
-    }
-
     #endregion
 
-    #region FlashButtons
+    #region Buttons
     /// <summary>
-    /// Called when the player triggers the Clyde switch action.
-    /// Starts a coroutine to flash the corresponding UI button.
+    /// Called when the player triggers the left shoulder (LB) switch action.
+    /// Initiates a rotation of the shadow indicators to the left until
+    /// the active shadow is positioned in the middle slot,
+    /// and briefly flashes the corresponding UI button.
     /// </summary>
     private void OnLBSwitch()
     {
-        RotateIndicators(+1);
-        StartCoroutine(FlashButton(_l1, 0.3f));
+        StartCoroutine(TryRotateUntilMiddleActive(+1, _l1));
     }
 
     /// <summary>
-    /// Called when the player triggers the Inky switch action.
-    /// Starts a coroutine to flash the corresponding UI button.
+    /// Called when the player triggers the right shoulder (RB) switch action.
+    /// Initiates a rotation of the shadow indicators to the right until
+    /// the active shadow is positioned in the middle slot,
+    /// and briefly flashes the corresponding UI button.
     /// </summary>
     private void OnRBSwitch()
     {
-        RotateIndicators(-1);
-        StartCoroutine(FlashButton(_r1, 0.3f));
+        StartCoroutine(TryRotateUntilMiddleActive(-1, _r1));
     }
 
+    /// <summary>
+    /// Attempts to rotate the shadow indicator UI in the given direction until
+    /// the active shadow is placed in the middle slot.
+    /// The rotation is retried up to a maximum number of attempts to prevent
+    /// infinite loops, and safely validates all references before checking
+    /// the active shadow state.
+    /// </summary>
+    /// <param name="direction">
+    /// Rotation direction:
+    /// +1 rotates indicators to the left,
+    /// -1 rotates indicators to the right.
+    /// </param>
+    /// <param name="button">
+    /// UI button to flash while the rotation is being attempted.
+    /// </param>
+    private IEnumerator TryRotateUntilMiddleActive(int direction, GameObject button)
+    {
+        int maxAttempts = _shadowIndicators.Count;
+        int attempts = 0;
+
+        while (attempts < maxAttempts)
+        {
+            RotateIndicators(direction);
+            StartCoroutine(FlashButton(button, 0.3f));
+
+            yield return new WaitForSeconds(0.3f); 
+
+            attempts++;
+
+            if (_shadowIndicators.Count > 1)
+            {
+                var middleSlot = _shadowIndicators[1];
+                if (middleSlot != null && middleSlot.indicator != null && middleSlot.indicator.LinkedShadow != null)
+                {
+                    var shadowController = middleSlot.indicator.LinkedShadow.GetComponent<ShadowController>();
+                    if (shadowController != null && shadowController.IsShadowActive)
+                    {
+                        yield break;
+                    }
+                }
+            }
+        }
+
+        Debug.LogWarning("Failed to position the active shadow in the middle slot after " + maxAttempts + " attempts.");
+    }
+
+    /// <summary>
+    /// Rotates the shadow indicator UI elements in the specified direction.
+    /// Visually animates the indicators to their new positions using DOTween,
+    /// then updates the internal slot order to reflect the rotation.
+    /// </summary>
+    /// <param name="direction">
+    /// Rotation direction:
+    /// +1 rotates indicators forward,
+    /// -1 rotates indicators backward.
+    /// </param>
     private void RotateIndicators(int direction)
     {
         float duration = 0.25f;
@@ -228,44 +317,28 @@ public class ShadowSwitchUI : MonoBehaviour
         if (count <= 1)
             return;
 
-        Vector3[] positions = new Vector3[count];
-        ShadowIndicator[] indicators = new ShadowIndicator[count];
-
-        for (int i = 0; i < count; i++)
-        {
-            positions[i] = _shadowIndicators[i].indicator.transform.position;
-            indicators[i] = _shadowIndicators[i].indicator;
-        }
+        ShadowIndicatorSlot[] rotatedSlots = new ShadowIndicatorSlot[count];
+        Vector3[] targetPositions = new Vector3[count];
 
         for (int i = 0; i < count; i++)
         {
             int targetIndex = (i + direction + count) % count;
-            indicators[i].transform.DOMove(positions[targetIndex], duration)
+            rotatedSlots[targetIndex] = _shadowIndicators[i];
+            targetPositions[targetIndex] = _shadowIndicators[i].indicator.transform.position;
+        }
+
+        for (int i = 0; i < count; i++)
+        {
+            int targetIndex = (i - direction + count) % count; 
+            _shadowIndicators[i].indicator.transform.DOMove(targetPositions[targetIndex], duration)
                 .SetEase(Ease.InOutCubic);
         }
 
-        StartCoroutine(ApplyRotationAfterDelay(indicators, direction, duration));
-    }
-
-    private IEnumerator ApplyRotationAfterDelay(ShadowIndicator[] indicators, int direction, float delay)
-    {
-        yield return new WaitForSeconds(delay);
-
-        int count = _shadowIndicators.Count;
-        ShadowIndicator[] rotated = new ShadowIndicator[count];
-
         for (int i = 0; i < count; i++)
         {
-            int targetIndex = (i + direction + count) % count;
-            rotated[targetIndex] = indicators[i];
-        }
-
-        for (int i = 0; i < count; i++)
-        {
-            _shadowIndicators[i].indicator = rotated[i];
+            _shadowIndicators[i] = rotatedSlots[i];
         }
     }
-
 
     /// <summary>
     /// Coroutine to flash a UI button for a short duration.
@@ -283,11 +356,17 @@ public class ShadowSwitchUI : MonoBehaviour
     }
     #endregion
 
+    /// <summary>
+    /// Returns the shadow indicator slot with the given ID.
+    /// </summary>
     private ShadowIndicatorSlot GetSlotById(int id)
     {
         return _shadowIndicators.Find(s => s.id == id);
     }
 
+    /// <summary>
+    /// Resets all shadow indicators to their initial positions using animation.
+    /// </summary>
     public void ResetIndicators()
     {
         if (_initialState == null || _initialState.Count == 0)
@@ -308,6 +387,9 @@ public class ShadowSwitchUI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Instantly resets all shadow indicators to their initial positions.
+    /// </summary>
     public void ResetIndicatorsInstant()
     {
         foreach (var state in _initialState)
