@@ -15,6 +15,13 @@ public class ShadowIndicator : MonoBehaviour
     private Tween colorTween;
     private Tween fadeTween;
 
+    private GameObject _linkedShadow;
+    public GameObject LinkedShadow
+    {
+        get => _linkedShadow;       
+        set => _linkedShadow = value;
+    }
+
     private Color baseColor;
     private float disabledAlpha = 0.1f;
     #endregion

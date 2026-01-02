@@ -109,6 +109,11 @@ public class ShadowPlayerController : MonoBehaviour
             GameManager.Instance.Timer.OnMatchResume -= Shadow_OnMatchResume;
         }
     }
+
+    private void Update()
+    {
+        UpdateInspectorDebug();
+    }
     #endregion
 
     #region Input Handling
@@ -132,6 +137,8 @@ public class ShadowPlayerController : MonoBehaviour
     /// </summary>
     private void OnLBSwitch(InputAction.CallbackContext context)
     {
+        if (!_isRoundStarted) return;
+
         if (!_canSwitch || _shadows.Count == 0)
             return;
 
@@ -145,6 +152,8 @@ public class ShadowPlayerController : MonoBehaviour
     /// </summary>
     private void OnRBSwitch(InputAction.CallbackContext context)
     {
+        if (!_isRoundStarted) return;
+
         if (!_canSwitch || _shadows.Count == 0)
             return;
 
@@ -374,7 +383,13 @@ public class ShadowPlayerController : MonoBehaviour
         _canSwitch = true;
     }
 
-
+    /// <summary>
+    /// Plays a visual laser effect between two shadows to indicate switching.
+    /// Creates a temporary LineRenderer and 2D light, animates the laser with a small wiggle,
+    /// and cleans up the temporary objects after the effect completes.
+    /// </summary>
+    /// <param name="from">The shadow that the laser starts from.</param>
+    /// <param name="to">The shadow that the laser points to.</param>
     private IEnumerator PlaySwitchLaser(ShadowController from, ShadowController to)
     {
         GameObject laserObj = new GameObject("SwitchLaser");
@@ -443,6 +458,10 @@ public class ShadowPlayerController : MonoBehaviour
         CleanupVfxObject(lightObj);
     }
 
+    /// <summary>
+    /// Safely removes a temporary VFX GameObject from tracking and destroys it.
+    /// </summary>
+    /// <param name="obj">The GameObject to clean up.</param>
     private void CleanupVfxObject(GameObject obj)
     {
         if (obj == null)
@@ -451,7 +470,6 @@ public class ShadowPlayerController : MonoBehaviour
         _roundVfxObjects.Remove(obj);
         Destroy(obj);
     }
-
 
     /// <summary>
     /// Randomly switches control to another shadow. Ensures it is not the current active shadow
@@ -507,7 +525,6 @@ public class ShadowPlayerController : MonoBehaviour
         yield return new WaitForSeconds(0.3f);
         _canSwitch = true;
     }
-
     #endregion
 
     #region Round Reset
@@ -568,16 +585,28 @@ public class ShadowPlayerController : MonoBehaviour
     #endregion
 
     #region Setters
+    /// <summary>
+    /// Sets the material used for the switch laser effect.
+    /// </summary>
+    /// <param name="material">The Material to assign to the laser.</param>
     public void SetLaserMaterial(Material material)
     {
         _laserMaterial = material;
     }
 
+    /// <summary>
+    /// Sets the prefab to use when spawning new shadows.
+    /// </summary>
+    /// <param name="gameObject">The shadow prefab GameObject.</param>
     public void SetShadowPrefab(GameObject gameObject)
     {
         _shadowPrefab = gameObject;
     }
 
+    /// <summary>
+    /// Updates the color used to indicate the currently active shadow in the switch UI.
+    /// Retrieves the color from the ShadowAppearanceManager of the active shadow.
+    /// </summary>
     private void UpdateASwitchColor()
     {
         if (_shadows.Count == 0)
@@ -587,6 +616,53 @@ public class ShadowPlayerController : MonoBehaviour
             .GetComponent<ShadowAppearanceManager>();
 
         _aSwitchColor = appearance.GetCurrentColor();
+    }
+    #endregion
+
+    #region Inspector Debug
+
+    [System.Serializable]
+    public class ShadowDebugInfo
+    {
+        public string name;
+        public ShadowType type;
+        public ShadowState state;
+        public bool isActive;
+        public Color color;
+    }
+
+    [Header("Debug Info (Inspector)")]
+    [SerializeField] private bool _enableInspectorDebug = true;
+    [SerializeField] private List<ShadowDebugInfo> _shadowDebugInfos = new();
+
+    /// <summary>
+    /// Update inspector debug info
+    /// </summary>
+    private void UpdateInspectorDebug()
+    {
+        if(_shadows.Count <= 1) return;
+
+        if (!_enableInspectorDebug) return;
+
+        _shadowDebugInfos.Clear();
+
+        for (int i = 0; i < _shadows.Count; i++)
+        {
+            var shadowObj = _shadows[i];
+            if (shadowObj == null) continue;
+
+            var controller = shadowObj.GetComponent<ShadowController>();
+            var appearance = shadowObj.GetComponent<ShadowAppearanceManager>();
+
+            _shadowDebugInfos.Add(new ShadowDebugInfo
+            {
+                name = shadowObj.name,
+                type = controller.Type,
+                state = controller.CurrentState.State,
+                isActive = controller.IsShadowActive,
+                color = appearance?.GetCurrentColor() ?? Color.white
+            });
+        }
     }
 
     #endregion

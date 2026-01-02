@@ -48,15 +48,11 @@ public class ShadowSwitchUI : MonoBehaviour
     [Header("DEBUG")]
     [SerializeField]
     private List<ShadowIndicatorDebugInfo> _debugIndicators;
-
-    private float _colorTolerance = 0.005f;
     #endregion
 
     #region Properties
     private bool _isSubscribed = false;
-    private PlayerInput _playerInput;
-    private const string SwitchClydeActionName = "SwitchClyde";
-    private const string SwitchInkyActionName = "SwitchInky";
+    private bool _isShadowLinked = false;
     private ShadowPlayerController playerController;
     #endregion
 
@@ -101,9 +97,11 @@ public class ShadowSwitchUI : MonoBehaviour
     /// </summary>
     private void Update()
     {
+        //PrintEatenShadows();
+
         UpdateDebugInfo();
 
-        if (_isSubscribed)
+        if (_isSubscribed && _isShadowLinked)
             return;
 
         PlayerManager player = GameManager.Instance.PlayerManager;
@@ -113,7 +111,7 @@ public class ShadowSwitchUI : MonoBehaviour
         ShadowPlayerController playerController = player
             .GetPlayerOfType(PlayerManager.PlayerRole.Skull)
             ?.GetComponentInChildren<ShadowPlayerController>();
-        if (playerController != null)
+        if (playerController != null && !_isSubscribed)
         {
             _isSubscribed = true;
 
@@ -122,6 +120,20 @@ public class ShadowSwitchUI : MonoBehaviour
             playerController.OnRBSwitchEvent += OnRBSwitch;
 
             playerController.OnActiveRandomSwitch += PlayerController_OnActiveRandomSwitch;
+        }
+
+        if (playerController != null && !_isShadowLinked)
+        {
+            if(playerController.Shadows != null && playerController.Shadows.Count == 3)
+            {
+                GetSlotById(0).indicator.LinkedShadow = playerController.Shadows[2]; 
+                GetSlotById(1).indicator.LinkedShadow = playerController.Shadows[0]; 
+                GetSlotById(2).indicator.LinkedShadow = playerController.Shadows[1]; 
+
+                Debug.Log("Is linked");
+
+                _isShadowLinked = true;
+            }
         }
     }
 
@@ -314,4 +326,41 @@ public class ShadowSwitchUI : MonoBehaviour
             state.indicator.transform.position = state.position;
         }
     }
+
+    private bool IsShadowEaten(ShadowIndicator indicator)
+    {
+        if (indicator == null)
+            return true;
+
+        // Get the shadow GameObject linked to this indicator
+        GameObject shadowGO = indicator.LinkedShadow; // <-- You need a reference in ShadowIndicator
+        if (shadowGO == null)
+            return true;
+
+        var controller = shadowGO.GetComponent<ShadowController>();
+        return controller == null || controller.CurrentState.State == ShadowState.Eaten;
+    }
+
+    public void PrintEatenShadows()
+    {
+        if (_shadowIndicators == null || _shadowIndicators.Count == 0)
+        {
+            Debug.Log("No shadow indicators available.");
+            return;
+        }
+
+        Debug.Log("=== Shadow Eaten Status ===");
+
+        foreach (var slot in _shadowIndicators)
+        {
+            if (slot == null || slot.indicator == null)
+                continue;
+
+            string shadowName = slot.indicator.LinkedShadow != null ? slot.indicator.LinkedShadow.name : "NoLinkedShadow";
+
+            bool eaten = IsShadowEaten(slot.indicator);
+            Debug.Log($"Slot {slot.id} ({shadowName}) is {(eaten ? "EATEN" : "Alive")}");
+        }
+    }
+
 }
