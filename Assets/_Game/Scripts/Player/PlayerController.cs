@@ -10,7 +10,7 @@ using System.Collections;
 public class PlayerController : MonoBehaviour
 {
     #region Fields
-    private GameObject _playerNameObj;
+    protected GameObject _playerNameObj;
     private string _playerNick = "";
     private string _anotherPlayerNick = "";
     private float _baseScale = 0.05f;

@@ -88,6 +88,13 @@ public class LightPlayerController : PlayerController
     protected override void Start()
     {
         base.Start();
+
+        Color color;
+        ColorUtility.TryParseHtmlString("#FFFF2A", out color);
+
+        _playerNameObj
+            .GetComponentInChildren<TMPro.TextMeshProUGUI>()
+            .color = color;
     }
 
     private void Light_OnMatchResume(object sender, EventArgs e)

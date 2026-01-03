@@ -62,6 +62,13 @@ public class ShadowPlayerController : PlayerController
     {
         base.Start();
 
+        Color color;
+        ColorUtility.TryParseHtmlString("#FF2222", out color);
+
+        _playerNameObj
+            .GetComponentInChildren<TMPro.TextMeshProUGUI>()
+            .color = color;
+
         _playerInput = GetComponentInParent<PlayerInput>();
 
         if (_playerInput != null)
