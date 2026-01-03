@@ -79,6 +79,10 @@ public class Grid : MonoBehaviour
     [SerializeField]
     private Vector2Int _shadowSpawnCell = new Vector2Int(-2, -2);
 
+    [Tooltip("Spawn point for Shadow exit base (cell coordinates)")]
+    [SerializeField]
+    private Vector2Int _shadowExitBaseCell = new Vector2Int(-2, -2);
+
     [Tooltip("Portal data (serialized for editor, instantiated at runtime)")]
     [SerializeField]
     private List<PortalData> _portalData = new List<PortalData>();
@@ -391,33 +395,6 @@ public class Grid : MonoBehaviour
     }
 
     /// <summary>
-    /// Sets the spawn point for the given player type.
-    /// </summary>
-    /// <param name="type">Player type</param>
-    /// <param name="cellPosition">Cell position for spawn point</param>
-    [Obsolete("Spawn points are now arrays. Use the editor to manage spawn points.")]
-    public void SetSpawnPoint(PlayerManager.PlayerRole type, Vector3Int cellPosition)
-    {
-        Vector2Int coord = new Vector2Int(cellPosition.x, cellPosition.y);
-        switch (type)
-        {
-            case PlayerManager.PlayerRole.Light:
-                if (_lightSpawnCells.Count == 0)
-                {
-                    _lightSpawnCells.Add(coord);
-                }
-                else
-                {
-                    _lightSpawnCells[0] = coord;
-                }
-                break;
-            case PlayerManager.PlayerRole.Skull:
-                _shadowSpawnCell = coord;
-                break;
-        }
-    }
-
-    /// <summary>
     /// Checks if the tile at the given cell coord is walkable.
     /// (i.e. tile exists on the floor tilemap and does not exist on the wall tilemap)
     /// </summary>
@@ -605,4 +582,10 @@ public class Grid : MonoBehaviour
         }
         return null;
     }
+
+    public Vector2Int GetShadowExitBaseCell()
+    {
+        return _shadowExitBaseCell;
+    }
+
 }

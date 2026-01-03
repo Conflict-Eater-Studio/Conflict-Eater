@@ -15,6 +15,7 @@ public class GridEditor : Editor
     private bool _isSelectingLightExclusion = false;
     private bool _isSelectingLightSpawns = false;
     private bool _isSelectingShadowSpawn = false;
+    private bool _isSelectingShadowExitBase = false;
     private bool _isSelectingPowerUpSpawns = false;
     private bool _isSelectingScatterTargets = false;
     private bool _isSelectingshadowBlockedCells = false;
@@ -36,6 +37,7 @@ public class GridEditor : Editor
     private SerializedProperty _lightExclusion;
     private SerializedProperty _lightSpawnCells;
     private SerializedProperty _shadowSpawnCell;
+    private SerializedProperty _shadowExitBaseCell;
     private SerializedProperty _powerUpSpawnCells;
     private SerializedProperty _scatterTargets;
     private SerializedProperty _shadowBlockedCells;
@@ -65,6 +67,7 @@ public class GridEditor : Editor
         _lightExclusion = serializedObject.FindProperty("_lightExclusion");
         _lightSpawnCells = serializedObject.FindProperty("_lightSpawnCells");
         _shadowSpawnCell = serializedObject.FindProperty("_shadowSpawnCell");
+        _shadowExitBaseCell = serializedObject.FindProperty("_shadowExitBaseCell");
         _powerUpSpawnCells = serializedObject.FindProperty("_powerUpSpawnCells");
         _scatterTargets = serializedObject.FindProperty("_scatterTargets");
         _shadowBlockedCells = serializedObject.FindProperty("_shadowBlockedCells");
@@ -83,6 +86,7 @@ public class GridEditor : Editor
         _isSelectingLightExclusion = false;
         _isSelectingLightSpawns = false;
         _isSelectingShadowSpawn = false;
+        _isSelectingShadowExitBase = false;
         _isSelectingPowerUpSpawns = false;
         _isSelectingPortals = false;
     }
@@ -278,6 +282,53 @@ public class GridEditor : Editor
         EditorGUI.BeginDisabledGroup(true);
         EditorGUILayout.PropertyField(_shadowSpawnCell, new GUIContent("Shadow Spawn Cell"));
         EditorGUI.EndDisabledGroup();
+
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Shadow Exit Base Cell", EditorStyles.boldLabel);
+
+        GUI.backgroundColor = _isSelectingShadowExitBase
+            ? new Color(0.6f, 0.4f, 1f, 1f)
+            : Color.white;
+
+        if (
+            GUILayout.Button(
+                _isSelectingShadowExitBase
+                    ? "Stop Setting Shadow Exit Base"
+                    : "Set Shadow Exit Base"
+            )
+        )
+        {
+            _isSelectingShadowExitBase = !_isSelectingShadowExitBase;
+
+            // wy³¹cz inne tryby
+            _isSelectingLightExclusion = false;
+            _isSelectingLightSpawns = false;
+            _isSelectingShadowSpawn = false;
+            _isSelectingPowerUpSpawns = false;
+            _isSelectingScatterTargets = false;
+            _isSelectingshadowBlockedCells = false;
+            _isSelectingHomeTargets = false;
+            _isSelectingPortals = false;
+
+            SceneView.RepaintAll();
+        }
+        GUI.backgroundColor = Color.white;
+
+        if (_isSelectingShadowExitBase)
+        {
+            EditorGUILayout.HelpBox(
+                "Click on a floor tile in the Scene view to set the shadow exit base cell.",
+                MessageType.Info
+            );
+        }
+
+        EditorGUI.BeginDisabledGroup(true);
+        EditorGUILayout.PropertyField(
+            _shadowExitBaseCell,
+            new GUIContent("Shadow Exit Base Cell")
+        );
+        EditorGUI.EndDisabledGroup();
+
 
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("PowerupCollision Spawn Points", EditorStyles.boldLabel);
@@ -599,6 +650,8 @@ public class GridEditor : Editor
             && !_isSelectingshadowBlockedCells
             && !_isSelectingHomeTargets
             && !_isSelectingPortals
+            && !_isSelectingShadowExitBase
+
         )
             return;
 
@@ -665,6 +718,11 @@ public class GridEditor : Editor
                     TogglePortal(cellPos);
                     e.Use();
                 }
+                else if (_isSelectingShadowExitBase)
+                {
+                    SetShadowExitBase(cellPos, floorTilemap);
+                    e.Use();
+                }
             }
 
             if (_isSelectingScatterTargets)
@@ -677,6 +735,21 @@ public class GridEditor : Editor
         // Force scene view to repaint
         sceneView.Repaint();
     }
+
+    private void SetShadowExitBase(Vector3Int cellPos, Tilemap tilemap)
+    {
+        serializedObject.Update();
+        _shadowExitBaseCell.vector2IntValue = new Vector2Int(cellPos.x, cellPos.y);
+        serializedObject.ApplyModifiedProperties();
+
+        Debug.Log(
+            $"Set Shadow Exit Base to {cellPos} (World: {tilemap.GetCellCenterWorld(cellPos)})"
+        );
+
+        EditorUtility.SetDirty(target);
+        SceneView.RepaintAll();
+    }
+
 
     private void TogglePortal(Vector3Int cellPos)
     {
@@ -999,6 +1072,11 @@ public class GridEditor : Editor
             "_portalData",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
         );
+        var shadowExitBaseField = typeof(Grid).GetField(
+            "_shadowExitBaseCell",
+            BindingFlags.NonPublic | BindingFlags.Instance
+        );
+
 
         if (tilemapFloorsField == null || lightExclusionField == null)
             return;
@@ -1010,6 +1088,8 @@ public class GridEditor : Editor
         List<Vector2Int> powerUpSpawns = powerUpSpawnField.GetValue(grid) as List<Vector2Int>;
         List<Vector2Int> shadowBlocked = shadowBlockedField.GetValue(grid) as List<Vector2Int>;
         List<PortalData> portalData = portalDataField?.GetValue(grid) as List<PortalData>;
+        Vector2Int shadowExitBase = (Vector2Int)shadowExitBaseField.GetValue(grid);
+
 
         if (floorTilemap == null || lightExclusion == null)
             return;
@@ -1103,5 +1183,12 @@ public class GridEditor : Editor
                 Gizmos.DrawWireSphere(worldPos, spawnRadius * 1.2f);
             }
         }
+
+        Vector3Int exitCell = new Vector3Int(shadowExitBase.x, shadowExitBase.y, 0);
+        Vector3 exitWorld = floorTilemap.GetCellCenterWorld(exitCell);
+
+        Gizmos.color = new Color(0.6f, 0.4f, 1f, 1f); // fiolet
+        Gizmos.DrawCube(exitWorld, new Vector3(0.4f, 0.4f, 0.1f));
+
     }
 }

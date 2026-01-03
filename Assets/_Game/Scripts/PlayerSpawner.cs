@@ -382,6 +382,8 @@ public class PlayerSpawner : MonoBehaviour
 
         input.transform.position = _grid.GetSpawnPoint(Grid.SpawnPointType.Shadow);
 
+        Debug.Log(_grid.GetSpawnPoint(Grid.SpawnPointType.Shadow));
+
         Destroy(input.GetComponent<Renderer>());
         Destroy(input.GetComponent<CircleCollider2D>());
 

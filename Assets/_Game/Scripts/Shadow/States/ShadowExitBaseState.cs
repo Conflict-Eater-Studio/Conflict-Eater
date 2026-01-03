@@ -31,6 +31,7 @@ public class ShadowExitBaseState : IShadowState
     /// </summary>
     public void Enter(ShadowController shadow)
     {
+        _targetCell = GameManager.Instance.Grid.GetShadowExitBaseCell();
         _phase = Phase.MovingUp;
         _directionChosen = false;
         shadow.CurrentDirection = Vector2Int.up;
