@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
 public class GameManager : Singleton<GameManager>
@@ -98,5 +99,10 @@ public class GameManager : Singleton<GameManager>
         {
             Grid.OnNewLightTile -= GameManager_OnNewLightTile;
         }
+    }
+
+    public Volume GetGlobalVolume()
+    {
+        return _globalVolume.GetComponent<Volume>();
     }
 }

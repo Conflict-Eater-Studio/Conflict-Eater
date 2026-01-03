@@ -83,13 +83,14 @@ public class PowerupCollision : MonoBehaviour {
         switch (lightPowerup._powerupType) {
             case LightPowerupType.EmpathyMode:
                 GameManager.Instance.IsFrightenedShadowState = true;
-            break;
+                break;
             case LightPowerupType.SilentTreatment:
                 break;
             case LightPowerupType.DeepBreath:
                 break;
         }
     }
+
 
     private IEnumerator BoostShadowSpeed(ShadowController controller) {
         controller.Movement.SetSpeed(speedBoost);
