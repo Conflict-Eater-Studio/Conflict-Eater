@@ -17,6 +17,8 @@ public class PlayerManager
     [Serializable]
     public class PlayerData
     {
+        public event Action<int> OnScoreChanged;
+
         public GameObject PlayerObject { get; private set; }
         public PlayerRole Role { get; private set; }
         public PlayerIndex Index { get; private set; }
@@ -48,6 +50,8 @@ public class PlayerManager
                 // Add points to current round
                 RoundScores[RoundScores.Count - 1] += points;
             }
+
+            OnScoreChanged?.Invoke(points);
         }
 
         public void StartNewRound()
@@ -91,6 +95,7 @@ public class PlayerManager
     #region Events
     public event EventHandler OnPlayerConnected;
     public event EventHandler OnPlayerSwapped;
+    public event Action<PlayerData, int> OnPlayerScoreChanged;
     #endregion
 
     #region Player Management
@@ -105,7 +110,11 @@ public class PlayerManager
         PlayerInput input
     )
     {
-        _players.Add(new PlayerData(playerObj, type, index, input));
+        var player = new PlayerData(playerObj, type, index, input);
+        _players.Add(player);
+
+        player.OnScoreChanged += (points) => OnPlayerScoreChanged?.Invoke(player, points);
+
         OnPlayerConnected?.Invoke(this, EventArgs.Empty);
     }
 

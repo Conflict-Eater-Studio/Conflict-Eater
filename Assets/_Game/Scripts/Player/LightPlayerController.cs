@@ -82,6 +82,11 @@ public class LightPlayerController : PlayerController
 
             GameManager.Instance.Timer.OnMatchPause += Light_OnMatchPause;
             GameManager.Instance.Timer.OnMatchResume += Light_OnMatchResume;
+
+            GameManager.Instance.PlayerManager.OnPlayerScoreChanged += (player, points) =>
+            {
+                Debug.Log($"{player.Role} zdoby³ {points} punktów! Aktualny wynik: {player.Score}");
+            };
         }
     }
 

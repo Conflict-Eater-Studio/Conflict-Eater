@@ -342,13 +342,13 @@ public class PlayerSpawner : MonoBehaviour
 
         PlayerController playerController = child.GetComponent<LightPlayerController>();
         if (playerController != null)
-        { 
-            playerController.SetPlayerNameObj(input.GetComponentInChildren<Canvas>().gameObject);
+        {
+            playerController.SetPlayerNameObj(input.transform.GetChild(0).gameObject);
             playerController.SetPlayerNick(
                 playerIndex == PlayerManager.PlayerIndex.P1 ? "Player 1" : "Player 2"
             );
-            playerController.SetAnotherPlayerNick(
-                playerIndex == PlayerManager.PlayerIndex.P2 ? "Player 1" : "Player 2"
+            playerController.SetPlayerScoreObj(
+            input.transform.GetChild(1).gameObject
             );
         }
 
@@ -397,13 +397,13 @@ public class PlayerSpawner : MonoBehaviour
 
         if (playerController != null)
         {
-            playerController.SetPlayerNameObj(input.GetComponentInChildren<Canvas>().gameObject);
+            playerController.SetPlayerNameObj(input.transform.GetChild(0).gameObject);
             playerController.SetPlayerNick(
                 playerIndex == PlayerManager.PlayerIndex.P1 ? "Player 1" : "Player 2"
             );
-            playerController.SetAnotherPlayerNick(
-                playerIndex == PlayerManager.PlayerIndex.P2 ? "Player 1" : "Player 2"
-                );
+            playerController.SetPlayerScoreObj(
+            input.transform.GetChild(1).gameObject
+            );
         }
 
         shadowController.SetShadowPrefab(_ghostPrefab);

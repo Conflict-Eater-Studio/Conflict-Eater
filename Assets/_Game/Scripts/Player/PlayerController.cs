@@ -14,6 +14,7 @@ public class PlayerController : MonoBehaviour
     private string _playerNick = "";
     private string _anotherPlayerNick = "";
     private float _baseScale = 0.05f;
+    private GameObject _playerScoreObj;
     #endregion
 
     #region Unity Lifecycle
@@ -24,6 +25,8 @@ public class PlayerController : MonoBehaviour
     {
         GameManager.Instance.Timer.OnRoundStart += Timer_OnRoundStart;
         GameManager.Instance.Timer.OnRoundEnd += Timer_OnRoundEnd;
+
+        GameManager.Instance.PlayerManager.OnPlayerScoreChanged += PlayerManager_OnPlayerScoreChanged;
     }
 
     /// <summary>
@@ -64,9 +67,21 @@ public class PlayerController : MonoBehaviour
         _playerNameObj.SetActive(true);
         StartCoroutine(PulseCoroutine());
     }
+
+    /// <summary>
+    /// Triggers the score animation when this player earns points and logs it.
+    /// Only runs for LightPlayerController instances.
+    /// </summary>
+    private void PlayerManager_OnPlayerScoreChanged(PlayerManager.PlayerData arg1, int arg2)
+    {
+        if (this.GetComponent<LightPlayerController>() == null) return;
+
+        StartCoroutine(AnimateScoreCoroutine(arg2));
+        Debug.Log("Player scored: " + arg2);
+    }
     #endregion
 
-    #region Pulsing Animation
+    #region Animations
     /// <summary>
     /// Coroutine that animates the player's name UI with a pulsing "join join" effect.
     /// The UI scales up and down smoothly several times, then hides at the end.
@@ -107,6 +122,41 @@ public class PlayerController : MonoBehaviour
 
         _playerNameObj.SetActive(false);
     }
+
+    /// <summary>
+    /// Animates the player's score popup when points are earned.
+    /// The popup text appears, jumps up quickly, scales up for emphasis, and then returns to its original position and scale.
+    /// Plays a score sound effect when the animation starts. 
+    /// The animation is fast and dynamic to provide immediate visual feedback for scoring.
+    /// </summary>
+    /// <param name="points">The number of points to display in the popup.</param>
+    private IEnumerator AnimateScoreCoroutine(int points)
+    {
+        if (_playerScoreObj == null) yield break;
+
+        TMPro.TextMeshProUGUI scoreText = _playerScoreObj.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+        scoreText.text = "+" + points;
+        _playerScoreObj.SetActive(true);
+
+        AudioManager.Instance?.PlayOneShot(
+            AudioManager.Instance.FMODEvents.SFX.ScoreBeep
+        );
+
+        _playerScoreObj.transform.localPosition = new Vector3(0f, 0.7f, 0f);
+        _playerScoreObj.transform.localScale = Vector3.one * _baseScale;
+
+        Sequence seq = DOTween.Sequence();
+
+        seq.Append(_playerScoreObj.transform.DOLocalMoveY(1.1f, 0.12f).SetEase(Ease.OutQuad));
+        seq.Join(_playerScoreObj.transform.DOScale(_baseScale * 1.5f, 0.12f).SetEase(Ease.OutQuad));
+
+        seq.Append(_playerScoreObj.transform.DOLocalMoveY(0.7f, 0.12f).SetEase(Ease.InQuad));
+        seq.Join(_playerScoreObj.transform.DOScale(_baseScale, 0.12f).SetEase(Ease.InQuad));
+
+        seq.OnComplete(() => _playerScoreObj.SetActive(false));
+
+        yield return seq.WaitForCompletion();
+    }
     #endregion
 
     #region Public Methods
@@ -136,6 +186,15 @@ public class PlayerController : MonoBehaviour
     public void SetAnotherPlayerNick(string nick)
     {
         _anotherPlayerNick = nick;
+    }
+
+    /// <summary>
+    /// Assigns the UI object used to display the player's score and hides it initially.
+    /// </summary>
+    public void SetPlayerScoreObj(GameObject playerScoreOPbj)
+    {
+        _playerScoreObj = playerScoreOPbj;
+        _playerScoreObj.SetActive(false);
     }
     #endregion
 }
