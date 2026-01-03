@@ -19,6 +19,7 @@ public class GridPortal : MonoBehaviour
     private float _dimmedIntensity = 0.2f; // 20% of original intensity when on cooldown
     private Tilemap _tilemapPortals;
     private TileAnimationFlags _originalAnimationFlags;
+    private Color _cooldownColor = Color.white;
 
     private uint _portalId;
     public uint PortalId
@@ -68,6 +69,7 @@ public class GridPortal : MonoBehaviour
     {
         if (_isOnCooldown)
         {
+
             _cooldownTimer -= Time.deltaTime;
 
             if (_cooldownTimer <= 0f)
@@ -203,6 +205,7 @@ public class GridPortal : MonoBehaviour
         if (_light2D != null)
         {
             _light2D.intensity = _dimmedIntensity * _originalIntensity;
+            _light2D.color = _cooldownColor;
         }
 
         // Pause tile animation
@@ -221,6 +224,7 @@ public class GridPortal : MonoBehaviour
         if (_light2D != null)
         {
             _light2D.intensity = _originalIntensity;
+            _light2D.color = _portalColor;
         }
 
         // Resume tile animation
@@ -241,6 +245,7 @@ public class GridPortal : MonoBehaviour
         {
             Vector3Int cellPos = new Vector3Int(_cellPosition.x, _cellPosition.y, 0);
             _originalAnimationFlags = _tilemapPortals.GetTileAnimationFlags(cellPos);
+            _tilemapPortals.SetColor(cellPos, _cooldownColor);
             _tilemapPortals.SetTileAnimationFlags(cellPos, TileAnimationFlags.PauseAnimation);
         }
     }
@@ -253,6 +258,7 @@ public class GridPortal : MonoBehaviour
         if (_tilemapPortals != null)
         {
             Vector3Int cellPos = new Vector3Int(_cellPosition.x, _cellPosition.y, 0);
+            _tilemapPortals.SetColor(cellPos, _portalColor);
             _tilemapPortals.SetTileAnimationFlags(cellPos, _originalAnimationFlags);
         }
     }
