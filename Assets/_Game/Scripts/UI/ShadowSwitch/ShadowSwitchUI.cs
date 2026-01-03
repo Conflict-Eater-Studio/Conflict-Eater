@@ -54,6 +54,7 @@ public class ShadowSwitchUI : MonoBehaviour
     #region Properties
     private bool _isSubscribed = false;
     private bool _isShadowLinked = false;
+    private bool _isRotatingIndicators = false;
     private ShadowPlayerController playerController;
     #endregion
 
@@ -270,6 +271,7 @@ public class ShadowSwitchUI : MonoBehaviour
     /// </param>
     private IEnumerator TryRotateUntilMiddleActive(int direction, GameObject button)
     {
+        _isRotatingIndicators = true;
         int maxAttempts = _shadowIndicators.Count;
         int attempts = 0;
 
@@ -296,7 +298,8 @@ public class ShadowSwitchUI : MonoBehaviour
             }
         }
 
-        Debug.LogWarning("Failed to position the active shadow in the middle slot after " + maxAttempts + " attempts.");
+        yield return new WaitForSeconds(0.2f);
+        SnapIndicatorsToNearestBackup();
     }
 
     /// <summary>
@@ -402,4 +405,45 @@ public class ShadowSwitchUI : MonoBehaviour
             state.indicator.transform.position = state.position;
         }
     }
+
+    /// <summary>
+    /// Ensures all shadow indicators are snapped to the nearest backup positions
+    /// after a rotation or any manual movement.
+    /// Each indicator will align to the closest position stored in _initialState.
+    /// </summary>
+    private void SnapIndicatorsToNearestBackup()
+    {
+        if (_initialState == null || _initialState.Count == 0)
+            return;
+
+        float snapThreshold = 0.1f; 
+        float snapDuration = 0.2f; 
+
+        foreach (var slot in _shadowIndicators)
+        {
+            if (slot?.indicator == null)
+                continue;
+
+            Vector3 currentPos = slot.indicator.transform.position;
+            Vector3 nearestPos = _initialState[0].position;
+            float minDist = Vector3.Distance(currentPos, nearestPos);
+
+            foreach (var state in _initialState)
+            {
+                float dist = Vector3.Distance(currentPos, state.position);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    nearestPos = state.position;
+                }
+            }
+
+            if (minDist > snapThreshold)
+            {
+                slot.indicator.transform.DOKill();
+                slot.indicator.transform.DOMove(nearestPos, snapDuration).SetEase(Ease.OutCubic);
+            }
+        }
+    }
+
 }

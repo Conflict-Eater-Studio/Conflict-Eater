@@ -140,6 +140,20 @@ public class ShadowPlayerController : PlayerController
     }
 
     /// <summary>
+    /// Returns true if all shadows have left the base (none are in ShadowExitBaseState).
+    /// </summary>
+    private bool HaveShadowsLeftBase()
+    {
+        foreach (var shadow in _shadows)
+        {
+            var controller = shadow.GetComponent<ShadowController>();
+            if (controller.CurrentState is ShadowExitBaseState)
+                return false;
+        }
+        return true;
+    }
+
+    /// <summary>
     /// Switches control to the previous available shadow in the cycle (to the left).
     /// </summary>
     private void OnLBSwitch(InputAction.CallbackContext context)
@@ -148,6 +162,8 @@ public class ShadowPlayerController : PlayerController
 
         if (!_canSwitch || _shadows.Count == 0)
             return;
+
+        if (!HaveShadowsLeftBase()) return;
 
         OnLBSwitchEvent?.Invoke();
 
@@ -163,6 +179,8 @@ public class ShadowPlayerController : PlayerController
 
         if (!_canSwitch || _shadows.Count == 0)
             return;
+
+        if (!HaveShadowsLeftBase()) return;
 
         OnRBSwitchEvent?.Invoke();
 
