@@ -125,7 +125,7 @@ public class Grid : MonoBehaviour
     private void Awake()
     {
         GameManager.Instance.RegisterGrid(this);
-        GameManager.Instance.Timer.OnRoundEnd += OnRoundEnd;
+        GameManager.Instance.Timer.OnRoundEnded += OnRoundEnd;
 
         InstantiatePortals();
 
@@ -174,7 +174,7 @@ public class Grid : MonoBehaviour
 
     private void OnDestroy()
     {
-        GameManager.Instance.Timer.OnRoundEnd -= OnRoundEnd;
+        GameManager.Instance.Timer.OnRoundEnded -= OnRoundEnd;
     }
 
     /// <summary>

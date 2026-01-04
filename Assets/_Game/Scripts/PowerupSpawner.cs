@@ -34,14 +34,14 @@ public class PowerupSpawner : MonoBehaviour {
         }
 
         GameManager.Instance.Timer.OnRoundStart += PowerupSpawner_OnRoundStart;
-        GameManager.Instance.Timer.OnRoundEnd += PowerupSpawner_OnRoundEnd;
+        GameManager.Instance.Timer.OnRoundEnded += PowerupSpawner_OnRoundEnd;
 
         SpawnPowerups();
     }
 
     private void OnDestroy() {
         GameManager.Instance.Timer.OnRoundStart -= PowerupSpawner_OnRoundStart;
-        GameManager.Instance.Timer.OnRoundEnd -= PowerupSpawner_OnRoundEnd;
+        GameManager.Instance.Timer.OnRoundEnded -= PowerupSpawner_OnRoundEnd;
     }
 
     // ---------------------------------------------------------------------

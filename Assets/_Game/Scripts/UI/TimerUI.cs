@@ -120,7 +120,7 @@ public class TimerUI : MonoBehaviour
     private void SubscribeEvents()
     {
         _timer.OnMatchStart += TimerUI_OnMatchStart;
-        _timer.OnRoundEnd += TimerUI_OnRoundEnd;
+        _timer.OnRoundEnded += TimerUI_OnRoundEnd;
         _timer.OnMatchEnd += TimerUI_OnMatchEnd;
     }
 
@@ -130,7 +130,7 @@ public class TimerUI : MonoBehaviour
             return;
 
         _timer.OnMatchStart -= TimerUI_OnMatchStart;
-        _timer.OnRoundEnd -= TimerUI_OnRoundEnd;
+        _timer.OnRoundEnded -= TimerUI_OnRoundEnd;
         _timer.OnMatchEnd -= TimerUI_OnMatchEnd;
     }
     #endregion

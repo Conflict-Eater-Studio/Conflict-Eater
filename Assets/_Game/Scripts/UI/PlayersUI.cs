@@ -12,7 +12,7 @@ public class PlayersUI : MonoBehaviour
     void Start() {
         _player1Image.color = _lightColor;
         _player2Image.color = _shadowColor;
-        GameManager.Instance.Timer.OnRoundEnd += PlayersUI_OnRoundEnd;
+        GameManager.Instance.Timer.OnRoundEnded += PlayersUI_OnRoundEnd;
     }
     private void PlayersUI_OnRoundEnd(object sender, EventArgs e) {
         SwapColor();        

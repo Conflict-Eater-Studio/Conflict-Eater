@@ -24,7 +24,7 @@ public class PlayerController : MonoBehaviour
     protected virtual void Start()
     {
         GameManager.Instance.Timer.OnRoundStart += Timer_OnRoundStart;
-        GameManager.Instance.Timer.OnRoundEnd += Timer_OnRoundEnd;
+        GameManager.Instance.Timer.OnRoundEnded += Timer_OnRoundEnd;
 
         GameManager.Instance.PlayerManager.OnPlayerScoreChanged += PlayerManager_OnPlayerScoreChanged;
     }

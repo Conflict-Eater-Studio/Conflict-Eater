@@ -18,6 +18,9 @@ public class GameManager : Singleton<GameManager>
     [SerializeField]
     private PlayerSpawner _playerSpawner;
 
+    [SerializeField]
+    private GridManager _gridManager; 
+
     public bool IsFrightenedShadowState = false;
 
     public PlayerManager PlayerManager { get; private set; }
@@ -28,6 +31,7 @@ public class GameManager : Singleton<GameManager>
         get { return _particleSystem; }
         set { _particleSystem = value; }
     }
+    public GridManager GridManager => _gridManager;
 
     public void RegisterGrid(Grid newGrid)
     {
@@ -66,7 +70,7 @@ public class GameManager : Singleton<GameManager>
     {
         PlayerManager = new PlayerManager();
 
-        Timer.OnRoundEnd += OnRoundEnd;
+        Timer.OnRoundEnded += OnRoundEnd;
         Timer.OnMatchEnd += OnMatchEnd;
 
         _globalVolume.SetActive(true);
@@ -103,7 +107,7 @@ public class GameManager : Singleton<GameManager>
 
     private void OnDestroy()
     {
-        Timer.OnRoundEnd -= OnRoundEnd;
+        Timer.OnRoundEnded -= OnRoundEnd;
         if (Grid != null)
         {
             Grid.OnNewLightTile -= GameManager_OnNewLightTile;

@@ -67,7 +67,7 @@ public class ShadowSwitchUI : MonoBehaviour
 
     private void Start()
     {
-        GameManager.Instance.Timer.OnRoundEnd += Timer_OnRoundEnd;
+        GameManager.Instance.Timer.OnRoundEnded += Timer_OnRoundEnd;
     }
 
     /// <summary>

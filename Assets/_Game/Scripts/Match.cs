@@ -41,7 +41,8 @@ public class Match : MonoBehaviour
     public event EventHandler OnMatchEnd;
     public event EventHandler OnMatchPause;
     public event EventHandler OnMatchResume;
-    public event EventHandler<OnRoundEndEventArgs> OnRoundEnd;
+    public event EventHandler<OnRoundEndEventArgs> OnRoundEnding;
+    public event EventHandler<OnRoundEndEventArgs> OnRoundEnded;
     public event EventHandler OnRoundStart;
 
     #endregion
@@ -120,6 +121,7 @@ public class Match : MonoBehaviour
     /// </summary>
     public void EndRound()
     {
+        OnRoundEnding?.Invoke(this, new OnRoundEndEventArgs(_currentRound));
         RoundTime = 0;
         _currentRound++;
         Pause();
@@ -129,7 +131,7 @@ public class Match : MonoBehaviour
 
             return;
         }
-        OnRoundEnd?.Invoke(this, new OnRoundEndEventArgs(_currentRound));
+        OnRoundEnded?.Invoke(this, new OnRoundEndEventArgs(_currentRound));
     }
 
     /// <summary>

@@ -83,7 +83,7 @@ public class ShadowPlayerController : PlayerController
         }
 
         GameManager.Instance.Timer.OnRoundStart += Timer_OnRoundStart;
-        GameManager.Instance.Timer.OnRoundEnd += HandleRoundEnd;
+        GameManager.Instance.Timer.OnRoundEnded += HandleRoundEnd;
 
         GameManager.Instance.Timer.OnMatchPause += Shadow_OnMatchPause;
         GameManager.Instance.Timer.OnMatchResume += Shadow_OnMatchResume;
@@ -110,7 +110,7 @@ public class ShadowPlayerController : PlayerController
         if (GameManager.Instance != null)
         {
             GameManager.Instance.Timer.OnRoundStart -= Timer_OnRoundStart;
-            GameManager.Instance.Timer.OnRoundEnd -= HandleRoundEnd;
+            GameManager.Instance.Timer.OnRoundEnded -= HandleRoundEnd;
 
             GameManager.Instance.Timer.OnMatchPause -= Shadow_OnMatchPause;
             GameManager.Instance.Timer.OnMatchResume -= Shadow_OnMatchResume;

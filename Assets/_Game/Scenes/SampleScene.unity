@@ -735,6 +735,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 0}
     - target: {fileID: 3096004135653304541, guid: bf93e0d707747e8409d83fd20f11d0a4, type: 3}
+      propertyPath: _gridManager
+      value: 
+      objectReference: {fileID: 732192574}
+    - target: {fileID: 3096004135653304541, guid: bf93e0d707747e8409d83fd20f11d0a4, type: 3}
       propertyPath: _endGamePanel
       value: 
       objectReference: {fileID: 0}
@@ -1467,7 +1471,7 @@ MonoBehaviour:
   m_StreamingVersion: 20241001
   m_LegacyPriority: 0
   Target:
-    TrackingTarget: {fileID: 0}
+    TrackingTarget: {fileID: 732192575}
     LookAtTarget: {fileID: 0}
     CustomLookAtTarget: 0
   Lens:
@@ -1726,7 +1730,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerSpawner
   _playerInputManager: {fileID: 677362488}
-  _grid: {fileID: 0}
+  _gridManager: {fileID: 732192574}
   _ghostPrefab: {fileID: 2683791842499567046, guid: b63d17c292a097745bb3b63f862c6809, type: 3}
   _showLightPlayerPrefab: {fileID: 8796580353997719601, guid: 217f2a4f515f3a44a9e97ff942fc36c4, type: 3}
   animationController: {fileID: 9100000, guid: 8af526d7aba3d314f8039d07c07e9e5a, type: 2}
@@ -1862,7 +1866,7 @@ Transform:
   m_GameObject: {fileID: 732192573}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.27649, y: -0.9359, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

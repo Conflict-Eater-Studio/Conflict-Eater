@@ -52,7 +52,7 @@ public class LightPlayerController : PlayerController
     protected virtual void Awake()
     {
         _rb = GetComponentInParent<Rigidbody2D>();
-        _grid = FindFirstObjectByType<Grid>();
+        _grid = GameManager.Instance.Grid;
         _animator = GetComponentInParent<Animator>();
         _movement = new Movement(
             _rb,
@@ -78,7 +78,7 @@ public class LightPlayerController : PlayerController
         if (GameManager.Instance)
         {
             GameManager.Instance.Timer.OnRoundStart += Timer_OnRoundStart;
-            GameManager.Instance.Timer.OnRoundEnd += Timer_OnRoundEnd;
+            GameManager.Instance.Timer.OnRoundEnded += Timer_OnRoundEnd;
 
             GameManager.Instance.Timer.OnMatchPause += Light_OnMatchPause;
             GameManager.Instance.Timer.OnMatchResume += Light_OnMatchResume;
@@ -87,8 +87,28 @@ public class LightPlayerController : PlayerController
             {
                 Debug.Log($"{player.Role} zdoby³ {points} punktów! Aktualny wynik: {player.Score}");
             };
+
+            GameManager.Instance.GridManager.OnGridChanged += GridManager_OnGridChanged;
         }
     }
+
+    private void GridManager_OnGridChanged(int obj)
+    {
+        _movement = null;
+
+        _grid = GameManager.Instance.Grid;
+        _animator = GetComponentInParent<Animator>();
+
+        _movement = new Movement(
+            _rb,
+            transform,
+            _grid,
+            _speed,
+            _centerThreshold,
+            _snapSpeedMultiplier
+        );
+    }
+
 
     protected override void Start()
     {
@@ -194,9 +214,11 @@ public class LightPlayerController : PlayerController
         if (GameManager.Instance)
         {
             GameManager.Instance.Timer.OnRoundStart -= Timer_OnRoundStart;
-            GameManager.Instance.Timer.OnRoundEnd -= Timer_OnRoundEnd;
+            GameManager.Instance.Timer.OnRoundEnded -= Timer_OnRoundEnd;
             GameManager.Instance.Timer.OnMatchPause -= Light_OnMatchPause;
             GameManager.Instance.Timer.OnMatchResume -= Light_OnMatchResume;
+
+            GameManager.Instance.GridManager.OnGridChanged -= GridManager_OnGridChanged;
         }
     }
 

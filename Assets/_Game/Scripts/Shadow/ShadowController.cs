@@ -166,7 +166,26 @@ public class ShadowController : MonoBehaviour
 
     private void Start()
     {
-        GameManager.Instance.Timer.OnRoundEnd += Timer_OnRoundEnd;
+        GameManager.Instance.Timer.OnRoundEnded += Timer_OnRoundEnd;
+
+        GameManager.Instance.GridManager.OnGridChanged += GridManager_OnGridChanged;
+    }
+
+    private void GridManager_OnGridChanged(int obj)
+    {
+        _movement = null;
+
+        _grid = GameManager.Instance.Grid;
+        _animator = GetComponentInParent<Animator>();
+
+        _movement = new Movement(
+            _rb,
+            transform,
+            _grid,
+            _speed,
+            _centerThreshold,
+            _snapSpeedMultiplier
+        );
     }
 
     private void Timer_OnRoundEnd(object sender, EventArgs e)
@@ -212,7 +231,7 @@ public class ShadowController : MonoBehaviour
                 }
                 SetState(new ShadowEatenState());
             }
-            else if (_currentState.State == ShadowState.Eaten)
+            else if (_currentState != null && _currentState.State == ShadowState.Eaten)
             {
                 return;
             }
@@ -238,7 +257,12 @@ public class ShadowController : MonoBehaviour
         {
             LightPlayerController lightPlayerController =
                 collision.GetComponentInChildren<LightPlayerController>();
-            StartCoroutine(LightPlayerSpeedReset(lightPlayerController));
+
+            if (gameObject.activeInHierarchy)
+            {
+                StartCoroutine(LightPlayerSpeedReset(lightPlayerController));
+            }
+
         }
     }
 
@@ -246,6 +270,11 @@ public class ShadowController : MonoBehaviour
     {
         yield return new WaitForSeconds(1);
         lightPlayerController.Movement.SetSpeed(lightPlayerController.Speed);
+    }
+
+    private void OnDestroy()
+    {
+        GameManager.Instance.GridManager.OnGridChanged -= GridManager_OnGridChanged;
     }
 
     #endregion
