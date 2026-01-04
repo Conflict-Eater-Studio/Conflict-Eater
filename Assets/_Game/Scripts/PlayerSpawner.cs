@@ -28,7 +28,6 @@ public class PlayerSpawner : MonoBehaviour
     [SerializeField]
     private PlayerInputManager _playerInputManager;
 
-    [SerializeField]
     private Grid _grid;
 
     [Header("Prefabs & Positions")]
@@ -329,6 +328,11 @@ public class PlayerSpawner : MonoBehaviour
 
         GameObject playerNameObj = input.GetComponentInChildren<Canvas>().gameObject;
 
+        if (_grid == null)
+        {
+            _grid = GameManager.Instance.Grid;
+        }
+
         input.transform.position = _grid.GetSpawnPoint(Grid.SpawnPointType.Light);
         input.gameObject.AddComponent<Animator>();
         input.gameObject.GetComponent<Animator>().runtimeAnimatorController = animationController;
@@ -379,6 +383,11 @@ public class PlayerSpawner : MonoBehaviour
     )
     {
         input.name = "ShadowControllerRoot";
+
+        if (_grid == null)
+        {
+            _grid = GameManager.Instance.Grid;
+        }
 
         input.transform.position = _grid.GetSpawnPoint(Grid.SpawnPointType.Shadow);
 

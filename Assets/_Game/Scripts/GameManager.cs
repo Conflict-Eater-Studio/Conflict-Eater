@@ -29,15 +29,24 @@ public class GameManager : Singleton<GameManager>
         set { _particleSystem = value; }
     }
 
-    public void RegisterGrid(Grid grid)
+    public void RegisterGrid(Grid newGrid)
     {
-        if (Grid == null)
+        if (Grid != null)
         {
-            Grid = grid;
+            Grid.OnNewLightTile -= GameManager_OnNewLightTile;
+            Grid.OnAllLightTiles -= GameManager_OnAllLightTiles;
+        }
+
+        Grid = newGrid;
+        Debug.Log("Register grid");
+
+        if (Grid != null)
+        {
             Grid.OnNewLightTile += GameManager_OnNewLightTile;
             Grid.OnAllLightTiles += GameManager_OnAllLightTiles;
         }
     }
+
 
     public void BtnMainMenu()
     {
