@@ -141,14 +141,21 @@ public class GridManager : MonoBehaviour
         if (gridElements.Count == 0)
             return null;
 
+        List<GridElement> availableElements = gridElements;
+
+        if (gridElements.Count > 1 && CurrentGridId != -1)
+        {
+            availableElements = gridElements.FindAll(e => e.id != CurrentGridId);
+        }
+
         int totalWeight = 0;
-        foreach (var element in gridElements)
+        foreach (var element in availableElements)
             totalWeight += element.weight;
 
         int randomValue = UnityEngine.Random.Range(0, totalWeight);
         int currentWeight = 0;
 
-        foreach (var element in gridElements)
+        foreach (var element in availableElements)
         {
             currentWeight += element.weight;
             if (randomValue < currentWeight)
@@ -157,6 +164,7 @@ public class GridManager : MonoBehaviour
 
         return null;
     }
+
 
     /// <summary>
     /// Returns a Grid component associated with the given grid ID.
