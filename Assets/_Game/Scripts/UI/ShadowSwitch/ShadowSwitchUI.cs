@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 [System.Serializable]
 public class ShadowIndicatorSlot
 {
     public int id;
     public ShadowIndicator indicator;
+    public Image baseImage;
+    public Image faceImage;
 }
 
 [System.Serializable]
@@ -46,6 +49,20 @@ public class ShadowSwitchUI : MonoBehaviour
     [SerializeField]
     private GameObject _r1;
 
+    [Header("Sprites")]
+    [SerializeField]
+    private Sprite _defaultBaseSprite;
+    [SerializeField]
+    private Sprite _l1BaseSprite;
+    [SerializeField]
+    private Sprite _r1BaseSprite;
+    [SerializeField]
+    private Sprite _defaultFaceSprite;
+    [SerializeField]
+    private Sprite _l1FaceSprite;
+    [SerializeField]
+    private Sprite _r1FaceSprite;
+
     [Header("DEBUG")]
     [SerializeField]
     private List<ShadowIndicatorDebugInfo> _debugIndicators;
@@ -56,6 +73,13 @@ public class ShadowSwitchUI : MonoBehaviour
     private bool _isShadowLinked = false;
     private bool _isRotatingIndicators = false;
     private ShadowPlayerController playerController;
+
+    private enum RotationVisual
+    {
+        Base,
+        Left,
+        Right
+    }
     #endregion
 
     #region Unity Lifecycle
@@ -94,6 +118,8 @@ public class ShadowSwitchUI : MonoBehaviour
         }
 
         _isShadowLinked = false;
+
+        SetIndicatorsVisual(RotationVisual.Base);
     }
 
     /// <summary>
@@ -271,6 +297,10 @@ public class ShadowSwitchUI : MonoBehaviour
     /// </param>
     private IEnumerator TryRotateUntilMiddleActive(int direction, GameObject button)
     {
+        SetIndicatorsVisual(direction > 0
+            ? RotationVisual.Left
+            : RotationVisual.Right);
+
         _isRotatingIndicators = true;
         int maxAttempts = _shadowIndicators.Count;
         int attempts = 0;
@@ -278,6 +308,7 @@ public class ShadowSwitchUI : MonoBehaviour
         while (attempts < maxAttempts)
         {
             RotateIndicators(direction);
+            AnimateIndicatorsDuringRotation();
             StartCoroutine(FlashButton(button, 0.3f));
 
             yield return new WaitForSeconds(0.3f); 
@@ -292,6 +323,9 @@ public class ShadowSwitchUI : MonoBehaviour
                     var shadowController = middleSlot.indicator.LinkedShadow.GetComponent<ShadowController>();
                     if (shadowController != null && shadowController.IsShadowActive)
                     {
+                        yield return new WaitForSeconds(0.1f);
+                        SetIndicatorsVisual(RotationVisual.Base);
+                        AnimateMiddleIndicatorImpact();
                         yield break;
                     }
                 }
@@ -300,6 +334,7 @@ public class ShadowSwitchUI : MonoBehaviour
 
         yield return new WaitForSeconds(0.2f);
         SnapIndicatorsToNearestBackup();
+        SetIndicatorsVisual(RotationVisual.Base);
     }
 
     /// <summary>
@@ -446,4 +481,71 @@ public class ShadowSwitchUI : MonoBehaviour
         }
     }
 
+    private void SetIndicatorsVisual(RotationVisual visual)
+    {
+        Sprite baseSprite;
+        Sprite faceSprite;
+
+        switch (visual)
+        {
+            case RotationVisual.Left:
+                baseSprite = _l1BaseSprite;
+                faceSprite = _l1FaceSprite;
+                break;
+
+            case RotationVisual.Right:
+                baseSprite = _r1BaseSprite;
+                faceSprite = _r1FaceSprite;
+                break;
+
+            default:
+                baseSprite = _defaultBaseSprite;
+                faceSprite = _defaultFaceSprite;
+                break;
+        }
+
+        foreach (var slot in _shadowIndicators)
+        {
+            if (slot == null)
+                continue;
+
+            if (slot.baseImage != null)
+                slot.baseImage.sprite = baseSprite;
+
+            if (slot.faceImage != null)
+                slot.faceImage.sprite = faceSprite;
+        }
+    }
+
+    private void AnimateIndicatorsDuringRotation()
+    {
+        foreach (var slot in _shadowIndicators)
+        {
+            if (slot?.indicator == null)
+                continue;
+
+            Transform t = slot.indicator.transform;
+
+            Sequence seq = DOTween.Sequence();
+            seq.Append(t.DOScale(0.75f, 0.25f).SetEase(Ease.OutQuad));
+            seq.Join(t.DORotate(new Vector3(0, 0, Random.Range(-12f, 12f)), 0.18f));
+            seq.Append(t.DOScale(1f, 0.25f).SetEase(Ease.OutBack));
+            seq.Join(t.DORotate(Vector3.zero, 0.25f));
+        }
+    }
+
+    private void AnimateMiddleIndicatorImpact()
+    {
+        if (_shadowIndicators.Count < 2)
+            return;
+
+        Transform t = _shadowIndicators[1].indicator.transform;
+        t.DOKill();
+        t.localScale = Vector3.one;
+
+        Sequence seq = DOTween.Sequence();
+        seq.Append(t.DOScale(1.25f, 0.12f));
+        seq.Append(t.DOScale(1f, 0.22f).SetEase(Ease.OutBounce));
+        seq.Join(t.DOPunchRotation(new Vector3(0, 0, 12f), 0.2f));
+    }
 }
