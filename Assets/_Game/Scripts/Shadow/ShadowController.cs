@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// Defines the type of shadow/ghost with their behavior patterns.
@@ -386,4 +387,23 @@ public class ShadowController : MonoBehaviour
         _shadowType = type;
     }
     #endregion
+
+
+    public void OnRevive()
+    {
+        if (Owner == null) return;
+
+        if (Owner.AreAllShadowsEaten())
+        {
+            Debug.LogWarning("OnRevive");
+            StartCoroutine(ActivateNextShadowNextFrame());
+        }
+    }
+
+    private IEnumerator ActivateNextShadowNextFrame()
+    {
+        yield return null;
+        Owner.SetActiveShadow(this);
+    }
+
 }

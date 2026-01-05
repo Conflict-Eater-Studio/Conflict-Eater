@@ -1847,16 +1847,16 @@ MonoBehaviour:
     weight: 1
   - id: 2
     prefab: {fileID: 2177095454186800953, guid: b46a80ad43771d34a88af635699d7f9d, type: 3}
-    weight: 1
+    weight: 0
   - id: 3
     prefab: {fileID: 6665448333981493624, guid: 27cad257b8798584bb333dcfd86924fc, type: 3}
-    weight: 1
+    weight: 0
   - id: 4
     prefab: {fileID: 199983704959004164, guid: a61bbdbe675aaa64fafda24fdf65c7be, type: 3}
-    weight: 1
+    weight: 0
   - id: 5
     prefab: {fileID: 1204289795786146185, guid: 8e6837adf7a93e143beebb17eb0490d6, type: 3}
-    weight: 1
+    weight: 0
 --- !u!4 &732192575
 Transform:
   m_ObjectHideFlags: 0

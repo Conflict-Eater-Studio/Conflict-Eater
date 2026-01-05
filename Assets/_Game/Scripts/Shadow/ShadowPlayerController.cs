@@ -1,8 +1,8 @@
-﻿using System.Collections;
+﻿using NUnit.Framework;
+using System.Collections;
 using System.Collections.Generic;
-using NUnit.Framework;
+using UnityEditor.Rendering.LookDev;
 using UnityEngine;
-
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
@@ -133,6 +133,8 @@ public class ShadowPlayerController : PlayerController
             return;
         if (_shadows.Count == 0)
             return;
+        if (AreAllShadowsEaten())
+            return;
 
         Vector2 moveInput = context.ReadValue<Vector2>();
         var activeGhost = _shadows[_activeShadowIndex];
@@ -158,11 +160,9 @@ public class ShadowPlayerController : PlayerController
     /// </summary>
     private void OnLBSwitch(InputAction.CallbackContext context)
     {
-        if (!_isRoundStarted) return;
-
-        if (!_canSwitch || _shadows.Count == 0)
-            return;
-
+        if (!_isRoundStarted || _shadows.Count == 0) return;
+        if (AreAllShadowsEaten()) return; 
+        if (!_canSwitch) return;
         if (!HaveShadowsLeftBase()) return;
 
         OnLBSwitchEvent?.Invoke();
@@ -175,11 +175,9 @@ public class ShadowPlayerController : PlayerController
     /// </summary>
     private void OnRBSwitch(InputAction.CallbackContext context)
     {
-        if (!_isRoundStarted) return;
-
-        if (!_canSwitch || _shadows.Count == 0)
-            return;
-
+        if (!_isRoundStarted || _shadows.Count == 0) return;
+        if (AreAllShadowsEaten()) return;
+        if (!_canSwitch) return;
         if (!HaveShadowsLeftBase()) return;
 
         OnRBSwitchEvent?.Invoke();
@@ -502,6 +500,11 @@ public class ShadowPlayerController : PlayerController
     /// </summary>
     public IEnumerator SwitchShadowsRandomCoroutine()
     {
+        yield return null; 
+        if(AreAllShadowsEaten()) yield break;
+
+        Debug.LogWarning("SwitchShadowsRandomCoroutine");
+
         _canSwitch = false;
 
         AudioManager.Instance.PlayOneShot(AudioManager.Instance.FMODEvents.SFX.EnemySwap);
@@ -715,5 +718,33 @@ public class ShadowPlayerController : PlayerController
 
         _roundShadowTypes = availableTypes.GetRange(0, _shadowCount);
     }
+
+    public bool AreAllShadowsEaten()
+    {
+        foreach (var shadow in _shadows)
+        {
+            if (shadow == null) continue;
+            var controller = shadow.GetComponent<ShadowController>();
+            if (controller.CurrentState.State != ShadowState.Eaten)
+                return false;
+        }
+        return true;
+    }
+
+    public void SetActiveShadow(ShadowController shadow)
+    {
+        bool isFrightened = GameManager.Instance.IsFrightenedShadowState;
+
+        var old = _shadows[_activeShadowIndex].GetComponent<ShadowController>();
+        old.IsShadowActive = false;
+
+        _activeShadowIndex = _shadows.IndexOf(shadow.gameObject);
+        UpdateASwitchColor();
+
+        var next = _shadows[_activeShadowIndex].GetComponent<ShadowController>();
+        next.IsShadowActive = true;
+        next.SetState(new ShadowActiveState());
+    }
+
 
 }

@@ -54,7 +54,10 @@ public class ShadowEatenState : IShadowState
     /// Called when exiting the "Eaten" state.
     /// No special logic is needed.
     /// </summary>
-    public void Exit(ShadowController shadow) { }
+    public void Exit(ShadowController shadow) 
+    {
+        shadow.OnRevive();
+    }
 
     /// <summary>
     /// Called every frame while the shadow is in the "Eaten" state.
