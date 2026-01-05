@@ -739,6 +739,8 @@ public class ShadowPlayerController : PlayerController
         var next = _shadows[_activeShadowIndex].GetComponent<ShadowController>();
         next.IsShadowActive = true;
         next.SetState(new ShadowActiveState());
+
+        OnActiveRandomSwitch?.Invoke();
     }
 
 

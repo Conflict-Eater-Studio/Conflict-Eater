@@ -395,7 +395,7 @@ public class ShadowController : MonoBehaviour
 
         if (Owner.AreAllShadowsEaten())
         {
-            Debug.LogWarning("OnRevive");
+            Debug.LogWarning($"OnRevive triggered by shadow type: {Type}");
             StartCoroutine(ActivateNextShadowNextFrame());
         }
     }

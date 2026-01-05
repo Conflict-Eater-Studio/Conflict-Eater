@@ -28,9 +28,7 @@ public class ShadowEatenState : IShadowState
     private Vector3Int _currentCell;
     private float _moveTimer;
 
-    private Dictionary<Vector2Int, int> _visitCounter = new();
-    private const int LoopThreshold = 1;
-
+    private Dictionary<Vector2Int, int> _distanceMap;
     #endregion
 
     #region IShadowState Implementation
@@ -43,18 +41,20 @@ public class ShadowEatenState : IShadowState
         GameManager
             .Instance.PlayerManager.Players.First(p => p.Role == PlayerManager.PlayerRole.Light)
             .AddScore(10);
+
         _homeTargets = GameManager.Instance.Grid.GetShadowHomeTargets();
         _currentTargetIndex = 0;
         _lastDirection = Vector2Int.zero;
         shadow.CurrentDirection = Vector2Int.zero;
 
         shadow.Movement.Stop();
-        _visitCounter.Clear();
-
 
         var appearance = shadow.GetComponent<ShadowAppearanceManager>();
         appearance.SetDead();
+
+        BuildDistanceMap(GameManager.Instance.Grid, _homeTargets[0]);
     }
+
 
     /// <summary>
     /// Called when exiting the "Eaten" state.
@@ -71,9 +71,6 @@ public class ShadowEatenState : IShadowState
     /// </summary>
     public void Update(ShadowController shadow)
     {
-        if (_homeTargets == null || _homeTargets.Count == 0)
-            return;
-
         _moveTimer += Time.deltaTime;
         if (_moveTimer < DecisionInterval)
             return;
@@ -84,19 +81,10 @@ public class ShadowEatenState : IShadowState
         _currentCell = Grid.WorldToCell(shadow.transform.position);
         var cell = (Vector2Int)_currentCell;
 
-        if (!_visitCounter.TryGetValue(cell, out int visits))
-            visits = 0;
+        Vector2Int target = _homeTargets[_currentTargetIndex];
 
-        _visitCounter[cell] = visits + 1;
-
-        Vector2Int targetCell =
-            _currentTargetIndex < _homeTargets.Count
-                ? _homeTargets[_currentTargetIndex]
-                : _homeTargets[^1];
-
-        if (cell == targetCell)
+        if (cell == target)
         {
-            _visitCounter.Clear(); 
             _currentTargetIndex++;
 
             if (_currentTargetIndex >= _homeTargets.Count)
@@ -105,93 +93,75 @@ public class ShadowEatenState : IShadowState
                 appearance.SetColorAfterEaten();
                 appearance.SetColorBeforeFrightened();
 
-                if (shadow.GetComponentInParent<ShadowPlayerController>() != null)
-                    shadow.StartCoroutine(DelayedUpdateAppearance(shadow));
-
                 shadow.SetState(new ShadowExitBaseState());
                 return;
             }
 
-            targetCell = _homeTargets[_currentTargetIndex];
+            BuildDistanceMap(grid, _homeTargets[_currentTargetIndex]);
+            return;
         }
 
-        Vector2Int nextDirection = ChooseBestDirection(grid, _currentCell, targetCell);
+        Vector2Int bestDir = Vector2Int.zero;
+        int bestDist = int.MaxValue;
 
-        if (_visitCounter.TryGetValue(cell, out int count) && count >= LoopThreshold)
+        foreach (var dir in Directions)
         {
-            nextDirection = ChooseAnyDifferentDirection(grid, _currentCell);
-            _visitCounter[cell] = 0;
+            Vector2Int next = cell + dir;
+
+            if (!grid.IsWalkable((Vector3Int)next))
+                continue;
+
+            if (!_distanceMap.TryGetValue(next, out int dist))
+                continue;
+
+            if (dist < bestDist)
+            {
+                bestDist = dist;
+                bestDir = dir;
+            }
         }
 
-        if (nextDirection == Vector2Int.zero)
+        if (bestDir == Vector2Int.zero)
             return;
 
-        _lastDirection = nextDirection;
-        shadow.CurrentDirection = nextDirection;
-        shadow.Movement.OnMove(nextDirection);
-    }
-
-
-    /// <summary>
-    /// Delays updating the shadow's appearance to ensure proper timing with the player controller.
-    /// </summary>
-    private IEnumerator DelayedUpdateAppearance(ShadowController shadow)
-    {
-        yield return null;
-
-        ShadowPlayerController owner = shadow.GetComponentInParent<ShadowPlayerController>();
-    }
-
-    #endregion
-
-    #region Direction Selection
-    /// <summary>
-    /// Determines the optimal direction toward the target cell, avoiding reversing.
-    /// </summary>
-    private Vector2Int ChooseBestDirection(Grid grid, Vector3Int currentCell, Vector2Int targetCell)
-    {
-        var targetWorldPos = Grid.GetCellCenterWorld(new Vector3Int(targetCell.x, targetCell.y, 0));
-
-        return Directions
-            .Where(dir => dir != -_lastDirection)
-            .Where(dir => grid.IsWalkable(currentCell + (Vector3Int)dir))
-            .OrderBy(dir =>
-            {
-                var nextWorld = Grid.GetCellCenterWorld(currentCell + (Vector3Int)dir);
-                return Vector2.Distance(nextWorld, targetWorldPos);
-            })
-            .ThenBy(GetDirectionPriority)
-            .FirstOrDefault();
+        _lastDirection = bestDir;
+        shadow.CurrentDirection = bestDir;
+        shadow.Movement.OnMove(bestDir);
     }
 
     /// <summary>
-    /// Direction priority for tie-breaking: Up > Left > Right > Down
+    /// Builds a distance map using BFS, starting from the target cell.
+    /// Stores the minimum number of steps required to reach the target
+    /// from each walkable cell on the grid.
+    /// Used for pathfinding (e.g. returning to home in Eaten state).
     /// </summary>
-    private static int GetDirectionPriority(Vector2Int direction)
+    private void BuildDistanceMap(Grid grid, Vector2Int target)
     {
-        return direction switch
+        _distanceMap = new Dictionary<Vector2Int, int>();
+        Queue<Vector2Int> queue = new();
+
+        _distanceMap[target] = 0;
+        queue.Enqueue(target);
+
+        while (queue.Count > 0)
         {
-            { x: 0, y: 1 } => 0,
-            { x: -1, y: 0 } => 1,
-            { x: 1, y: 0 } => 2,
-            { x: 0, y: -1 } => 3,
-            _ => int.MaxValue,
-        };
+            var current = queue.Dequeue();
+            int dist = _distanceMap[current];
+
+            foreach (var dir in Directions)
+            {
+                Vector2Int next = current + dir;
+
+                if (_distanceMap.ContainsKey(next))
+                    continue;
+
+                if (!grid.IsWalkable((Vector3Int)next))
+                    continue;
+
+                _distanceMap[next] = dist + 1;
+                queue.Enqueue(next);
+            }
+        }
     }
-
-    private Vector2Int ChooseAnyDifferentDirection(Grid grid, Vector3Int currentCell)
-    {
-        var dirs = Directions
-            .Where(dir => grid.IsWalkable(currentCell + (Vector3Int)dir))
-            .ToList();
-
-        var noReverse = dirs.Where(dir => dir != -_lastDirection).ToList();
-        if (noReverse.Count > 0)
-            return noReverse[Random.Range(0, noReverse.Count)];
-
-        return dirs.Count > 0 ? dirs[Random.Range(0, dirs.Count)] : Vector2Int.zero;
-    }
-
-
     #endregion
 }
