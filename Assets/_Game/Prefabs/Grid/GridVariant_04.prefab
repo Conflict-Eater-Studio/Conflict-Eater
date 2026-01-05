@@ -274,7 +274,8 @@ MonoBehaviour:
   - {x: -2, y: 0}
   - {x: -1, y: 1}
   _homeTargets:
-  - {x: -1, y: -2}
+  - {x: -1, y: 2}
+  - {x: -1, y: 1}
   _scatterTargets:
   - shadowType: 0
     targetCell: {x: -17, y: 8}

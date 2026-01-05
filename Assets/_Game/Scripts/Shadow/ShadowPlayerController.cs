@@ -203,7 +203,7 @@ public class ShadowPlayerController : PlayerController
     /// </summary>
     private IEnumerator SpawnFirstShadow()
     {
-        var spawnPosition = new Vector3(-0.5f, -0.5f, 0f);
+        var spawnPosition = new Vector3(-0.5f, -1.5f, 0f);
         var ghost = Instantiate(_shadowPrefab, spawnPosition, Quaternion.identity);
         ghost.transform.SetParent(transform);
         ghost.name = "Ghost_1";
