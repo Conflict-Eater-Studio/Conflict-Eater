@@ -355,6 +355,9 @@ public class PlayerSpawner : MonoBehaviour
             playerController.SetPlayerNick(
                 playerIndex == PlayerManager.PlayerIndex.P1 ? "Player 1" : "Player 2"
             );
+            playerController.SetAnotherPlayerNick(
+                playerIndex == PlayerManager.PlayerIndex.P1 ? "Player 2" : "Player 1"
+            );
             playerController.SetPlayerScoreObj(
             input.transform.GetChild(1).gameObject
             );
@@ -408,6 +411,9 @@ public class PlayerSpawner : MonoBehaviour
             playerController.SetPlayerNameObj(input.transform.GetChild(0).gameObject);
             playerController.SetPlayerNick(
                 playerIndex == PlayerManager.PlayerIndex.P1 ? "Player 1" : "Player 2"
+            );
+            playerController.SetAnotherPlayerNick(
+                playerIndex == PlayerManager.PlayerIndex.P1 ? "Player 2" : "Player 1"
             );
             playerController.SetPlayerScoreObj(
             input.transform.GetChild(1).gameObject
