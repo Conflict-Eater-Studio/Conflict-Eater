@@ -27,6 +27,10 @@ public class ShadowEatenState : IShadowState
     private Vector2Int _lastDirection;
     private Vector3Int _currentCell;
     private float _moveTimer;
+
+    private Dictionary<Vector2Int, int> _visitCounter = new();
+    private const int LoopThreshold = 1;
+
     #endregion
 
     #region IShadowState Implementation
@@ -45,6 +49,8 @@ public class ShadowEatenState : IShadowState
         shadow.CurrentDirection = Vector2Int.zero;
 
         shadow.Movement.Stop();
+        _visitCounter.Clear();
+
 
         var appearance = shadow.GetComponent<ShadowAppearanceManager>();
         appearance.SetDead();
@@ -75,41 +81,48 @@ public class ShadowEatenState : IShadowState
         _moveTimer = 0f;
 
         var grid = GameManager.Instance.Grid;
-        var currentPosition = shadow.transform.position;
-        _currentCell = Grid.WorldToCell(currentPosition);
+        _currentCell = Grid.WorldToCell(shadow.transform.position);
+        var cell = (Vector2Int)_currentCell;
+
+        if (!_visitCounter.TryGetValue(cell, out int visits))
+            visits = 0;
+
+        _visitCounter[cell] = visits + 1;
 
         Vector2Int targetCell =
             _currentTargetIndex < _homeTargets.Count
                 ? _homeTargets[_currentTargetIndex]
-                : _homeTargets.Last();
+                : _homeTargets[^1];
 
-        if ((Vector2Int)_currentCell == targetCell)
+        if (cell == targetCell)
         {
+            _visitCounter.Clear(); 
             _currentTargetIndex++;
 
-            if (
-                _currentTargetIndex >= _homeTargets.Count
-                && (Vector2Int)_currentCell == _homeTargets.Last()
-            )
+            if (_currentTargetIndex >= _homeTargets.Count)
             {
                 var appearance = shadow.GetComponent<ShadowAppearanceManager>();
                 appearance.SetColorAfterEaten();
                 appearance.SetColorBeforeFrightened();
 
-                ShadowPlayerController owner =
-                    shadow.GetComponentInParent<ShadowPlayerController>();
-                if (owner != null)
+                if (shadow.GetComponentInParent<ShadowPlayerController>() != null)
                     shadow.StartCoroutine(DelayedUpdateAppearance(shadow));
 
-                shadow.SetState(new ShadowScatterState());
+                shadow.SetState(new ShadowExitBaseState());
                 return;
             }
 
-            if (_currentTargetIndex < _homeTargets.Count)
-                targetCell = _homeTargets[_currentTargetIndex];
+            targetCell = _homeTargets[_currentTargetIndex];
         }
 
-        var nextDirection = ChooseBestDirection(grid, _currentCell, targetCell);
+        Vector2Int nextDirection = ChooseBestDirection(grid, _currentCell, targetCell);
+
+        if (_visitCounter.TryGetValue(cell, out int count) && count >= LoopThreshold)
+        {
+            nextDirection = ChooseAnyDifferentDirection(grid, _currentCell);
+            _visitCounter[cell] = 0;
+        }
+
         if (nextDirection == Vector2Int.zero)
             return;
 
@@ -117,6 +130,7 @@ public class ShadowEatenState : IShadowState
         shadow.CurrentDirection = nextDirection;
         shadow.Movement.OnMove(nextDirection);
     }
+
 
     /// <summary>
     /// Delays updating the shadow's appearance to ensure proper timing with the player controller.
@@ -126,7 +140,6 @@ public class ShadowEatenState : IShadowState
         yield return null;
 
         ShadowPlayerController owner = shadow.GetComponentInParent<ShadowPlayerController>();
-        //owner.UpdateAppearance();
     }
 
     #endregion
@@ -165,5 +178,20 @@ public class ShadowEatenState : IShadowState
             _ => int.MaxValue,
         };
     }
+
+    private Vector2Int ChooseAnyDifferentDirection(Grid grid, Vector3Int currentCell)
+    {
+        var dirs = Directions
+            .Where(dir => grid.IsWalkable(currentCell + (Vector3Int)dir))
+            .ToList();
+
+        var noReverse = dirs.Where(dir => dir != -_lastDirection).ToList();
+        if (noReverse.Count > 0)
+            return noReverse[Random.Range(0, noReverse.Count)];
+
+        return dirs.Count > 0 ? dirs[Random.Range(0, dirs.Count)] : Vector2Int.zero;
+    }
+
+
     #endregion
 }

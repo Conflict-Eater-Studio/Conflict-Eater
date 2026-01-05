@@ -514,11 +514,6 @@ public class ShadowPlayerController : PlayerController
         var oldController = _shadows[_activeShadowIndex].GetComponent<ShadowController>();
         oldController.IsShadowActive = false;
 
-        if (isFrightened)
-            oldController.SetState(new ShadowFrightenedState());
-        else
-            oldController.SetState(new ShadowScatterState());
-
         int randomIndex = _activeShadowIndex;
         if (_shadows.Count > 1)
         {
