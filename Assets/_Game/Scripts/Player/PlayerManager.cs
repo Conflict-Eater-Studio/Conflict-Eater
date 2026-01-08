@@ -24,8 +24,15 @@ public class PlayerManager
         public PlayerInput Input { get; private set; }
         public int Score { get; private set; }
         public List<int> RoundScores { get; private set; }
+        public String Nickname { get; set; } = "";
 
-        public PlayerData(GameObject obj, PlayerRole role, PlayerIndex index, PlayerInput input)
+        public PlayerData(
+            GameObject obj,
+            PlayerRole role,
+            PlayerIndex index,
+            PlayerInput input,
+            string nickname = ""
+        )
         {
             PlayerObject = obj;
             Role = role;
@@ -33,6 +40,7 @@ public class PlayerManager
             Input = input;
             Score = 0;
             RoundScores = new() { 0 };
+            Nickname = nickname;
         }
 
         public void AddScore(int points, int? toRound = null)
@@ -106,10 +114,11 @@ public class PlayerManager
         GameObject playerObj,
         PlayerRole type,
         PlayerIndex index,
-        PlayerInput input
+        PlayerInput input,
+        string nickname = ""
     )
     {
-        var player = new PlayerData(playerObj, type, index, input);
+        var player = new PlayerData(playerObj, type, index, input, nickname);
         _players.Add(player);
 
         player.OnScoreChanged += (points) => OnPlayerScoreChanged?.Invoke(player, points);

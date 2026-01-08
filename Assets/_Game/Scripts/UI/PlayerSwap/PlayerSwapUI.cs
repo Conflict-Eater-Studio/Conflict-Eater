@@ -23,11 +23,11 @@ public class PlayerSwapUI : MonoBehaviour
 
     [Tooltip("Player 1's role text (Light/Shadow)")]
     [SerializeField]
-    private TextMeshProUGUI _player1RoleText;
+    private TextMeshProUGUI _p1NameText;
 
     [Tooltip("Player 2's role text (Light/Shadow)")]
     [SerializeField]
-    private TextMeshProUGUI _player2RoleText;
+    private TextMeshProUGUI _p2NameText;
 
     [SerializeField]
     private CanvasGroup _canvasGroup;
@@ -118,11 +118,18 @@ public class PlayerSwapUI : MonoBehaviour
     /// Shows the initial player/role assignment with fade in, holds for display duration, then fades out.
     /// Use onComplete callback to trigger match start after the display.
     /// </summary>
-    /// <param name="p1Role">The role that Player 1 (index 0) has selected</param>
     /// <param name="displayDuration">How long to display the role assignment before fading out</param>
     /// <param name="onComplete">Callback when the entire sequence (fade in, hold, fade out) completes</param>
     public void ShowInitialAssignment(float displayDuration = 3f, Action onComplete = null)
     {
+        _p1NameText.text = GameManager
+            .Instance.PlayerManager.Players.First(p => p.Index == PlayerManager.PlayerIndex.P1)
+            .Nickname;
+
+        _p2NameText.text = GameManager
+            .Instance.PlayerManager.Players.First(p => p.Index == PlayerManager.PlayerIndex.P2)
+            .Nickname;
+
         _animationSequence?.Kill();
         gameObject.SetActive(true);
 

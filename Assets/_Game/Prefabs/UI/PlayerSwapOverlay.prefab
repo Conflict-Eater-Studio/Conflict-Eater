@@ -416,8 +416,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerSwap
   _lightColorIndicator: {fileID: 5454314640590177359}
   _shadowColorIndicator: {fileID: 8400244216626544886}
-  _player1RoleText: {fileID: 3268062235591235288}
-  _player2RoleText: {fileID: 1613173558364483601}
+  _p1NameText: {fileID: 3268062235591235288}
+  _p2NameText: {fileID: 1613173558364483601}
   _canvasGroup: {fileID: 5800464185508804311}
   _fadeInDuration: 0.3
   _roleSwapDuration: 0.6

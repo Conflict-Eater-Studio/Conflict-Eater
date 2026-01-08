@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
 using TMPro;
+using UnityEditor.EditorTools;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.XR;
 
 public class PlayerSelectUI : MonoBehaviour
 {
@@ -74,8 +76,44 @@ public class PlayerSelectUI : MonoBehaviour
     private Ease _indicatorTransitionEase = Ease.InOutSine;
     #endregion
 
+    #region Player Name Input
+    [SerializeField]
+    private Transform _p1PlayerNameBar;
+
+    [SerializeField]
+    private Transform _p2PlayerNameBar;
+
+    [SerializeField]
+    private Transform _p1PlayerNameInput;
+
+    [SerializeField]
+    private Transform _p2PlayerNameInput;
+
+    [Tooltip("Ease time for name input bar to fade in")]
+    [SerializeField]
+    private float _nameInputBarInEaseTime = 0.5f;
+
+    [Tooltip("Ease type for name input bar to fade in")]
+    [SerializeField]
+    private Ease _nameInputBarInEase = Ease.InOutSine;
+
+    [Tooltip("Ease type for name input bar to fade out")]
+    [SerializeField]
+    private float _nameInputBarOutEaseTime = 0.5f;
+
+    [Tooltip("Ease type for name input bar to fade out")]
+    [SerializeField]
+    private Ease _nameInputBarOutEase = Ease.InBack;
+    #endregion
+
     #region Player Ready Indicators
     [Header("Player Ready Indicators")]
+    [SerializeField]
+    private Transform _p1PlayerReadyButton;
+
+    [SerializeField]
+    private Transform _p2PlayerReadyButton;
+
     [SerializeField]
     private Transform _p1ReadyTextTransform;
 
@@ -124,6 +162,16 @@ public class PlayerSelectUI : MonoBehaviour
         _p1ReadyTextTransform.gameObject.SetActive(false);
         _p2ReadyTextTransform.gameObject.SetActive(false);
 
+        if (_p1PlayerNameBar != null)
+            _p1PlayerNameBar.GetComponent<CanvasGroup>().alpha = 0f;
+        if (_p2PlayerNameBar != null)
+            _p2PlayerNameBar.GetComponent<CanvasGroup>().alpha = 0f;
+
+        if (_p1PlayerReadyButton != null)
+            _p1PlayerReadyButton.GetComponent<CanvasGroup>().alpha = 0f;
+        if (_p2PlayerReadyButton != null)
+            _p2PlayerReadyButton.GetComponent<CanvasGroup>().alpha = 0f;
+
         // Hide character images initially
         if (_p1CharacterRawImage != null)
             _p1CharacterRawImage.gameObject.SetActive(false);
@@ -152,6 +200,7 @@ public class PlayerSelectUI : MonoBehaviour
         PlayerSpawner.OnRoleSelectionChanged += HandleRoleSelectionChanged;
         PlayerSpawner.OnRoleSelectionReleased += HandleRoleSelectionReleased;
         PlayerSpawner.OnPlayersReadyToSpawn += HandlePlayersReadyToSpawn;
+        PlayerSpawner.OnPlayerNameChanged += HandlePlayerNameChanged;
     }
 
     private void OnDisable()
@@ -160,6 +209,7 @@ public class PlayerSelectUI : MonoBehaviour
         PlayerSpawner.OnRoleSelectionChanged -= HandleRoleSelectionChanged;
         PlayerSpawner.OnRoleSelectionReleased -= HandleRoleSelectionReleased;
         PlayerSpawner.OnPlayersReadyToSpawn -= HandlePlayersReadyToSpawn;
+        PlayerSpawner.OnPlayerNameChanged -= HandlePlayerNameChanged;
     }
 
     private void OnDestroy()
@@ -168,6 +218,7 @@ public class PlayerSelectUI : MonoBehaviour
         PlayerSpawner.OnRoleSelectionChanged -= HandleRoleSelectionChanged;
         PlayerSpawner.OnRoleSelectionReleased -= HandleRoleSelectionReleased;
         PlayerSpawner.OnPlayersReadyToSpawn -= HandlePlayersReadyToSpawn;
+        PlayerSpawner.OnPlayerNameChanged -= HandlePlayerNameChanged;
     }
 
     private void HandleRoleSelectionStarted(object sender, PlayerSpawner.RoleSelectionEventArgs e)
@@ -234,11 +285,41 @@ public class PlayerSelectUI : MonoBehaviour
             playerIndex == PlayerManager.PlayerIndex.P1
                 ? _p1ReadyTextTransform
                 : _p2ReadyTextTransform;
+        Transform nameInputBar =
+            playerIndex == PlayerManager.PlayerIndex.P1 ? _p1PlayerNameBar : _p2PlayerNameBar;
+        Transform readyButton =
+            playerIndex == PlayerManager.PlayerIndex.P1
+                ? _p1PlayerReadyButton
+                : _p2PlayerReadyButton;
         TextMeshProUGUI playerText =
             playerIndex == PlayerManager.PlayerIndex.P1 ? _p1Text : _p2Text;
         bool wasReady = _playerReady.ContainsKey(playerIndex) && _playerReady[playerIndex];
 
-        if (e.IsConfirmed && !wasReady)
+        // Show name input bar when confirmed but not yet ready
+        if (
+            e.IsConfirmed
+            && !e.IsReady
+            && nameInputBar != null
+            && nameInputBar.GetComponent<CanvasGroup>().alpha == 0f
+        )
+        {
+            nameInputBar
+                .GetComponent<CanvasGroup>()
+                .DOFade(1f, _nameInputBarInEaseTime)
+                .SetEase(_nameInputBarInEase);
+            readyButton
+                .GetComponent<CanvasGroup>()
+                .DOFade(1f, _nameInputBarInEaseTime)
+                .SetEase(_nameInputBarInEase);
+        }
+
+        if (e.IsConfirmed && e.IsReady && readyButton.localScale != Vector3.zero)
+        {
+            readyButton.DOScale(0, _nameInputBarOutEaseTime).SetEase(_nameInputBarOutEase);
+        }
+
+        // Show ready text only when IsReady is true
+        if (e.IsReady && !wasReady)
         {
             _playerReady[playerIndex] = true;
             if (readyText != null)
@@ -254,13 +335,58 @@ public class PlayerSelectUI : MonoBehaviour
             }
         }
 
-        if (!e.IsConfirmed && wasReady)
+        if (!e.IsReady && wasReady)
         {
             _playerReady[playerIndex] = false;
             if (readyText != null)
             {
                 readyText.gameObject.SetActive(false);
             }
+        }
+    }
+
+    private void HandlePlayerNameChanged(object sender, PlayerSpawner.PlayerNameChangeEventArgs e)
+    {
+        Transform target =
+            e.PlayerIndex == PlayerManager.PlayerIndex.P1 ? _p1PlayerNameInput : _p2PlayerNameInput;
+
+        Debug.Log(
+            $"Update name: {e.NewName} for Player {e.PlayerIndex}, child count: {target.childCount}"
+        );
+
+        if (target.childCount > e.NewName.Length)
+        {
+            // NewName is shorter than current - remove excess characters
+            for (int i = target.childCount; i > e.NewName.Length; i--)
+            {
+                Destroy(target.GetChild(i - 1).gameObject);
+            }
+        }
+        else if (target.childCount < e.NewName.Length)
+        {
+            // NewName is longer than current - add missing characters
+            for (int i = target.childCount; i < e.NewName.Length; i++)
+            {
+                GameObject charObj = target.GetChild(0).gameObject;
+                charObj.name = $"LetterInput_${i}";
+                Instantiate(charObj, target);
+            }
+        }
+
+        for (int i = 0; i < e.NewName.Length; i++)
+        {
+            if (i != e.NewName.Length - 1)
+            {
+                target.GetChild(i).GetChild(0).gameObject.SetActive(false);
+                target.GetChild(i).GetChild(2).gameObject.SetActive(false);
+            }
+            else
+            {
+                target.GetChild(i).GetChild(0).gameObject.SetActive(true);
+                target.GetChild(i).GetChild(2).gameObject.SetActive(true);
+            }
+            target.GetChild(i).GetChild(1).GetComponent<TextMeshProUGUI>().text = e.NewName[i]
+                .ToString();
         }
     }
 
