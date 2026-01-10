@@ -2,9 +2,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Cinemachine;
+using Unity.VisualScripting.FullSerializer.Internal;
 using UnityEngine;
 
 public class PowerupSpawner : MonoBehaviour {
+    [SerializeField] private float _firstPowerupSpawnTime = 5f;
     [SerializeField] private float _spawnDelta = 3f;
     [SerializeField] private int _powerupCount = 3;
 
@@ -14,7 +16,7 @@ public class PowerupSpawner : MonoBehaviour {
     private Grid _grid;
     private readonly List<Coroutine> _runningCoroutines = new List<Coroutine>();
     private readonly List<PowerupCollision> _powerups = new List<PowerupCollision>();
-    private int[] _randomIdxs;
+    //private int[] _randomIdxs;
 
     private void Start() {
         _grid = GameManager.Instance.Grid;
@@ -44,12 +46,13 @@ public class PowerupSpawner : MonoBehaviour {
             SpawnPowerups();
         };
         
-        _randomIdxs = GenerateRandomPowerupIndices(_powerups.Count, _powerupCount);
+        //_randomIdxs = GenerateRandomPowerupIndices(_powerups.Count, _powerupCount);
         
-        _runningCoroutines.Add(StartCoroutine(ActivateSingleAfterDelay(_randomIdxs[0], _spawnDelta)));
+        _runningCoroutines.Add(StartCoroutine(ActivateSingleAfterDelay(0, _firstPowerupSpawnTime)));
     
       
     }
+    
     private int[] GenerateRandomPowerupIndices(int max, int count) {
         List<int> list = new List<int>();
         
@@ -75,8 +78,11 @@ public class PowerupSpawner : MonoBehaviour {
             PowerupCollision powerupCollision = powerup.GetComponent<PowerupCollision>();
             powerupCollision.Disable();
             _powerups.Add(powerupCollision);
-            powerupCollision.OnPowerupCollected += (sender, args) => {
-                _runningCoroutines.Add(StartCoroutine(ActivateSingleAfterDelay(_randomIdxs[(i + 1) % _powerupCount], _spawnDelta)));
+        }
+        for(int i = 0; i < _powerupCount - 1; i++) {
+            int index = i;
+            _powerups[index].OnPowerupCollected += (sender, args) => {
+                _runningCoroutines.Add(StartCoroutine(ActivateSingleAfterDelay(index + 1, _spawnDelta)));
             };
         }
     }
