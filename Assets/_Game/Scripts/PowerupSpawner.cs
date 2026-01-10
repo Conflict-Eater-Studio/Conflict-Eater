@@ -4,26 +4,17 @@ using System.Collections.Generic;
 using Unity.Cinemachine;
 using UnityEngine;
 
-public enum SpawnType {
-    Discrete,
-    Continous,
-    Random
-}
-
 public class PowerupSpawner : MonoBehaviour {
-    [Header("Settings")]
-    [SerializeField] private SpawnType _spawnType = SpawnType.Discrete;
-    [MinMaxRangeSlider(0, 10f)]
-    [SerializeField] private Vector2 _spawnTimeRange = new Vector2(3, 8);
+    [SerializeField] private float _spawnDelta = 3f;
     [SerializeField] private int _powerupCount = 3;
 
     [Header("Powerups")]
     [SerializeField] private GameObject _powerupPrefab;
-    [SerializeField] private Grid _grid;
-
+    
+    private Grid _grid;
     private readonly List<Coroutine> _runningCoroutines = new List<Coroutine>();
     private readonly List<PowerupCollision> _powerups = new List<PowerupCollision>();
-    private int[] randomIdx;
+    private int[] _randomIdxs;
 
     private void Start() {
         _grid = GameManager.Instance.Grid;
@@ -35,42 +26,29 @@ public class PowerupSpawner : MonoBehaviour {
 
         GameManager.Instance.Timer.OnRoundStart += PowerupSpawner_OnRoundStart;
         GameManager.Instance.Timer.OnRoundEnd += PowerupSpawner_OnRoundEnd;
-
-        SpawnPowerups();
     }
 
-    private void OnDestroy() {
+    private void OnDisable() {
         GameManager.Instance.Timer.OnRoundStart -= PowerupSpawner_OnRoundStart;
         GameManager.Instance.Timer.OnRoundEnd -= PowerupSpawner_OnRoundEnd;
     }
 
-    // ---------------------------------------------------------------------
-    // EVENTS
-    // ---------------------------------------------------------------------
     private void PowerupSpawner_OnRoundEnd(object sender, EventArgs e) {
         StopAllRunningCoroutines();
         DeactivateAllPowerups();
     }
 
     private void PowerupSpawner_OnRoundStart(object sender, EventArgs e) {
-        float delay = UnityEngine.Random.Range(_spawnTimeRange.x, _spawnTimeRange.y);
-        randomIdx = GenerateRandomPowerupIndices(_powerups.Count, _powerupCount);
-
-        switch (_spawnType) {
-            case SpawnType.Discrete:
-                RunCoroutine(ActivateAllAfterDelay(delay));
-                break;
-            case SpawnType.Continous:
-                for (int i = 0; i < _powerupCount; i++) {
-                    float t = UnityEngine.Random.Range(_spawnTimeRange.x, _spawnTimeRange.y);
-                    RunCoroutine(ActivateSingleAfterDelay(randomIdx[i], t));
-                }
-                break;
-            case SpawnType.Random:
-                int rnd = UnityEngine.Random.Range(0, _powerups.Count);
-                RunCoroutine(ActivateSingleAfterDelay(rnd, delay));
-                break;
-        }
+        if (GameManager.Instance.Timer.CurrentRound % 2 != 0) {
+            _grid = GameManager.Instance.Grid;
+            SpawnPowerups();
+        };
+        
+        _randomIdxs = GenerateRandomPowerupIndices(_powerups.Count, _powerupCount);
+        
+        _runningCoroutines.Add(StartCoroutine(ActivateSingleAfterDelay(_randomIdxs[0], _spawnDelta)));
+    
+      
     }
     private int[] GenerateRandomPowerupIndices(int max, int count) {
         List<int> list = new List<int>();
@@ -97,32 +75,25 @@ public class PowerupSpawner : MonoBehaviour {
             PowerupCollision powerupCollision = powerup.GetComponent<PowerupCollision>();
             powerupCollision.Disable();
             _powerups.Add(powerupCollision);
+            powerupCollision.OnPowerupCollected += (sender, args) => {
+                _runningCoroutines.Add(StartCoroutine(ActivateSingleAfterDelay(_randomIdxs[(i + 1) % _powerupCount], _spawnDelta)));
+            };
+        }
+    }
+    private IEnumerator ActivateSingleAfterDelay(int index, float delay) {
+        yield return new WaitForSeconds(delay);
+        
+        if (_powerups[index]) {
+            PowerupCollision pc = _powerups[index];
+            pc.Enable();
         }
     }
     
-    private IEnumerator ActivateAllAfterDelay(float delay) {
-        yield return new WaitForSeconds(delay);
-        for (int i = 0; i < _powerupCount; i++) {
-            _powerups[randomIdx[i]].Enable();
-        }
-    }
-
-    private IEnumerator ActivateSingleAfterDelay(int index, float delay) {
-        yield return new WaitForSeconds(delay);
-        if (_powerups[index] != null)
-            _powerups[index].Enable();
-    }
-
     private void DeactivateAllPowerups() {
         foreach (var p in _powerups)
             if (p != null) p.Disable();
     }
     
-    private void RunCoroutine(IEnumerator routine) {
-        Coroutine c = StartCoroutine(routine);
-        _runningCoroutines.Add(c);
-    }
-
     private void StopAllRunningCoroutines() {
         foreach (var c in _runningCoroutines)
             if (c != null)

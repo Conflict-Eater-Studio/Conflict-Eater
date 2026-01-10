@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Rendering.Universal;
 
 
@@ -37,11 +38,13 @@ public class PowerupCollision : MonoBehaviour {
     [SerializeField] private ParticleSystem _particleSystem;
     [SerializeField] private float speedBoost = 15f;
     
-    private bool _collected = false;
-    private Coroutine boostRoutine;
+    public event EventHandler OnPowerupCollected;
+    
+    private bool _isActive = false;
+    private Coroutine  boostRoutine;
 
     private void OnTriggerEnter2D(Collider2D other) {
-        if (_collected) return;
+        if (_isActive) return;
 
         if (other.CompareTag("PlayerLight")) {
             HandleLightPowerup();
@@ -60,9 +63,10 @@ public class PowerupCollision : MonoBehaviour {
             if (ps != null) {
                 ps.PlayFor(shadowPowerup._duration);
             }
-                AudioManager.Instance.PlaySound(AudioManager.Instance.FMODEvents.SFX.ShadowPowerupPickup);
+            AudioManager.Instance.PlaySound(AudioManager.Instance.FMODEvents.SFX.ShadowPowerupPickup);
 
         }
+        OnPowerupCollected?.Invoke(this, EventArgs.Empty);
     }
     private void HandleShadowPowerup(ShadowController controller) {
         switch (shadowPowerup._powerupType) {
@@ -100,13 +104,13 @@ public class PowerupCollision : MonoBehaviour {
         }
     }
     public void Enable() {
-        _collected = false;
+        _isActive = false;
         _spriteRenderer.enabled = true;
         cube.SetActive(true);
         _light.enabled = true;
     }
     public void Disable() {
-        _collected = true;
+        _isActive = true;
         _spriteRenderer.enabled = false;
         cube.SetActive(false);
         _light.enabled = false;
