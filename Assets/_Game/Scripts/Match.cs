@@ -50,6 +50,7 @@ public class Match : MonoBehaviour
 
     public float CountdownRemaining { get; private set; }
     public float MatchTime { get; private set; }
+    public float RoundDuration => _roundDurationSeconds;
     public float RoundTime { get; private set; }
     public bool IsGameRunning { get; private set; }
     public bool IsGamePaused { get; private set; }

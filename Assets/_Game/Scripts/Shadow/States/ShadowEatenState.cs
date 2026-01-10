@@ -38,7 +38,10 @@ public class ShadowEatenState : IShadowState
     {
         GameManager
             .Instance.PlayerManager.Players.First(p => p.Role == PlayerManager.PlayerRole.Light)
-            .AddScore(10);
+            .PlayerScore.RoundScores.First(r =>
+                r.RoundNumber == GameManager.Instance.Timer.CurrentRound
+            )
+            .AddSkullKill();
         _homeTargets = GameManager.Instance.Grid.GetShadowHomeTargets();
         _currentTargetIndex = 0;
         _lastDirection = Vector2Int.zero;

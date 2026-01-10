@@ -1,7 +1,7 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Collections;
 using UnityEngine.Rendering.Universal;
 
 public class LightPlayerController : PlayerController
@@ -36,7 +36,7 @@ public class LightPlayerController : PlayerController
     private const string AnimatorBoolIsMovingUp = "IsMovingUp";
     private const string AnimatorBoolIsMovingRight = "IsMovingRight";
     private const string AnimatorBoolIsMovingLeft = "IsMovingLeft";
-   
+
     public float Speed => _speed;
 
     private Grid _grid;
@@ -85,7 +85,9 @@ public class LightPlayerController : PlayerController
 
             GameManager.Instance.PlayerManager.OnPlayerScoreChanged += (player, points) =>
             {
-                Debug.Log($"{player.Role} zdoby³ {points} punktów! Aktualny wynik: {player.Score}");
+                Debug.Log(
+                    $"{player.Role} zdobyï¿½ {points} punktï¿½w! Aktualny wynik: {player.PlayerScore.TotalScore}"
+                );
             };
         }
     }
@@ -97,9 +99,7 @@ public class LightPlayerController : PlayerController
         Color color;
         ColorUtility.TryParseHtmlString("#FFFF2A", out color);
 
-        _playerNameObj
-            .GetComponentInChildren<TMPro.TextMeshProUGUI>()
-            .color = color;
+        _playerNameObj.GetComponentInChildren<TMPro.TextMeshProUGUI>().color = color;
     }
 
     private void Light_OnMatchResume(object sender, EventArgs e)
@@ -171,6 +171,11 @@ public class LightPlayerController : PlayerController
 
     protected virtual void FixedUpdate()
     {
+        if (GameManager.Instance != null && GameManager.Instance.Timer.IsGamePaused)
+        {
+            return;
+        }
+
         _movement.FixedTick();
         UpdateAnimation();
 
@@ -240,7 +245,8 @@ public class LightPlayerController : PlayerController
 
     public void FlashLight(float maxIntensity = 4f, float duration = 0.25f)
     {
-        if (_activeLight == null) return;
+        if (_activeLight == null)
+            return;
         StopAllCoroutines();
         StartCoroutine(FlashLightCoroutine(maxIntensity, duration));
     }

@@ -26,13 +26,13 @@ public class GameScoreUI : MonoBehaviour
         {
             _p1Score.text = GameManager
                 .Instance.PlayerManager.Players.First(p => p.Role == PlayerManager.PlayerRole.Light)
-                .Score.ToString();
+                .PlayerScore.TotalScore.ToString();
         }
         if (_p2Score != null)
         {
             _p2Score.text = GameManager
                 .Instance.PlayerManager.Players.First(p => p.Role == PlayerManager.PlayerRole.Skull)
-                .Score.ToString();
+                .PlayerScore.TotalScore.ToString();
         }
     }
 }

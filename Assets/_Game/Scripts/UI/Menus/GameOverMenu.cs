@@ -22,7 +22,7 @@ public class GameOverMenu : MenuBase
     public void UpdateText()
     {
         var winner = GameManager
-            .Instance.PlayerManager.Players.OrderByDescending(p => p.Score)
+            .Instance.PlayerManager.Players.OrderByDescending(p => p.PlayerScore.TotalScore)
             .First()
             .Index;
 
@@ -36,7 +36,7 @@ public class GameOverMenu : MenuBase
                     .Instance.PlayerManager.Players.First(p =>
                         p.Index == PlayerManager.PlayerIndex.P1
                     )
-                    .Score
+                    .PlayerScore.TotalScore
         );
         _p2ScoreText.SetText(
             "Score: "
@@ -44,7 +44,7 @@ public class GameOverMenu : MenuBase
                     .Instance.PlayerManager.Players.First(p =>
                         p.Index == PlayerManager.PlayerIndex.P2
                     )
-                    .Score
+                    .PlayerScore.TotalScore
         );
     }
 }
