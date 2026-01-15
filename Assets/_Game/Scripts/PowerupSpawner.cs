@@ -27,30 +27,26 @@ public class PowerupSpawner : MonoBehaviour {
         }
 
         GameManager.Instance.Timer.OnRoundStart += PowerupSpawner_OnRoundStart;
-        GameManager.Instance.Timer.OnRoundEnd += PowerupSpawner_OnRoundEnd;
+        GameManager.Instance.Timer.OnRoundEnded += PowerupSpawner_OnRoundEnded;
     }
 
     private void OnDisable() {
         GameManager.Instance.Timer.OnRoundStart -= PowerupSpawner_OnRoundStart;
-        GameManager.Instance.Timer.OnRoundEnd -= PowerupSpawner_OnRoundEnd;
+        GameManager.Instance.Timer.OnRoundEnded -= PowerupSpawner_OnRoundEnded;
     }
 
-    private void PowerupSpawner_OnRoundEnd(object sender, EventArgs e) {
+    private void PowerupSpawner_OnRoundEnded(object sender, EventArgs e) {
         StopAllRunningCoroutines();
         DeactivateAllPowerups();
     }
 
     private void PowerupSpawner_OnRoundStart(object sender, EventArgs e) {
-        if (GameManager.Instance.Timer.CurrentRound % 2 != 0) {
-            _grid = GameManager.Instance.Grid;
-            SpawnPowerups();
-        };
+        _grid = GameManager.Instance.Grid;
+        SpawnPowerups();
         
         //_randomIdxs = GenerateRandomPowerupIndices(_powerups.Count, _powerupCount);
         
         _runningCoroutines.Add(StartCoroutine(ActivateSingleAfterDelay(0, _firstPowerupSpawnTime)));
-    
-      
     }
     
     private int[] GenerateRandomPowerupIndices(int max, int count) {
@@ -94,12 +90,20 @@ public class PowerupSpawner : MonoBehaviour {
             pc.Enable();
         }
     }
-    
-    private void DeactivateAllPowerups() {
+
+    private void DeactivateAllPowerups()
+    {
         foreach (var p in _powerups)
-            if (p != null) p.Disable();
+        {
+            if (p != null)
+            {
+                Destroy(p.gameObject);
+            }
+        }
+
+        _powerups.Clear();
     }
-    
+
     private void StopAllRunningCoroutines() {
         foreach (var c in _runningCoroutines)
             if (c != null)
