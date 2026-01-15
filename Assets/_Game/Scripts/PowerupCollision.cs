@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Rendering.Universal;
 
 
@@ -37,19 +38,19 @@ public class PowerupCollision : MonoBehaviour {
     [SerializeField] private ParticleSystem _particleSystem;
     [SerializeField] private float speedBoost = 15f;
     
-    private bool _collected = false;
-    private Coroutine boostRoutine;
+    public event EventHandler OnPowerupCollected;
+    
+    private bool _isActive = false;
+    private Coroutine  boostRoutine;
 
     private void OnTriggerEnter2D(Collider2D other) {
-        if (_collected) return;
+        if (_isActive) return;
 
         if (other.CompareTag("PlayerLight")) {
             HandleLightPowerup();
             Disable();
             _particleSystem.Emit(50);
             AudioManager.Instance.PlayOneShot(AudioManager.Instance.FMODEvents.SFX.LightPowerupPickup);
-            
-
         }
 
         if (other.TryGetComponent<ShadowController>(out var controller)) {
@@ -60,9 +61,10 @@ public class PowerupCollision : MonoBehaviour {
             if (ps != null) {
                 ps.PlayFor(shadowPowerup._duration);
             }
-                AudioManager.Instance.PlaySound(AudioManager.Instance.FMODEvents.SFX.ShadowPowerupPickup);
+            AudioManager.Instance.PlaySound(AudioManager.Instance.FMODEvents.SFX.ShadowPowerupPickup);
 
         }
+        OnPowerupCollected?.Invoke(this, EventArgs.Empty);
     }
     private void HandleShadowPowerup(ShadowController controller) {
         switch (shadowPowerup._powerupType) {
@@ -83,31 +85,30 @@ public class PowerupCollision : MonoBehaviour {
         switch (lightPowerup._powerupType) {
             case LightPowerupType.EmpathyMode:
                 GameManager.Instance.IsFrightenedShadowState = true;
-                break;
+            break;
             case LightPowerupType.SilentTreatment:
                 break;
             case LightPowerupType.DeepBreath:
                 break;
         }
     }
-
-
+    
     private IEnumerator BoostShadowSpeed(ShadowController controller) {
         controller.Movement.SetSpeed(speedBoost);
         yield return new WaitForSeconds(shadowPowerup._duration);
 
-        if (controller != null && controller.CurrentState is ShadowActiveState) {
+        if (controller) {
             controller.Movement.ResetSpeed();
         }
     }
     public void Enable() {
-        _collected = false;
+        _isActive = false;
         _spriteRenderer.enabled = true;
         cube.SetActive(true);
         _light.enabled = true;
     }
     public void Disable() {
-        _collected = true;
+        _isActive = true;
         _spriteRenderer.enabled = false;
         cube.SetActive(false);
         _light.enabled = false;
