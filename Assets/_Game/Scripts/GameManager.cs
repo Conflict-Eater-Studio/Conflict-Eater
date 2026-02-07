@@ -72,8 +72,26 @@ public class GameManager : Singleton<GameManager>
 
         Timer.OnRoundEnded += OnRoundEnd;
         Timer.OnMatchEnd += OnMatchEnd;
+        Timer.OnMatchStart += OnMatchStart;
 
         _globalVolume.SetActive(true);
+    }
+
+    private void OnMatchStart(object sender, OnMatchStartEventArgs e)
+    {
+        // Initialize player scores
+        foreach (var p in PlayerManager.Players)
+        {
+            p.PlayerScore.RoundScores.Add(
+                new PlayerScore.RoundScore(
+                    Timer.CurrentRound,
+                    PlayerManager.PointsPerSkullKill,
+                    PlayerManager.PointsPerLightTile,
+                    PlayerManager.MaxTimeBonusPoints,
+                    PlayerManager.TimeBonusExponent
+                )
+            );
+        }
     }
 
     private void OnMatchEnd(object sender, EventArgs e)
@@ -84,7 +102,10 @@ public class GameManager : Singleton<GameManager>
 
     private void GameManager_OnNewLightTile(object sender, EventArgs e)
     {
-        PlayerManager.Players.First(p => p.Role == PlayerManager.PlayerRole.Light).AddScore(1);
+        PlayerManager
+            .Players.FirstOrDefault(p => p.Role == PlayerManager.PlayerRole.Light)
+            ?.PlayerScore.RoundScores.FirstOrDefault(r => r.RoundNumber == Timer.CurrentRound)
+            ?.AddLightTile();
     }
 
     private void OnRoundEnd(object sender, EventArgs e)
@@ -96,12 +117,28 @@ public class GameManager : Singleton<GameManager>
         );
         foreach (var p in PlayerManager.Players)
         {
-            p.StartNewRound();
+            p.PlayerScore.RoundScores.Add(
+                new PlayerScore.RoundScore(
+                    Timer.CurrentRound,
+                    PlayerManager.PointsPerSkullKill,
+                    PlayerManager.PointsPerLightTile,
+                    PlayerManager.MaxTimeBonusPoints,
+                    PlayerManager.TimeBonusExponent
+                )
+            );
         }
     }
 
     private void GameManager_OnAllLightTiles(object sender, EventArgs e)
     {
+        // Score bonus for time left
+        // (Get this round because round has not yet advanced)
+        // Claculate the bonus before round end to preserve Timer.RoundTime
+        PlayerManager
+            .Players.First(p => p.Role == PlayerManager.PlayerRole.Light)
+            ?.PlayerScore.RoundScores.First(r => r.RoundNumber == Timer.CurrentRound)
+            ?.SetTimeBonus(Timer.RoundTime, Timer.RoundDuration);
+
         Timer.EndRound();
     }
 

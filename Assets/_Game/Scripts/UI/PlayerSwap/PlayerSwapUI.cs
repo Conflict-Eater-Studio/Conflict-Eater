@@ -23,11 +23,11 @@ public class PlayerSwapUI : MonoBehaviour
 
     [Tooltip("Player 1's role text (Light/Shadow)")]
     [SerializeField]
-    private TextMeshProUGUI _player1RoleText;
+    private TextMeshProUGUI _p1NameText;
 
     [Tooltip("Player 2's role text (Light/Shadow)")]
     [SerializeField]
-    private TextMeshProUGUI _player2RoleText;
+    private TextMeshProUGUI _p2NameText;
 
     [SerializeField]
     private CanvasGroup _canvasGroup;
@@ -60,9 +60,7 @@ public class PlayerSwapUI : MonoBehaviour
 
     private PlayerManager _playerManager;
     private Sequence _animationSequence;
-
-    // Track current role assignment (true = Player1 is Light, false = Player1 is Shadow)
-    private bool _isP1Light = true;
+    private bool _isP1Light = true; // Track which player is currently Light (starts with P1)
 
     private void Awake()
     {
@@ -111,31 +109,43 @@ public class PlayerSwapUI : MonoBehaviour
     /// </summary>
     private void OnPlayerSwapped(object sender, EventArgs e)
     {
-        PlaySwapAnimation();
+        PlayScoreSequenceAndSwap();
     }
 
     /// <summary>
     /// Shows the initial player/role assignment with fade in, holds for display duration, then fades out.
     /// Use onComplete callback to trigger match start after the display.
     /// </summary>
-    /// <param name="p1Role">The role that Player 1 (index 0) has selected</param>
     /// <param name="displayDuration">How long to display the role assignment before fading out</param>
     /// <param name="onComplete">Callback when the entire sequence (fade in, hold, fade out) completes</param>
     public void ShowInitialAssignment(float displayDuration = 3f, Action onComplete = null)
     {
+        var p1 = GameManager.Instance.PlayerManager.Players.FirstOrDefault(p =>
+            p.Index == PlayerManager.PlayerIndex.P1
+        );
+        var p2 = GameManager.Instance.PlayerManager.Players.FirstOrDefault(p =>
+            p.Index == PlayerManager.PlayerIndex.P2
+        );
+
+        _p1NameText.text = p1 != null ? p1.Nickname : "Player 1";
+        _p2NameText.text = p2 != null ? p2.Nickname : "Player 2";
+
         _animationSequence?.Kill();
         gameObject.SetActive(true);
 
         _p1ScoreText.text = FormatScoreText(PlayerManager.PlayerIndex.P1);
         _p2ScoreText.text = FormatScoreText(PlayerManager.PlayerIndex.P2);
 
-        _isP1Light =
-            GameManager
-                .Instance.PlayerManager.Players.First(p => p.Index == PlayerManager.PlayerIndex.P1)
-                .Role == PlayerManager.PlayerRole.Light;
-
-        _lightColorIndicator.transform.rotation = Quaternion.Euler(0f, 0f, _isP1Light ? 0f : 180f);
-        _shadowColorIndicator.transform.rotation = Quaternion.Euler(0f, 0f, _isP1Light ? 180f : 0f);
+        _lightColorIndicator.transform.rotation = Quaternion.Euler(
+            0f,
+            0f,
+            p1 != null && p1.Role == PlayerManager.PlayerRole.Light ? 0f : 180f
+        );
+        _shadowColorIndicator.transform.rotation = Quaternion.Euler(
+            0f,
+            0f,
+            p1 != null && p1.Role == PlayerManager.PlayerRole.Light ? 180f : 0f
+        );
 
         // Create sequence: fade in -> hold -> fade out
         _animationSequence = DOTween.Sequence();
@@ -151,117 +161,238 @@ public class PlayerSwapUI : MonoBehaviour
 
     private string FormatScoreText(PlayerManager.PlayerIndex playerIndex)
     {
-        if (playerIndex == PlayerManager.PlayerIndex.P1)
-        {
-            return $"Score: {GameManager.Instance?.PlayerManager.Players.First(p => p.Index == PlayerManager.PlayerIndex.P1).Score ?? 0}";
-        }
-        else if (playerIndex == PlayerManager.PlayerIndex.P2)
-        {
-            return $"Score: {GameManager.Instance?.PlayerManager.Players.First(p => p.Index == PlayerManager.PlayerIndex.P2).Score ?? 0}";
-        }
-        else
-        {
-            return "Score: 0";
-        }
+        var player = GameManager.Instance?.PlayerManager.Players.FirstOrDefault(p =>
+            p.Index == playerIndex
+        );
+        return $"Score: {player?.PlayerScore.TotalScore ?? 0}";
     }
 
-    private Tween TweenScore(PlayerManager.PlayerIndex playerIndex)
+    private struct RoundScoreBreakdown
     {
-        var player = GameManager.Instance.PlayerManager.Players.First(p => p.Index == playerIndex);
+        public int BaseScore; // Score from previous rounds
+        public int TileScore;
+        public int KillScore;
+        public int TimeScore;
+        public int TotalRoundScore => TileScore + KillScore + TimeScore;
+    }
 
-        // CurrentRound has incremented in EndRound event
-        // CurrentRound - 2 gives us the index of the round that just completed
-        int completedRoundIndex = GameManager.Instance.Timer.CurrentRound - 2;
-        if (completedRoundIndex < 0)
-            completedRoundIndex = 0;
+    private RoundScoreBreakdown GetRoundBreakdown(PlayerManager.PlayerIndex playerIndex)
+    {
+        // This function is called after round ends event is fired and roles are swapped
+        // CurrentRound is already incremented (e.g., if round 1 just finished, CurrentRound = 2)
+        // Match starts at round 1 (not 0)
 
-        // Sum of scores up to (but not including) the completed round
-        int scoreOld = player.RoundScores.Take(completedRoundIndex).Sum();
+        var player = GameManager.Instance.PlayerManager.Players.FirstOrDefault(p =>
+            p.Index == playerIndex
+        );
+        if (player == null)
+            return new RoundScoreBreakdown();
 
-        // Score for the round that just completed
-        int scoreAdd =
-            completedRoundIndex < player.RoundScores.Count
-                ? player.RoundScores[completedRoundIndex]
-                : 0;
+        // Get the just-completed round number (1-based)
+        int justCompletedRoundNumber = (GameManager.Instance.Timer?.CurrentRound ?? 1) - 1;
+        if (justCompletedRoundNumber < 1)
+            justCompletedRoundNumber = 1;
 
-        TextMeshProUGUI scoreText =
-            playerIndex == PlayerManager.PlayerIndex.P1 ? _p1ScoreText : _p2ScoreText;
-
-        Sequence scoreTween = DOTween.Sequence();
-
-        float displayScore = scoreOld;
-        float remainingAdd = scoreAdd;
-        int lastDisplayValue = -1;
-
-        // Tween displayScore from scoreOld to scoreOld + scoreAdd
-        // Tween remainingAdd from scoreAdd to 0
-        // Both happen simultaneously
-        scoreTween.Append(
-            DOTween
-                .To(() => displayScore, x => displayScore = x, scoreOld + scoreAdd, 2f)
-                .SetEase(Ease.InOutSine)
-                .OnUpdate(() =>
-                {
-                    remainingAdd = scoreAdd - (displayScore - scoreOld);
-
-                    int currentDisplay = Mathf.FloorToInt(displayScore);
-                    int currentRemaining = Mathf.CeilToInt(remainingAdd);
-
-                    if (currentDisplay != lastDisplayValue)
-                    {
-                        lastDisplayValue = currentDisplay;
-                        AudioManager.Instance?.PlayOneShot(
-                            AudioManager.Instance.FMODEvents.SFX.ScoreBeep
-                        );
-                    }
-
-                    if (currentRemaining > 0)
-                    {
-                        scoreText.text = $"Score: {currentDisplay} (+{currentRemaining})";
-                    }
-                    else
-                    {
-                        scoreText.text = $"Score: {currentDisplay}";
-                    }
-                })
+        // Base score = sum of all rounds BEFORE the just-completed round
+        int baseScore = player.PlayerScore.RoundScores.Sum(p =>
+            p.RoundNumber < justCompletedRoundNumber ? p.TotalScore : 0
         );
 
-        // Ensure final value is set
-        scoreTween.OnComplete(() =>
-        {
-            scoreText.text = $"Score: {scoreOld + scoreAdd}";
-        });
+        // Find the correct round by RoundNumber property
+        int tileScore = 0;
+        int killScore = 0;
+        int timeScore = 0;
 
-        return scoreTween;
+        var round = player.PlayerScore.RoundScores.FirstOrDefault(r =>
+            r.RoundNumber == justCompletedRoundNumber
+        );
+
+        if (round != null)
+        {
+            tileScore = round.LightTiles * round.PointsPerLightTile;
+            killScore = round.SkullKills * round.PointsPerSkullKill;
+            timeScore = round.TimeBonus;
+        }
+
+        return new RoundScoreBreakdown
+        {
+            BaseScore = baseScore,
+            TileScore = tileScore,
+            KillScore = killScore,
+            TimeScore = timeScore,
+        };
+    }
+
+    private Tween ChangeTextSmooth(TextMeshProUGUI textComp, string newText, float duration = 0.5f)
+    {
+        Sequence s = DOTween.Sequence();
+        s.Append(textComp.DOFade(0f, duration * 0.5f));
+        s.AppendCallback(() => textComp.text = newText);
+        s.Append(textComp.DOFade(1f, duration * 0.5f));
+        return s;
     }
 
     /// <summary>
-    /// Plays the complete player swap animation sequence
+    /// Tweens the score text from base value, adding amountToAdd over time.
+    /// Text format: "Score: {current} (+{remainingToAdd})"
     /// </summary>
-    public void PlaySwapAnimation()
+    private Tween AnimateScoreAddition(
+        TextMeshProUGUI scoreText,
+        int startTotal,
+        int amountToAdd,
+        float duration = 1.5f
+    )
     {
-        // Kill any existing animation
+        if (amountToAdd == 0)
+        {
+            // If 0, wait for duration and update text to remove (+0) if we want clean loop,
+            // but we want to show (+0) to indicate activity was processed.
+            return DOTween
+                .Sequence()
+                .OnStart(() => scoreText.text = $"Score: {startTotal} (+0)")
+                .AppendInterval(duration)
+                .OnComplete(() => scoreText.text = $"Score: {startTotal}");
+        }
+
+        float displayScore = startTotal;
+        float remainingAdd = amountToAdd;
+        int lastDisplayValue = -1;
+
+        return DOTween
+            .To(() => displayScore, x => displayScore = x, startTotal + amountToAdd, duration)
+            .SetEase(Ease.OutCubic)
+            .OnStart(() =>
+            {
+                scoreText.text = $"Score: {startTotal} (+{amountToAdd})";
+            })
+            .OnUpdate(() =>
+            {
+                remainingAdd = amountToAdd - (displayScore - startTotal);
+                int currentDisplay = Mathf.FloorToInt(displayScore);
+                int currentRemaining = Mathf.CeilToInt(remainingAdd);
+
+                if (currentDisplay != lastDisplayValue)
+                {
+                    lastDisplayValue = currentDisplay;
+                    // Play a beep occasionally or on change - might be too frequent, maybe limit?
+                    // Reusing existing logic
+                    AudioManager.Instance?.PlayOneShot(
+                        AudioManager.Instance.FMODEvents.SFX.ScoreBeep
+                    );
+                }
+
+                if (currentRemaining > 0)
+                    scoreText.text = $"Score: {currentDisplay} (+{currentRemaining})";
+                else
+                    scoreText.text = $"Score: {currentDisplay}";
+            })
+            .OnComplete(() =>
+            {
+                scoreText.text = $"Score: {startTotal + amountToAdd}";
+            });
+    }
+
+    /// <summary>
+    /// Plays the complete player swap animation sequence with detailed score breakdown.
+    /// </summary>
+    public void PlayScoreSequenceAndSwap()
+    {
         _animationSequence?.Kill();
-
         gameObject.SetActive(true);
+        _canvasGroup.alpha = 0f;
 
-        // Swap the role state
-        _isP1Light = !_isP1Light;
+        var p1 = GameManager.Instance.PlayerManager.Players.FirstOrDefault(p =>
+            p.Index == PlayerManager.PlayerIndex.P1
+        );
+        var p2 = GameManager.Instance.PlayerManager.Players.FirstOrDefault(p =>
+            p.Index == PlayerManager.PlayerIndex.P2
+        );
+        string p1Name = p1?.Nickname ?? "Player 1";
+        string p2Name = p2?.Nickname ?? "Player 2";
+
+        // Determine who WAS Light during the just-completed round
+        // Note: Roles have already been swapped by the time this is called
+        // So the player who is NOW Light was Skull during the completed round
+        // and the player who is NOW Skull was Light during the completed round
+        var lightPlayerIndex =
+            p1?.Role == PlayerManager.PlayerRole.Light
+                ? PlayerManager.PlayerIndex.P2
+                : PlayerManager.PlayerIndex.P1;
+        var skullPlayerIndex =
+            lightPlayerIndex == PlayerManager.PlayerIndex.P1
+                ? PlayerManager.PlayerIndex.P2
+                : PlayerManager.PlayerIndex.P1;
+
+        // Get breakdown - Light player gets all bonuses, Skull only gets kill score
+        var lightScore = GetRoundBreakdown(lightPlayerIndex);
+        var skullScore = GetRoundBreakdown(skullPlayerIndex);
+
+        // Determine which text fields correspond to which role
+        bool p1WasLight = lightPlayerIndex == PlayerManager.PlayerIndex.P1;
+        var lightNameText = p1WasLight ? _p1NameText : _p2NameText;
+        var skullNameText = p1WasLight ? _p2NameText : _p1NameText;
+        var lightScoreText = p1WasLight ? _p1ScoreText : _p2ScoreText;
+        var skullScoreText = p1WasLight ? _p2ScoreText : _p1ScoreText;
+
+        // Prepare UI - Start with player nicknames
+        _p1NameText.text = p1Name;
+        _p2NameText.text = p2Name;
+
+        // Set color indicator rotations based on current roles (after swap)
+        // Roles are already swapped, so Light is now where Skull was
+        _lightColorIndicator.transform.rotation = Quaternion.Euler(0f, 0f, p1WasLight ? 0f : 180f);
+        _shadowColorIndicator.transform.rotation = Quaternion.Euler(0f, 0f, p1WasLight ? 180f : 0f);
+
+        // Initial Score Text
+        lightScoreText.text = $"Score: {lightScore.BaseScore}";
+        skullScoreText.text = $"Score: {skullScore.BaseScore}";
 
         _animationSequence = DOTween.Sequence();
+
+        // 1. Fade In & Show Names
         _animationSequence.Append(_canvasGroup.DOFade(1f, _fadeInDuration));
-        _animationSequence.Append(TweenScore(PlayerManager.PlayerIndex.P1));
-        _animationSequence.Join(TweenScore(PlayerManager.PlayerIndex.P2));
+        _animationSequence.AppendInterval(1.0f);
+
+        int lightRunningTotal = lightScore.BaseScore;
+
+        // 2. Tile Score Phase (Light player only)
+        _animationSequence.Append(ChangeTextSmooth(lightNameText, "Tile Score"));
+        _animationSequence.Append(
+            AnimateScoreAddition(lightScoreText, lightRunningTotal, lightScore.TileScore)
+        );
+        _animationSequence.AppendInterval(0.2f);
+        lightRunningTotal += lightScore.TileScore;
+
+        // 3. Kill Score Phase (Light player only)
+        _animationSequence.Append(ChangeTextSmooth(lightNameText, "Kill Score"));
+        _animationSequence.Append(
+            AnimateScoreAddition(lightScoreText, lightRunningTotal, lightScore.KillScore)
+        );
+        _animationSequence.AppendInterval(0.2f);
+        lightRunningTotal += lightScore.KillScore;
+
+        // 4. Time Bonus Phase (Light player only)
+        _animationSequence.Append(ChangeTextSmooth(lightNameText, "Time Bonus"));
+        _animationSequence.Append(
+            AnimateScoreAddition(lightScoreText, lightRunningTotal, lightScore.TimeScore)
+        );
+        _animationSequence.AppendInterval(0.5f);
+
+        // 5. Restore Light player's name to their nickname (Skull player name never changed)
+        string lightPlayerName = p1WasLight ? p1Name : p2Name;
+        _animationSequence.Append(ChangeTextSmooth(lightNameText, lightPlayerName));
+        _animationSequence.AppendInterval(1.0f); // "Wait a second"
+
+        // Visual Swap
         _animationSequence.Append(RotateColorIndicators());
         _animationSequence.AppendInterval(_roleSwapDuration);
+
+        // Fade Out
         _animationSequence.Append(_canvasGroup.DOFade(0f, _fadeOutDuration));
 
-        // Hide when done and trigger round countdown
         _animationSequence.OnComplete(() =>
         {
             gameObject.SetActive(false);
-
-            // After swap animation, start the round countdown
             if (GameManager.Instance != null && GameManager.Instance.Timer != null)
             {
                 GameManager.Instance.Timer.StartRoundCountdown();

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Animations;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
 using UnityEngine.Rendering.Universal;
@@ -15,12 +17,21 @@ public class PlayerSpawner : MonoBehaviour
         public PlayerManager.PlayerRole PlayerRole;
         public float HoldProgress; // 0 to 1 inclusive
         public bool IsConfirmed;
+        public bool IsReady;
+    }
+
+    public class PlayerNameChangeEventArgs : EventArgs
+    {
+        public PlayerManager.PlayerIndex PlayerIndex;
+        public string NewName;
     }
 
     public static event EventHandler<RoleSelectionEventArgs> OnRoleSelectionStarted;
     public static event EventHandler<RoleSelectionEventArgs> OnRoleSelectionChanged;
     public static event EventHandler<RoleSelectionEventArgs> OnRoleSelectionReleased;
     public static event EventHandler OnPlayersReadyToSpawn;
+
+    public static event EventHandler<PlayerNameChangeEventArgs> OnPlayerNameChanged;
     #endregion
 
     #region Fields
@@ -49,6 +60,23 @@ public class PlayerSpawner : MonoBehaviour
     [SerializeField]
     private float _holdDuration = 1f;
 
+    [Header("D-Pad Input Settings")]
+    [SerializeField]
+    [Tooltip("Initial delay before first repeat (seconds)")]
+    private float _dpadInitialDelay = 0.25f;
+
+    [SerializeField]
+    [Tooltip("Starting repeat interval when held (seconds)")]
+    private float _dpadInitialInterval = 0.2f;
+
+    [SerializeField]
+    [Tooltip("Minimum repeat interval at max speed (seconds)")]
+    private float _dpadMinInterval = 0.25f;
+
+    [SerializeField]
+    [Tooltip("Time to reach max speed (seconds)")]
+    private float _dpadAccelerationTime = 1.0f;
+
     public static readonly Dictionary<PlayerManager.PlayerRole, Color> RoleColors = new Dictionary<
         PlayerManager.PlayerRole,
         Color
@@ -64,10 +92,24 @@ public class PlayerSpawner : MonoBehaviour
         public PlayerManager.PlayerRole SelectedRole;
         public float HoldTime;
         public bool IsConfirmed;
+        public bool IsReady = false;
         public PlayerManager.PlayerIndex PlayerIndex;
+        public string PlayerName = "";
+    }
+
+    private class DPadInputState
+    {
+        public Gamepad Gamepad;
+        public bool WasUpPressed;
+        public bool WasDownPressed;
+        public float UpHoldTime;
+        public float DownHoldTime;
+        public float UpNextTriggerTime;
+        public float DownNextTriggerTime;
     }
 
     private List<JoinRequest> _activeRequests = new List<JoinRequest>();
+    private List<DPadInputState> _dpadStates = new List<DPadInputState>();
 
     private bool _playersSpawned = false;
     #endregion
@@ -118,69 +160,258 @@ public class PlayerSpawner : MonoBehaviour
             float rightTrigger = gamepad.rightTrigger.ReadValue();
 
             // Skip if no input detected
-            if (leftTrigger <= 0.5f && rightTrigger <= 0.5f)
-                continue;
-
-            // Gamepad already has a role, skip it
-            if (_activeRequests.Any(r => r.Gamepad == gamepad) || _activeRequests.Count >= 2)
-                continue;
-
-            // Determine available player index
-            PlayerManager.PlayerIndex? availableIndex = null;
-            if (!_activeRequests.Any(r => r.PlayerIndex == PlayerManager.PlayerIndex.P1))
-                availableIndex = PlayerManager.PlayerIndex.P1;
-            else if (!_activeRequests.Any(r => r.PlayerIndex == PlayerManager.PlayerIndex.P2))
-                availableIndex = PlayerManager.PlayerIndex.P2;
-            if (availableIndex == null)
-                continue;
-
-            // Init new join request with gamepad assigned for given player index and empty role
-            JoinRequest newRequest = new JoinRequest
-            {
-                Gamepad = gamepad,
-                HoldTime = 0f,
-                IsConfirmed = false,
-                PlayerIndex = availableIndex.Value,
-                SelectedRole = PlayerManager.PlayerRole.None,
-            };
-
             if (
-                leftTrigger > 0.5f
-                && !_activeRequests.Any(r => r.SelectedRole == PlayerManager.PlayerRole.Light)
+                !(
+                    leftTrigger <= 0.5f && rightTrigger <= 0.5f
+                    || _activeRequests.Any(r => r.Gamepad == gamepad)
+                    || _activeRequests.Count >= 2
+                )
             )
+                ProcessGamepadJoin(leftTrigger, rightTrigger, gamepad);
+
+            bool addChar = gamepad.buttonSouth.wasPressedThisFrame;
+            bool removeChar = gamepad.buttonEast.wasPressedThisFrame;
+            bool confirmName = gamepad.buttonNorth.wasPressedThisFrame;
+
+            // Handle name confirmation (button north/Y)
+            if (confirmName)
             {
-                // L2 held, light role available -> claim Light role, add request to active list and fire event
-                newRequest.SelectedRole = PlayerManager.PlayerRole.Light;
-                Debug.Log($"Player {newRequest.PlayerIndex} claimed Light role.");
+                ProcessNameConfirmation(gamepad);
             }
-            else if (
-                rightTrigger > 0.5f
-                && !_activeRequests.Any(r => r.SelectedRole == PlayerManager.PlayerRole.Skull)
-            )
+
+            // Handle D-pad with delay and acceleration
+            bool shouldProcessUp = false;
+            bool shouldProcessDown = false;
+            ProcessDPadInput(gamepad, out shouldProcessUp, out shouldProcessDown);
+
+            if (shouldProcessUp || shouldProcessDown || addChar || removeChar)
             {
-                // R2 held, skull role available -> claim Skull role, add request to active list and fire event
-                newRequest.SelectedRole = PlayerManager.PlayerRole.Skull;
-                Debug.Log($"Player {newRequest.PlayerIndex} claimed Skull role.");
+                ProcessGamepadNameChange(shouldProcessUp, addChar, removeChar, gamepad);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handles D-pad input with initial delay and acceleration.
+    /// </summary>
+    private void ProcessDPadInput(
+        Gamepad gamepad,
+        out bool shouldProcessUp,
+        out bool shouldProcessDown
+    )
+    {
+        shouldProcessUp = false;
+        shouldProcessDown = false;
+
+        bool dpadUp = gamepad.dpad.up.isPressed;
+        bool dpadDown = gamepad.dpad.down.isPressed;
+
+        // Find or create state for this gamepad
+        DPadInputState state = _dpadStates.FirstOrDefault(s => s.Gamepad == gamepad);
+        if (state == null)
+        {
+            state = new DPadInputState { Gamepad = gamepad };
+            _dpadStates.Add(state);
+        }
+
+        float currentTime = Time.time;
+
+        // Handle Up button
+        if (dpadUp)
+        {
+            if (!state.WasUpPressed)
+            {
+                // First press - trigger immediately and set next trigger time
+                shouldProcessUp = true;
+                state.UpHoldTime = 0f;
+                state.UpNextTriggerTime = currentTime + _dpadInitialDelay;
             }
             else
             {
-                // Desired role not available, skip
-                Debug.Log($"Player {availableIndex.Value} tried to join but role not available.");
-                continue;
-            }
-
-            _activeRequests.Add(newRequest);
-            OnRoleSelectionStarted?.Invoke(
-                this,
-                new RoleSelectionEventArgs
+                // Button still held - check if we should trigger based on timing
+                state.UpHoldTime += Time.deltaTime;
+                if (currentTime >= state.UpNextTriggerTime)
                 {
-                    PlayerIndex = newRequest.PlayerIndex,
-                    PlayerRole = newRequest.SelectedRole,
-                    HoldProgress = Mathf.Clamp(newRequest.HoldTime / _holdDuration, 0f, 1f),
-                    IsConfirmed = newRequest.IsConfirmed,
+                    shouldProcessUp = true;
+
+                    // Calculate interval based on hold duration (faster as held longer)
+                    float t = Mathf.Clamp01(state.UpHoldTime / _dpadAccelerationTime);
+                    float currentInterval = Mathf.Lerp(_dpadInitialInterval, _dpadMinInterval, t);
+                    state.UpNextTriggerTime = currentTime + currentInterval;
                 }
-            );
+            }
+            state.WasUpPressed = true;
         }
+        else
+        {
+            state.WasUpPressed = false;
+            state.UpHoldTime = 0f;
+        }
+
+        // Handle Down button
+        if (dpadDown)
+        {
+            if (!state.WasDownPressed)
+            {
+                // First press - trigger immediately and set next trigger time
+                shouldProcessDown = true;
+                state.DownHoldTime = 0f;
+                state.DownNextTriggerTime = currentTime + _dpadInitialDelay;
+            }
+            else
+            {
+                // Button still held - check if we should trigger based on timing
+                state.DownHoldTime += Time.deltaTime;
+                if (currentTime >= state.DownNextTriggerTime)
+                {
+                    shouldProcessDown = true;
+
+                    // Calculate interval based on hold duration (faster as held longer)
+                    float t = Mathf.Clamp01(state.DownHoldTime / _dpadAccelerationTime);
+                    float currentInterval = Mathf.Lerp(_dpadInitialInterval, _dpadMinInterval, t);
+                    state.DownNextTriggerTime = currentTime + currentInterval;
+                }
+            }
+            state.WasDownPressed = true;
+        }
+        else
+        {
+            state.WasDownPressed = false;
+            state.DownHoldTime = 0f;
+        }
+    }
+
+    private void ProcessGamepadJoin(float leftTrigger, float rightTrigger, Gamepad gamepad)
+    {
+        // Determine available player index
+        PlayerManager.PlayerIndex? availableIndex = null;
+
+        if (!_activeRequests.Any(r => r.PlayerIndex == PlayerManager.PlayerIndex.P1))
+            availableIndex = PlayerManager.PlayerIndex.P1;
+        else if (!_activeRequests.Any(r => r.PlayerIndex == PlayerManager.PlayerIndex.P2))
+            availableIndex = PlayerManager.PlayerIndex.P2;
+
+        if (availableIndex == null)
+            return;
+
+        // Init new join request with gamepad assigned for given player index and empty role
+        JoinRequest newRequest = new JoinRequest
+        {
+            Gamepad = gamepad,
+            HoldTime = 0f,
+            IsConfirmed = false,
+            PlayerIndex = availableIndex.Value,
+            SelectedRole = PlayerManager.PlayerRole.None,
+            PlayerName = "A",
+        };
+
+        if (
+            leftTrigger > 0.5f
+            && !_activeRequests.Any(r => r.SelectedRole == PlayerManager.PlayerRole.Light)
+        )
+        {
+            // L2 held, light role available -> claim Light role, add request to active list and fire event
+            newRequest.SelectedRole = PlayerManager.PlayerRole.Light;
+            Debug.Log($"Player {newRequest.PlayerIndex} claimed Light role.");
+        }
+        else if (
+            rightTrigger > 0.5f
+            && !_activeRequests.Any(r => r.SelectedRole == PlayerManager.PlayerRole.Skull)
+        )
+        {
+            // R2 held, skull role available -> claim Skull role, add request to active list and fire event
+            newRequest.SelectedRole = PlayerManager.PlayerRole.Skull;
+            Debug.Log($"Player {newRequest.PlayerIndex} claimed Skull role.");
+        }
+        else
+        {
+            // Desired role not available, skip
+            Debug.Log($"Player {availableIndex.Value} tried to join but role not available.");
+            return;
+        }
+
+        _activeRequests.Add(newRequest);
+        OnRoleSelectionStarted?.Invoke(
+            this,
+            new RoleSelectionEventArgs
+            {
+                PlayerIndex = newRequest.PlayerIndex,
+                PlayerRole = newRequest.SelectedRole,
+                HoldProgress = Mathf.Clamp(newRequest.HoldTime / _holdDuration, 0f, 1f),
+                IsConfirmed = newRequest.IsConfirmed,
+                IsReady = newRequest.IsReady,
+            }
+        );
+    }
+
+    private void ProcessGamepadNameChange(
+        bool forward,
+        bool addChar,
+        bool removeChar,
+        Gamepad gamepad
+    )
+    {
+        var request = _activeRequests.FirstOrDefault(r => r.Gamepad == gamepad);
+        if (request == null || !request.IsConfirmed)
+            return;
+
+        if (request.PlayerName.Length == 0)
+        {
+            request.PlayerName = "A";
+        }
+
+        if (!addChar && !removeChar)
+        {
+            string name = request.PlayerName.Remove(request.PlayerName.Length - 1);
+            int dir = forward ? 1 : -1;
+            request.PlayerName =
+                name
+                + (char)(
+                    ((int)request.PlayerName[request.PlayerName.Length - 1] - 65 + dir + 26) % 26
+                    + 65
+                ); // Cycle last character
+        }
+        else if (addChar && request.PlayerName.Length < 12)
+        {
+            request.PlayerName += "A";
+        }
+        else if (removeChar && request.PlayerName.Length > 1)
+        {
+            request.PlayerName = request.PlayerName.Remove(request.PlayerName.Length - 1);
+        }
+
+        OnPlayerNameChanged?.Invoke(
+            this,
+            new PlayerNameChangeEventArgs
+            {
+                PlayerIndex = request.PlayerIndex,
+                NewName = request.PlayerName,
+            }
+        );
+    }
+
+    private void ProcessNameConfirmation(Gamepad gamepad)
+    {
+        var request = _activeRequests.FirstOrDefault(r => r.Gamepad == gamepad);
+        if (request == null || !request.IsConfirmed || request.IsReady)
+            return;
+
+        // Set IsReady to true when player confirms their name
+        request.IsReady = true;
+        Debug.Log($"Player {request.PlayerIndex} confirmed their name: {request.PlayerName}");
+
+        // Fire event to update UI
+        OnRoleSelectionChanged?.Invoke(
+            this,
+            new RoleSelectionEventArgs
+            {
+                PlayerIndex = request.PlayerIndex,
+                PlayerRole = request.SelectedRole,
+                HoldProgress = 1f,
+                IsConfirmed = request.IsConfirmed,
+                IsReady = request.IsReady,
+            }
+        );
     }
 
     private void UpdateRoleSelection()
@@ -249,14 +480,14 @@ public class PlayerSpawner : MonoBehaviour
         // Check if both roles are claimed and confirmed
         if (_activeRequests.Count == 2)
         {
-            bool lightConfirmed = _activeRequests.Any(r =>
-                r.SelectedRole == PlayerManager.PlayerRole.Light && r.IsConfirmed
+            bool lightReady = _activeRequests.Any(r =>
+                r.SelectedRole == PlayerManager.PlayerRole.Light && r.IsReady
             );
-            bool shadowConfirmed = _activeRequests.Any(r =>
-                r.SelectedRole == PlayerManager.PlayerRole.Skull && r.IsConfirmed
+            bool shadowReady = _activeRequests.Any(r =>
+                r.SelectedRole == PlayerManager.PlayerRole.Skull && r.IsReady
             );
 
-            if (lightConfirmed && shadowConfirmed)
+            if (lightReady && shadowReady)
             {
                 _playersSpawned = true;
                 Debug.Log("Both players confirmed roles. Ready to spawn.");
@@ -275,6 +506,7 @@ public class PlayerSpawner : MonoBehaviour
                 PlayerRole = request.SelectedRole,
                 HoldProgress = Mathf.Clamp(request.HoldTime / _holdDuration, 0f, 1f),
                 IsConfirmed = request.IsConfirmed,
+                IsReady = request.IsReady,
             }
         );
     }
@@ -289,6 +521,7 @@ public class PlayerSpawner : MonoBehaviour
                 PlayerRole = request.SelectedRole,
                 HoldProgress = Mathf.Clamp(request.HoldTime / _holdDuration, 0f, 1f),
                 IsConfirmed = request.IsConfirmed,
+                IsReady = request.IsReady,
             }
         );
     }
@@ -321,11 +554,11 @@ public class PlayerSpawner : MonoBehaviour
 
             if (request.SelectedRole == PlayerManager.PlayerRole.Light)
             {
-                SetupLightPlayer(input, child, request.PlayerIndex);
+                SetupLightPlayer(input, child, request.PlayerIndex, request.PlayerName);
             }
             else if (request.SelectedRole == PlayerManager.PlayerRole.Skull)
             {
-                SetupSkullPlayer(input, child, request.PlayerIndex);
+                SetupSkullPlayer(input, child, request.PlayerIndex, request.PlayerName);
             }
         }
     }
@@ -333,7 +566,8 @@ public class PlayerSpawner : MonoBehaviour
     private void SetupLightPlayer(
         PlayerInput input,
         GameObject child,
-        PlayerManager.PlayerIndex playerIndex
+        PlayerManager.PlayerIndex playerIndex,
+        string playerName
     )
     {
         input.name = "LightControllerRoot";
@@ -352,15 +586,8 @@ public class PlayerSpawner : MonoBehaviour
         if (playerController != null)
         {
             playerController.SetPlayerNameObj(input.transform.GetChild(0).gameObject);
-            playerController.SetPlayerNick(
-                playerIndex == PlayerManager.PlayerIndex.P1 ? "Player 1" : "Player 2"
-            );
-            playerController.SetAnotherPlayerNick(
-                playerIndex == PlayerManager.PlayerIndex.P1 ? "Player 2" : "Player 1"
-            );
-            playerController.SetPlayerScoreObj(
-            input.transform.GetChild(1).gameObject
-            );
+            playerController.SetPlayerNick(playerName);
+            playerController.SetPlayerScoreObj(input.transform.GetChild(1).gameObject);
         }
 
         var collider = child.AddComponent<CircleCollider2D>();
@@ -380,7 +607,8 @@ public class PlayerSpawner : MonoBehaviour
             input.gameObject,
             PlayerManager.PlayerRole.Light,
             playerIndex,
-            input
+            input,
+            playerName
         );
 
         Debug.Log($"Light player spawned for {playerIndex}.");
@@ -389,7 +617,8 @@ public class PlayerSpawner : MonoBehaviour
     private void SetupSkullPlayer(
         PlayerInput input,
         GameObject child,
-        PlayerManager.PlayerIndex playerIndex
+        PlayerManager.PlayerIndex playerIndex,
+        string playerName
     )
     {
         input.name = "ShadowControllerRoot";
@@ -409,15 +638,8 @@ public class PlayerSpawner : MonoBehaviour
         if (playerController != null)
         {
             playerController.SetPlayerNameObj(input.transform.GetChild(0).gameObject);
-            playerController.SetPlayerNick(
-                playerIndex == PlayerManager.PlayerIndex.P1 ? "Player 1" : "Player 2"
-            );
-            playerController.SetAnotherPlayerNick(
-                playerIndex == PlayerManager.PlayerIndex.P1 ? "Player 2" : "Player 1"
-            );
-            playerController.SetPlayerScoreObj(
-            input.transform.GetChild(1).gameObject
-            );
+            playerController.SetPlayerNick(playerName);
+            playerController.SetPlayerScoreObj(input.transform.GetChild(1).gameObject);
         }
 
         shadowController.SetShadowPrefab(_ghostPrefab);
@@ -427,7 +649,8 @@ public class PlayerSpawner : MonoBehaviour
             input.gameObject,
             PlayerManager.PlayerRole.Skull,
             playerIndex,
-            input
+            input,
+            playerName
         );
 
         Debug.Log($"Shadow player spawned for {playerIndex}.");

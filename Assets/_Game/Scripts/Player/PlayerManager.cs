@@ -22,40 +22,23 @@ public class PlayerManager
         public PlayerRole Role { get; private set; }
         public PlayerIndex Index { get; private set; }
         public PlayerInput Input { get; private set; }
-        public int Score { get; private set; }
-        public List<int> RoundScores { get; private set; }
+        public PlayerScore PlayerScore { get; private set; }
+        public string Nickname { get; set; } = "";
 
-        public PlayerData(GameObject obj, PlayerRole role, PlayerIndex index, PlayerInput input)
+        public PlayerData(
+            GameObject obj,
+            PlayerRole role,
+            PlayerIndex index,
+            PlayerInput input,
+            string nickname = ""
+        )
         {
             PlayerObject = obj;
             Role = role;
             Index = index;
             Input = input;
-            Score = 0;
-            RoundScores = new() { 0 };
-        }
-
-        public void AddScore(int points, int? toRound = null)
-        {
-            Score += points;
-            if (toRound != null && toRound >= 0 && toRound < RoundScores.Count)
-            {
-                // Add points to specific round (if ever needed)
-                RoundScores[toRound.Value] += points;
-                return;
-            }
-            else
-            {
-                // Add points to current round
-                RoundScores[RoundScores.Count - 1] += points;
-            }
-
-            OnScoreChanged?.Invoke(points);
-        }
-
-        public void StartNewRound()
-        {
-            RoundScores.Add(0);
+            PlayerScore = new PlayerScore();
+            Nickname = nickname;
         }
 
         public void SwapRole(PlayerRole newRole)
@@ -86,9 +69,15 @@ public class PlayerManager
     #endregion
 
     #region Fields
-
     private List<PlayerData> _players = new List<PlayerData>();
     public IReadOnlyList<PlayerData> Players => _players.AsReadOnly();
+    #endregion
+
+    #region Points
+    public int PointsPerSkullKill { get; private set; } = 10;
+    public int PointsPerLightTile { get; private set; } = 1;
+    public int MaxTimeBonusPoints { get; private set; } = 20;
+    public float TimeBonusExponent { get; private set; } = 1.5f;
     #endregion
 
     #region Events
@@ -106,10 +95,11 @@ public class PlayerManager
         GameObject playerObj,
         PlayerRole type,
         PlayerIndex index,
-        PlayerInput input
+        PlayerInput input,
+        string nickname = ""
     )
     {
-        var player = new PlayerData(playerObj, type, index, input);
+        var player = new PlayerData(playerObj, type, index, input, nickname);
         _players.Add(player);
 
         player.OnScoreChanged += (points) => OnPlayerScoreChanged?.Invoke(player, points);
