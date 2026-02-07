@@ -72,7 +72,7 @@ public class PlayerController : MonoBehaviour
     /// Triggers the score animation when this player earns points and logs it.
     /// Only runs for LightPlayerController instances.
     /// </summary>
-    private void PlayerManager_OnPlayerScoreChanged(PlayerManager.PlayerData arg1, int arg2)
+    protected void PlayerManager_OnPlayerScoreChanged(PlayerManager.PlayerData arg1, int arg2)
     {
         if (this.GetComponent<LightPlayerController>() == null) return;
 

@@ -102,10 +102,20 @@ public class GameManager : Singleton<GameManager>
 
     private void GameManager_OnNewLightTile(object sender, EventArgs e)
     {
-        PlayerManager
-            .Players.FirstOrDefault(p => p.Role == PlayerManager.PlayerRole.Light)
-            ?.PlayerScore.RoundScores.FirstOrDefault(r => r.RoundNumber == Timer.CurrentRound)
-            ?.AddLightTile();
+        var player = PlayerManager.Players
+            .FirstOrDefault(p => p.Role == PlayerManager.PlayerRole.Light);
+
+        if (player == null)
+            return;
+
+        var roundScore = player.PlayerScore.RoundScores
+            .FirstOrDefault(r => r.RoundNumber == Timer.CurrentRound);
+
+        if (roundScore == null)
+            return;
+
+        roundScore.AddLightTile();
+        player.RaisePlayerScoreChanged(1);
     }
 
     private void OnRoundEnd(object sender, EventArgs e)
