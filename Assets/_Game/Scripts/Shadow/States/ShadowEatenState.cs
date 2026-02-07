@@ -39,7 +39,8 @@ public class ShadowEatenState : IShadowState
     public void Enter(ShadowController shadow)
     {
         GameManager
-            .Instance.PlayerManager.PlayerScore.RoundScores.First(r =>
+            .Instance.PlayerManager.Players.First(p => p.Role == PlayerManager.PlayerRole.Light)
+            .PlayerScore.RoundScores.First(r =>
                 r.RoundNumber == GameManager.Instance.Timer.CurrentRound
             )
             .AddSkullKill();
