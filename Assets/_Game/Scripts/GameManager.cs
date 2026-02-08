@@ -115,7 +115,7 @@ public class GameManager : Singleton<GameManager>
             return;
 
         roundScore.AddLightTile();
-        player.RaisePlayerScoreChanged(1);
+        player.RaisePlayerScoreChanged(player.PlayerScore.RoundScores[0].PointsPerLightTile);
     }
 
     private void OnRoundEnd(object sender, EventArgs e)
