@@ -116,6 +116,7 @@ public class ShadowBehaviorCycle : MonoBehaviour
         yield return new WaitForSeconds(frightenedDuration);
 
         GameManager.Instance.IsFrightenedShadowState = false;
+        GameManager.Instance.CurrentLightPowerupType = LightPowerupType.None;
 
         if (previousState != null && !_controller.IsShadowActive && _controller.CurrentState.State != ShadowState.Eaten)
         {

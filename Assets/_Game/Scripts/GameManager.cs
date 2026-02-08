@@ -23,6 +23,9 @@ public class GameManager : Singleton<GameManager>
 
     public bool IsFrightenedShadowState = false;
 
+    [SerializeField] private ShadowPowerupType _currentShadowPowerupType = ShadowPowerupType.None;
+    [SerializeField] private LightPowerupType _currentLightPowerupType = LightPowerupType.None;
+
     public PlayerManager PlayerManager { get; private set; }
     public Grid Grid { get; private set; }
     public PlayerSpawner PlayerSpawner => _playerSpawner;
@@ -32,6 +35,19 @@ public class GameManager : Singleton<GameManager>
         set { _particleSystem = value; }
     }
     public GridManager GridManager => _gridManager;
+
+    public ShadowPowerupType CurrentShadowPowerupType
+    {
+        get => _currentShadowPowerupType;
+        set => _currentShadowPowerupType = value;
+    }
+
+    public LightPowerupType CurrentLightPowerupType
+    {
+        get => _currentLightPowerupType;
+        set => _currentLightPowerupType = value;
+    }
+
 
     public void RegisterGrid(Grid newGrid)
     {

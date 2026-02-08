@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using DG.Tweening;
 using System.Collections.Generic;
+using System;
+using UnityEngine.Tilemaps;
 
 /// <summary>
 /// GridLightController handles all lights under a grid parent.
@@ -12,14 +14,37 @@ using System.Collections.Generic;
 /// </summary>
 public class GridLightController : MonoBehaviour
 {
+    /// <summary>
+    /// Defines a color transition pair used for animated material tinting.
+    /// From - starting color
+    /// To   - target color
+    /// </summary>
+    [Serializable]
+    struct MaterialColors
+    {
+        public Color From;
+        public Color To;
+    }
+
     #region Inspector Fields
     [Header("Light Colors")]
     [SerializeField] private Color _normalLightColor;
-    [SerializeField] private Color _frightenedLightColor;
+    [SerializeField] private Color _empathyModeLightColor;
+    [SerializeField] private Color _silentTreatmentLightColor;
 
     [Header("Bloom Colors")]
     [SerializeField] private Color _normalBloomColor;
-    [SerializeField] private Color _frightenedBloomColor;
+    [SerializeField] private Color _empathyModeBloomColor;
+    [SerializeField] private Color _silentTreatmentBloomColor;
+
+    [Header("Material Colors")]
+    [SerializeField] private MaterialColors _normalMaterialColors;
+    [SerializeField] private MaterialColors _farCryMaterialColors;
+    [SerializeField] private MaterialColors _sarcasticSmileMaterialColors;
+
+    [Header("TilemapRenderer")]
+    [SerializeField] private TilemapRenderer _tilemapRenderer; 
+    private Material _material;
 
     [Header("Intensity Settings")]
     [Range(0f, 5f)]
@@ -36,10 +61,13 @@ public class GridLightController : MonoBehaviour
     #endregion
 
     #region Private Fields
-    private bool _lastFrightenedState;
+    private LightPowerupType _lastPowerupType;
     private Tween _intensityTween;
     private float _currentPulseValue;
     private Bloom _bloom;
+    private Tween _materialTween;
+    private static readonly int ColorId = Shader.PropertyToID("_BaseColor");
+    private ShadowPowerupType _lastShadowType;
 
     private readonly List<Light2D> _lights = new();
     #endregion
@@ -47,6 +75,7 @@ public class GridLightController : MonoBehaviour
     #region Unity Lifecycle
     private void Start()
     {
+        _material = _tilemapRenderer.material;
         CacheLights();
 
         if (GameManager.Instance.GetGlobalVolume() != null &&
@@ -59,19 +88,31 @@ public class GridLightController : MonoBehaviour
             Debug.LogWarning("Bloom not found in Global Volume");
         }
 
-        _lastFrightenedState = GameManager.Instance.IsFrightenedShadowState;
-        ApplyState(_lastFrightenedState, force: true);
+        _lastPowerupType = GameManager.Instance.CurrentLightPowerupType;
+        ApplyState(_lastPowerupType, true);
+
+        _lastShadowType = GameManager.Instance.CurrentShadowPowerupType;
+        ApplyShadowMaterial(_lastShadowType);
     }
 
     private void Update()
     {
-        bool currentState = GameManager.Instance.IsFrightenedShadowState;
+        var currentType = GameManager.Instance.CurrentLightPowerupType;
 
-        if (currentState != _lastFrightenedState)
+        if (currentType != _lastPowerupType)
         {
-            _lastFrightenedState = currentState;
-            ApplyState(currentState, force: true);
+            _lastPowerupType = currentType;
+            ApplyState(currentType, true);
         }
+
+        var shadowType = GameManager.Instance.CurrentShadowPowerupType;
+
+        if (shadowType != _lastShadowType)
+        {
+            _lastShadowType = shadowType;
+            ApplyShadowMaterial(shadowType);
+        }
+
     }
 
     /// <summary>
@@ -83,19 +124,21 @@ public class GridLightController : MonoBehaviour
     {
         CacheLights();
 
-        Color targetColor = _lastFrightenedState
-            ? _frightenedLightColor
-            : _normalLightColor;
+        Color targetColor = _lastPowerupType switch
+        {
+            LightPowerupType.EmpathyMode => _empathyModeLightColor,
+            LightPowerupType.SilentTreatment => _silentTreatmentLightColor,
+            _ => _normalLightColor
+        };
 
         foreach (var light in _lights)
         {
             light.color = targetColor;
 
-            if (_lastFrightenedState)
-            {
+            if (_lastPowerupType != LightPowerupType.None)
                 light.intensity = _currentPulseValue;
-            }
         }
+
     }
     #endregion
 
@@ -113,20 +156,29 @@ public class GridLightController : MonoBehaviour
     /// Apply the given state to lights and bloom.
     /// If frightened, start pulsing; otherwise set static intensity and normal colors.
     /// </summary>
-    private void ApplyState(bool frightened, bool force)
+    private void ApplyState(LightPowerupType type, bool force)
     {
-        if (frightened)
+        StopPulse();
+
+        switch (type)
         {
-            StartPulse();
-            SetLightsColor(_frightenedLightColor);
-            SetBloomColor(_frightenedBloomColor);
-        }
-        else
-        {
-            StopPulse();
-            SetLightsColor(_normalLightColor);
-            SetLightsIntensity(_normalIntensity);
-            SetBloomColor(_normalBloomColor);
+            case LightPowerupType.None:
+                SetLightsColor(_normalLightColor);
+                SetLightsIntensity(_normalIntensity);
+                SetBloomColor(_normalBloomColor);
+                break;
+
+            case LightPowerupType.EmpathyMode:
+                StartPulse();
+                SetLightsColor(_empathyModeLightColor);
+                SetBloomColor(_empathyModeBloomColor);
+                break;
+
+            case LightPowerupType.SilentTreatment:
+                StartPulse();
+                SetLightsColor(_silentTreatmentLightColor);
+                SetBloomColor(_silentTreatmentBloomColor);
+                break;
         }
     }
 
@@ -194,4 +246,52 @@ public class GridLightController : MonoBehaviour
     }
     #endregion
 
+    #region Material Management 
+    /// <summary>
+    /// Applies the appropriate material color animation depending on the active
+    /// ShadowPowerupType. Each powerup maps to its own color profile defined
+    /// in the inspector.
+    /// </summary>
+    /// <param name="type">Current shadow powerup type.</param>
+    private void ApplyShadowMaterial(ShadowPowerupType type)
+    {
+        switch (type)
+        {
+            case ShadowPowerupType.None:
+                AnimateMaterialColor(_normalMaterialColors);
+                break;
+
+            case ShadowPowerupType.FarCry:
+                AnimateMaterialColor(_farCryMaterialColors);
+                break;
+
+            case ShadowPowerupType.SarcasticSmile:
+                AnimateMaterialColor(_sarcasticSmileMaterialColors);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Animates the tilemap material base color between two values using DOTween.
+    /// Visual feedback for active shadow powerups.
+    /// </summary>
+    /// <param name="colors">
+    /// Struct containing start (From) and target (To) colors.
+    /// </param>
+    private void AnimateMaterialColor(MaterialColors colors)
+    {
+        _materialTween?.Kill();
+
+        _material.SetColor(ColorId, colors.From);
+
+        _materialTween = DOTween.To(
+            () => _material.GetColor(ColorId),
+            c => _material.SetColor(ColorId, c),
+            colors.To,
+            0.5f
+        )
+        .SetLoops(-1, LoopType.Yoyo)
+        .SetEase(Ease.InOutSine);
+    }
+    #endregion
 }

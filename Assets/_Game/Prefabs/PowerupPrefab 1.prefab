@@ -4980,10 +4980,10 @@ MonoBehaviour:
   _shadowController: {fileID: 0}
   _spriteRenderer: {fileID: 1395833811995620024}
   lightPowerup:
-    _powerupType: 1
+    _powerupType: 2
     _duration: 5
   shadowPowerup:
-    _powerupType: 0
+    _powerupType: 1
     _duration: 3
   _particleSystem: {fileID: 7433506981885088373}
   speedBoost: 12.5

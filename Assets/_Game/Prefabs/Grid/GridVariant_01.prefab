@@ -17219,11 +17219,17 @@ MonoBehaviour:
   _silentTreatmentLightColor: {r: 0, g: 0.83137256, b: 1, a: 1}
   _normalBloomColor: {r: 1, g: 0.9490196, b: 0.7019608, a: 1}
   _empathyModeBloomColor: {r: 0.6117647, g: 0.54901963, b: 0.7647059, a: 1}
-  _silentTreatmentBloomColor: {r: 0.3137255, g: 0.7137255, b: 0.9647059, a: 0}
-  _farCryMaterialColorFrom: {r: 1, g: 0.6784314, b: 0.6784314, a: 1}
-  _sarcasticSmileMaterialColorFrom: {r: 0.87058824, g: 1, b: 0.73333335, a: 1}
-  _farCryMaterialColorTo: {r: 1, g: 0.24313726, b: 0.24313726, a: 1}
-  _sarcasticSmileMaterialColorTo: {r: 0.3019608, g: 1, b: 0.27058825, a: 1}
+  _silentTreatmentBloomColor: {r: 0.3137255, g: 0.7137255, b: 0.9647059, a: 1}
+  _normalMaterialColors:
+    From: {r: 0.42352942, g: 0.42352942, b: 0.42352942, a: 1}
+    To: {r: 0.42352942, g: 0.42352942, b: 0.42352942, a: 1}
+  _farCryMaterialColors:
+    From: {r: 1, g: 0.6784314, b: 0.6784314, a: 1}
+    To: {r: 1, g: 0.24313726, b: 0.24313726, a: 1}
+  _sarcasticSmileMaterialColors:
+    From: {r: 0.87058824, g: 1, b: 0.73333335, a: 1}
+    To: {r: 0.3019608, g: 1, b: 0.27058825, a: 1}
+  _tilemapRenderer: {fileID: 885406739841468990}
   _normalIntensity: 1.25
   _frightenedMinIntensity: 0.3
   _frightenedMaxIntensity: 1.5
