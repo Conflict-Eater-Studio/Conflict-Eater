@@ -22,7 +22,6 @@ public class GameManager : Singleton<GameManager>
     private GridManager _gridManager; 
 
     public bool IsFrightenedShadowState = false;
-    public bool IsStrengthenShadowState = false;
 
     [SerializeField] private ShadowPowerupType _currentShadowPowerupType = ShadowPowerupType.None;
     [SerializeField] private LightPowerupType _currentLightPowerupType = LightPowerupType.None;
@@ -132,7 +131,12 @@ public class GameManager : Singleton<GameManager>
             return;
 
         roundScore.AddLightTile();
-        player.RaisePlayerScoreChanged(player.PlayerScore.RoundScores[0].PointsPerLightTile);
+        if (_currentLightPowerupType == LightPowerupType.SilentTreatment) {
+            player.RaisePlayerScoreChanged(player.PlayerScore.RoundScores[0].PointsPerLightTile + 1);
+        }
+        else { 
+            player.RaisePlayerScoreChanged(player.PlayerScore.RoundScores[0].PointsPerLightTile);
+        }
     }
 
     private void OnRoundEnd(object sender, EventArgs e)

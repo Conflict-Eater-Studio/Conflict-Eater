@@ -4980,7 +4980,7 @@ MonoBehaviour:
   _shadowController: {fileID: 0}
   _spriteRenderer: {fileID: 1395833811995620024}
   lightPowerup:
-    _powerupType: 1
+    _powerupType: 3
     _duration: 5
   shadowPowerup:
     _powerupType: 1

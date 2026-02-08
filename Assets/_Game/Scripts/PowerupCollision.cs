@@ -43,7 +43,8 @@ public class PowerupCollision : MonoBehaviour {
     public event EventHandler OnPowerupCollected;
     
     private bool _isActive = false;
-    private Coroutine  boostRoutine;
+    private Coroutine  shadowPowerupCoroutine;
+    private Coroutine  lightPowerupCoroutine;
 
     private void OnTriggerEnter2D(Collider2D other) {
         if (_isActive) return;
@@ -71,24 +72,21 @@ public class PowerupCollision : MonoBehaviour {
     private void HandleShadowPowerup(ShadowController controller) {
         switch (shadowPowerup._powerupType) {
             case ShadowPowerupType.FarCry:
-                if (boostRoutine != null) {
-                    StopCoroutine(boostRoutine);
-                    boostRoutine = null;
+                if (shadowPowerupCoroutine != null) {
+                    StopCoroutine(shadowPowerupCoroutine);
+                    shadowPowerupCoroutine = null;
                 }
-                boostRoutine = StartCoroutine(BoostShadowSpeed(controller));
-                GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.FarCry;
+                shadowPowerupCoroutine = StartCoroutine(FarCry(controller));
                 break;
             case ShadowPowerupType.SarcasticSmile:
-                GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.SarcasticSmile;
+                if (shadowPowerupCoroutine != null) {
+                    StopCoroutine(shadowPowerupCoroutine);
+                    shadowPowerupCoroutine = null;
+                }
+                shadowPowerupCoroutine = StartCoroutine(SarcasticSmile());
                 break;
             case ShadowPowerupType.HauntedRadar:
                 GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.HauntedRadar;
-                if (boostRoutine != null) {
-                    StopCoroutine(boostRoutine);
-                    boostRoutine = null;
-                }
-                boostRoutine = StartCoroutine(BoostShadowStrength());
-                //todo: all ghost can eat
                 break;
         }
     }
@@ -99,16 +97,21 @@ public class PowerupCollision : MonoBehaviour {
                 GameManager.Instance.CurrentLightPowerupType = LightPowerupType.EmpathyMode;
                 break;
             case LightPowerupType.SilentTreatment:
+                if (lightPowerupCoroutine != null) {
+                    StopCoroutine(lightPowerupCoroutine);
+                    lightPowerupCoroutine = null;
+                }
+                lightPowerupCoroutine = StartCoroutine(SilentTreatment());
                 GameManager.Instance.CurrentLightPowerupType = LightPowerupType.SilentTreatment;
                 break;
             case LightPowerupType.DeepBreath:
                 GameManager.Instance.CurrentLightPowerupType = LightPowerupType.DeepBreath;
-                //todo: more points on this powerup
                 break;
         }
     }
     
-    private IEnumerator BoostShadowSpeed(ShadowController controller) {
+    private IEnumerator FarCry(ShadowController controller) {
+        GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.FarCry;
         controller.Movement.SetSpeed(speedBoost);
         yield return new WaitForSeconds(shadowPowerup._duration);
         GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.None;
@@ -117,10 +120,15 @@ public class PowerupCollision : MonoBehaviour {
             controller.Movement.ResetSpeed();
         }
     }
-    private IEnumerator BoostShadowStrength() {
-        GameManager.Instance.IsStrengthenShadowState = true;
+    private IEnumerator SarcasticSmile() {
+        GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.SarcasticSmile;
         yield return new WaitForSeconds(shadowPowerup._duration);
-        GameManager.Instance.IsStrengthenShadowState = false;
+        GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.None;
+    }
+    private IEnumerator SilentTreatment() {
+        GameManager.Instance.CurrentLightPowerupType = LightPowerupType.SilentTreatment;
+        yield return new WaitForSeconds(lightPowerup._duration);
+        GameManager.Instance.CurrentLightPowerupType = LightPowerupType.None;
     }
     public void Enable() {
         _isActive = false;
