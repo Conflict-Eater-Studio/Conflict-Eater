@@ -238,7 +238,7 @@ public class ShadowController : MonoBehaviour
             }
             else
             {
-                if (_isShadowActive)
+                if (_isShadowActive || GameManager.Instance.IsStrengthenShadowState)
                 {
                     GameManager.Instance.Timer.EndRound();
                 }

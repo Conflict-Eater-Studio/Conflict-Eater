@@ -16,7 +16,6 @@ public class PowerupSpawner : MonoBehaviour {
     private Grid _grid;
     private readonly List<Coroutine> _runningCoroutines = new List<Coroutine>();
     private readonly List<PowerupCollision> _powerups = new List<PowerupCollision>();
-    //private int[] _randomIdxs;
 
     private void Start() {
         _grid = GameManager.Instance.Grid;

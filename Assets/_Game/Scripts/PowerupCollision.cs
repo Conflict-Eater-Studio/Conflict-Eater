@@ -20,11 +20,9 @@ public class ShadowPowerup{
 public enum ShadowPowerupType {
     FarCry,
     SarcasticSmile,
-    HauntedRadar
 }
 
 public enum LightPowerupType {
-    DeepBreath,
     EmpathyMode,
     SilentTreatment
 }
@@ -76,8 +74,12 @@ public class PowerupCollision : MonoBehaviour {
                 boostRoutine = StartCoroutine(BoostShadowSpeed(controller));
                 break;
             case ShadowPowerupType.SarcasticSmile:
-                break;
-            case ShadowPowerupType.HauntedRadar:
+                if (boostRoutine != null) {
+                    StopCoroutine(boostRoutine);
+                    boostRoutine = null;
+                }
+                boostRoutine = StartCoroutine(BoostShadowStrength());
+                //todo: all ghost can eat
                 break;
         }
     }
@@ -87,8 +89,7 @@ public class PowerupCollision : MonoBehaviour {
                 GameManager.Instance.IsFrightenedShadowState = true;
             break;
             case LightPowerupType.SilentTreatment:
-                break;
-            case LightPowerupType.DeepBreath:
+                //todo: more points on this powerup
                 break;
         }
     }
@@ -100,6 +101,11 @@ public class PowerupCollision : MonoBehaviour {
         if (controller) {
             controller.Movement.ResetSpeed();
         }
+    }
+    private IEnumerator BoostShadowStrength() {
+        GameManager.Instance.IsStrengthenShadowState = true;
+        yield return new WaitForSeconds(shadowPowerup._duration);
+        GameManager.Instance.IsStrengthenShadowState = false;
     }
     public void Enable() {
         _isActive = false;

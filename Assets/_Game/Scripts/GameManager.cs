@@ -22,6 +22,7 @@ public class GameManager : Singleton<GameManager>
     private GridManager _gridManager; 
 
     public bool IsFrightenedShadowState = false;
+    public bool IsStrengthenShadowState = false;
 
     public PlayerManager PlayerManager { get; private set; }
     public Grid Grid { get; private set; }
