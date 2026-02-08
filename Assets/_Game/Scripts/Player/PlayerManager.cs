@@ -52,6 +52,11 @@ public class PlayerManager
             // Update Input reference to match the new GameObject
             Input = obj.GetComponent<PlayerInput>();
         }
+
+        public void RaisePlayerScoreChanged(int score)
+        {
+            OnScoreChanged?.Invoke(score);
+        }
     }
 
     public enum PlayerRole

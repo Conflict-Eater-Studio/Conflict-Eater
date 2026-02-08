@@ -24,6 +24,9 @@ public class GameManager : Singleton<GameManager>
     public bool IsFrightenedShadowState = false;
     public bool IsStrengthenShadowState = false;
 
+    [SerializeField] private ShadowPowerupType _currentShadowPowerupType = ShadowPowerupType.None;
+    [SerializeField] private LightPowerupType _currentLightPowerupType = LightPowerupType.None;
+
     public PlayerManager PlayerManager { get; private set; }
     public Grid Grid { get; private set; }
     public PlayerSpawner PlayerSpawner => _playerSpawner;
@@ -33,6 +36,19 @@ public class GameManager : Singleton<GameManager>
         set { _particleSystem = value; }
     }
     public GridManager GridManager => _gridManager;
+
+    public ShadowPowerupType CurrentShadowPowerupType
+    {
+        get => _currentShadowPowerupType;
+        set => _currentShadowPowerupType = value;
+    }
+
+    public LightPowerupType CurrentLightPowerupType
+    {
+        get => _currentLightPowerupType;
+        set => _currentLightPowerupType = value;
+    }
+
 
     public void RegisterGrid(Grid newGrid)
     {
@@ -103,10 +119,20 @@ public class GameManager : Singleton<GameManager>
 
     private void GameManager_OnNewLightTile(object sender, EventArgs e)
     {
-        PlayerManager
-            .Players.FirstOrDefault(p => p.Role == PlayerManager.PlayerRole.Light)
-            ?.PlayerScore.RoundScores.FirstOrDefault(r => r.RoundNumber == Timer.CurrentRound)
-            ?.AddLightTile();
+        var player = PlayerManager.Players
+            .FirstOrDefault(p => p.Role == PlayerManager.PlayerRole.Light);
+
+        if (player == null)
+            return;
+
+        var roundScore = player.PlayerScore.RoundScores
+            .FirstOrDefault(r => r.RoundNumber == Timer.CurrentRound);
+
+        if (roundScore == null)
+            return;
+
+        roundScore.AddLightTile();
+        player.RaisePlayerScoreChanged(player.PlayerScore.RoundScores[0].PointsPerLightTile);
     }
 
     private void OnRoundEnd(object sender, EventArgs e)

@@ -18,11 +18,15 @@ public class ShadowPowerup{
     public int _duration;
 }
 public enum ShadowPowerupType {
+    None,
     FarCry,
     SarcasticSmile,
+    HauntedRadar
 }
 
 public enum LightPowerupType {
+    None,
+    DeepBreath,
     EmpathyMode,
     SilentTreatment
 }
@@ -72,8 +76,13 @@ public class PowerupCollision : MonoBehaviour {
                     boostRoutine = null;
                 }
                 boostRoutine = StartCoroutine(BoostShadowSpeed(controller));
+                GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.FarCry;
                 break;
             case ShadowPowerupType.SarcasticSmile:
+                GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.SarcasticSmile;
+                break;
+            case ShadowPowerupType.HauntedRadar:
+                GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.HauntedRadar;
                 if (boostRoutine != null) {
                     StopCoroutine(boostRoutine);
                     boostRoutine = null;
@@ -87,8 +96,13 @@ public class PowerupCollision : MonoBehaviour {
         switch (lightPowerup._powerupType) {
             case LightPowerupType.EmpathyMode:
                 GameManager.Instance.IsFrightenedShadowState = true;
-            break;
+                GameManager.Instance.CurrentLightPowerupType = LightPowerupType.EmpathyMode;
+                break;
             case LightPowerupType.SilentTreatment:
+                GameManager.Instance.CurrentLightPowerupType = LightPowerupType.SilentTreatment;
+                break;
+            case LightPowerupType.DeepBreath:
+                GameManager.Instance.CurrentLightPowerupType = LightPowerupType.DeepBreath;
                 //todo: more points on this powerup
                 break;
         }
@@ -97,6 +111,7 @@ public class PowerupCollision : MonoBehaviour {
     private IEnumerator BoostShadowSpeed(ShadowController controller) {
         controller.Movement.SetSpeed(speedBoost);
         yield return new WaitForSeconds(shadowPowerup._duration);
+        GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.None;
 
         if (controller) {
             controller.Movement.ResetSpeed();
