@@ -4936,6 +4936,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8762042315706090576}
+  - component: {fileID: 7326881623701033602}
+  - component: {fileID: 5045708594355196157}
   - component: {fileID: 6829789794142647759}
   - component: {fileID: 8927764033237002750}
   - component: {fileID: 2558162157812197599}
@@ -4965,6 +4967,37 @@ Transform:
   - {fileID: 1770371286981456066}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7326881623701033602
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8212082713606014649}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 374f43a149aedcc4ba22f20e448f0bac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Powerup
+  powerupVisual: {fileID: 5045708594355196157}
+  powerupCollision: {fileID: 6829789794142647759}
+--- !u!114 &5045708594355196157
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8212082713606014649}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d60664e44d3c284448592ae029ad233d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PowerupVisual
+  _powerupAnimation: {fileID: 8927764033237002750}
+  cube: {fileID: 729833027609886286}
+  _light: {fileID: 4687608913217067862}
+  _spriteRenderer: {fileID: 1395833811995620024}
+  _particleSystem: {fileID: 7433506981885088373}
 --- !u!114 &6829789794142647759
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4977,17 +5010,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73de8ac5b13e5c44287384ac69619cc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Powerup
-  cube: {fileID: 729833027609886286}
-  _light: {fileID: 4687608913217067862}
   _shadowController: {fileID: 0}
-  _spriteRenderer: {fileID: 1395833811995620024}
-  lightPowerup:
-    _powerupType: 3
-    _duration: 5
-  shadowPowerup:
-    _powerupType: 1
-    _duration: 3
-  _particleSystem: {fileID: 7433506981885088373}
   speedBoost: 12.5
 --- !u!114 &8927764033237002750
 MonoBehaviour:
