@@ -16934,6 +16934,7 @@ MonoBehaviour:
   - {x: 7, y: -6}
   - {x: -4, y: 4}
   - {x: 2, y: 4}
+  - {x: -1, y: -8}
   _lightSpawnCells:
   - {x: -14, y: 6}
   - {x: -14, y: -7}
