@@ -8,16 +8,18 @@ public class Powerup : MonoBehaviour {
     public event EventHandler OnPowerupCollected;
 
     private void OnTriggerEnter2D(Collider2D other) {
-        if (other.CompareTag("PlayerLight") || other.TryGetComponent<ShadowController>(out var controller)) {
+        if (other.CompareTag("PlayerLight")){
             OnPowerupCollected?.Invoke(this, EventArgs.Empty);
-        } 
+        } else if (other.TryGetComponent<ShadowController>(out var controller)) {
+            if (controller.CurrentState is not ShadowActiveState) return;
+            OnPowerupCollected?.Invoke(this, EventArgs.Empty);
+        }
     }
-    
     public void Enable() {
         powerupVisual.Show();
         powerupCollision.EnableCollision();
     }
-    
+
     public void Disable() {
         powerupVisual.Hide();
         powerupCollision.DisableCollision();
@@ -34,6 +36,8 @@ public class Powerup : MonoBehaviour {
     private void SetShadowPowerup(ShadowPowerup shadowPowerup) {
         powerupCollision.ShadowPowerup = shadowPowerup;
     }
-
+    private void Powerup_OnPowerupCollected(object sender, EventArgs e) {
+        Disable();
+    }
 
 }
