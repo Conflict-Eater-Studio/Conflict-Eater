@@ -74,34 +74,8 @@ public class PowerupSpawner : MonoBehaviour {
             Powerup powerup = powerupGO.GetComponent<Powerup>();
             
             powerup.SetPowerup(GetRandomLightPowerup(), GetRandomShadowPowerup());
-
-            // MeshRenderer mr = powerupGO.GetComponentInChildren<MeshRenderer>();
-            // Material[] material = mr.materials;
-            // Debug.Log(mr.transform.name);
-            //
-            // if (mr == null) {
-            //     Debug.LogError("No mesh renderer found on powerup prefab!");
-            // }
-            // switch (powerupCollision.GetLightPowerupType()) {
-            //     case LightPowerupType.EmpathyMode:
-            //         material[0] = _powerupMaterials[0];
-            //         break;
-            //     case LightPowerupType.SilentTreatment:
-            //         material[0] = _powerupMaterials[1];
-            //         break;
-            // }
-            //
-            // switch (powerupCollision.GetShadowPowerupType()) {
-            //     case ShadowPowerupType.SarcasticSmile:
-            //         material[2] = _powerupMaterials[2];
-            //         break;
-            //     case ShadowPowerupType.FarCry:
-            //         material[2] = _powerupMaterials[3];
-            //         break;
-            // }
-            //
-            // mr.materials = material;
             powerup.Disable();
+            
             _powerups.Add(powerup);
             _powerupsCollisions.Add(powerup.GetComponent<PowerupCollision>());
         }
@@ -121,23 +95,18 @@ public class PowerupSpawner : MonoBehaviour {
         }
     }
 
-    private void DeactivateAllPowerups()
-    {
-        foreach (var p in _powerups)
-        {
-            if (p != null)
-            {
+    private void DeactivateAllPowerups() {
+        foreach (var p in _powerups) {
+            if (p != null) {
                 Destroy(p.gameObject);
             }
         }
-
         _powerups.Clear();
     }
 
     private void StopAllRunningCoroutines() {
         foreach (var c in _runningCoroutines)
-            if (c != null)
-                StopCoroutine(c);
+            if (c != null) StopCoroutine(c);
 
         _runningCoroutines.Clear();
     }
@@ -149,9 +118,7 @@ public class PowerupSpawner : MonoBehaviour {
     
     private ShadowPowerup GetRandomShadowPowerup() {
         var random = new Random();
-
         return random.Next(0, 100) > 50 ? _shadowPowerups[0] : _shadowPowerups[1];
-
     }
 }
 [Serializable]

@@ -25,6 +25,7 @@ public class Powerup : MonoBehaviour {
     public void SetPowerup(LightPowerup lightPowerup, ShadowPowerup shadowPowerup) {
         SetLightPowerup(lightPowerup);
         SetShadowPowerup(shadowPowerup);
+        powerupVisual.SetMaterial(lightPowerup.material, shadowPowerup.material);
     }
     
     private void SetLightPowerup(LightPowerup lightPowerup) {
