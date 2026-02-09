@@ -131,7 +131,12 @@ public class GameManager : Singleton<GameManager>
             return;
 
         roundScore.AddLightTile();
-        player.RaisePlayerScoreChanged(player.PlayerScore.RoundScores[0].PointsPerLightTile);
+        if (_currentLightPowerupType == LightPowerupType.SilentTreatment) {
+            player.RaisePlayerScoreChanged(player.PlayerScore.RoundScores[0].PointsPerLightTile + 1);
+        }
+        else { 
+            player.RaisePlayerScoreChanged(player.PlayerScore.RoundScores[0].PointsPerLightTile);
+        }
     }
 
     private void OnRoundEnd(object sender, EventArgs e)

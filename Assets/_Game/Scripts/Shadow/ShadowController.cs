@@ -240,7 +240,7 @@ public class ShadowController : MonoBehaviour
             }
             else
             {
-                if (_isShadowActive)
+                if (_isShadowActive || GameManager.Instance.CurrentShadowPowerupType == ShadowPowerupType.SarcasticSmile )
                 {
                     GameManager.Instance.Timer.EndRound();
                 }
