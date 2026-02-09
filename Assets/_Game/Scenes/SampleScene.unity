@@ -1456,6 +1456,14 @@ PrefabInstance:
       propertyPath: _spawnTimeRange.y
       value: 10
       objectReference: {fileID: 0}
+    - target: {fileID: 1508087371761502761, guid: 8bd2bd5cce4e8b64fa21fdd294e2ba03, type: 3}
+      propertyPath: _shadowPowerups.Array.data[0]._duration
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1508087371761502761, guid: 8bd2bd5cce4e8b64fa21fdd294e2ba03, type: 3}
+      propertyPath: _shadowPowerups.Array.data[1]._duration
+      value: 5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
