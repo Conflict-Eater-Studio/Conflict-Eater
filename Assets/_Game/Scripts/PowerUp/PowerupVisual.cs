@@ -4,7 +4,6 @@ using UnityEngine.Rendering.Universal;
 public class PowerupVisual : MonoBehaviour {
     [SerializeField] private PowerupAnimation _powerupAnimation;
     [SerializeField] private GameObject _cube;
-    [SerializeField] private Light2D _light;
     [SerializeField] private SpriteRenderer _spriteRenderer;
     [SerializeField] private ParticleSystem _particleSystem;
 
@@ -43,7 +42,6 @@ public class PowerupVisual : MonoBehaviour {
     public void Hide() {
         _spriteRenderer.enabled = false;
         _cube.SetActive(false);
-        _light.enabled = false;
         _isActive = false;
         _powerupAnimation.StopAnimation();
     }
@@ -51,7 +49,6 @@ public class PowerupVisual : MonoBehaviour {
     public void Show() {
         _spriteRenderer.enabled = true;
         _cube.SetActive(true);
-        _light.enabled = true;
         _isActive = true;
         _powerupAnimation.StartAnimation();
     }

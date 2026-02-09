@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 0ad168fa0c47d3444b41b5a30a0818c9
+guid: 49fbb7aa0a50232479e13da939d37f31
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8864161598196001867
-    second: powerup_0
+      213: 4047162805520507246
+    second: CYN_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +37,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -51,7 +51,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 512
+  spritePixelsToUnits: 100
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -72,7 +72,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 4096
+    maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: powerup_0
+      name: CYN_0
       rect:
         serializedVersion: 2
-        x: 151
-        y: 88
-        width: 722
-        height: 795
+        x: 0
+        y: 0
+        width: 32
+        height: 32
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b4ca12c5204d30b70800000000000000
-      internalID: 8864161598196001867
+      spriteID: e61293bf0296a2830800000000000000
+      internalID: 4047162805520507246
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      powerup_0: 8864161598196001867
+      CYN_0: 4047162805520507246
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
