@@ -4,6 +4,7 @@ using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Rendering.Universal;
+using Random = System.Random;
 
 
 [Serializable]
@@ -130,6 +131,22 @@ public class PowerupCollision : MonoBehaviour {
         yield return new WaitForSeconds(lightPowerup._duration);
         GameManager.Instance.CurrentLightPowerupType = LightPowerupType.None;
     }
+    private LightPowerupType GetRandomLightType() {
+        var random = new Random();
+        return random.Next(0, 100) > 50 ? LightPowerupType.EmpathyMode : LightPowerupType.SilentTreatment;
+    }
+    private ShadowPowerupType GetRandomShadowType() {
+        var random = new Random();
+        return random.Next(0, 100) > 50 ? ShadowPowerupType.FarCry : ShadowPowerupType.SarcasticSmile;
+    }
+    public void SetRandomLightPowerup() {
+        lightPowerup._powerupType = GetRandomLightType();
+    }
+    public void SetRandomShadowPowerup() {
+        shadowPowerup._powerupType = GetRandomShadowType();
+    }
+    public LightPowerupType GetLightPowerupType() => lightPowerup._powerupType;
+    public ShadowPowerupType GetShadowPowerupType() => shadowPowerup._powerupType;
     public void Enable() {
         _isActive = false;
         _spriteRenderer.enabled = true;

@@ -46,5 +46,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PowerupSpawner
   _firstPowerupSpawnTime: 5
   _spawnDelta: 3
-  _powerupCount: 14
+  _powerupCount: 3
   _powerupPrefab: {fileID: 8212082713606014649, guid: 4cad5419859f7b54ba98ad0dffdfab6f, type: 3}
+  _powerupMaterials:
+  - {fileID: 2100000, guid: 552591a887ebff5448cd65665d068049, type: 2}
+  - {fileID: 2100000, guid: 6b6fdb0da43b8c14fb819aef06540b6d, type: 2}
+  - {fileID: 2100000, guid: a61faba3acc6dcb40871b4381f0d715d, type: 2}
+  - {fileID: 2100000, guid: 29ee50d1486b18e40883e077f1dab572, type: 2}

@@ -1,8 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.Cinemachine;
-using Unity.VisualScripting.FullSerializer.Internal;
 using UnityEngine;
 
 public class PowerupSpawner : MonoBehaviour {
@@ -12,7 +10,8 @@ public class PowerupSpawner : MonoBehaviour {
 
     [Header("Powerups")]
     [SerializeField] private GameObject _powerupPrefab;
-    
+    [SerializeField] private List<Material> _powerupMaterials;
+
     private Grid _grid;
     private readonly List<Coroutine> _runningCoroutines = new List<Coroutine>();
     private readonly List<PowerupCollision> _powerups = new List<PowerupCollision>();
@@ -42,7 +41,6 @@ public class PowerupSpawner : MonoBehaviour {
     private void PowerupSpawner_OnRoundStart(object sender, EventArgs e) {
         _grid = GameManager.Instance.Grid;
         SpawnPowerups();
-        
         //_randomIdxs = GenerateRandomPowerupIndices(_powerups.Count, _powerupCount);
         
         _runningCoroutines.Add(StartCoroutine(ActivateSingleAfterDelay(0, _firstPowerupSpawnTime)));
@@ -71,6 +69,32 @@ public class PowerupSpawner : MonoBehaviour {
         for (int i = 0; i < spawnPoints.Count; i++) {
             GameObject powerup = Instantiate(_powerupPrefab, spawnPoints[i], Quaternion.identity);
             PowerupCollision powerupCollision = powerup.GetComponent<PowerupCollision>();
+            
+            powerupCollision.SetRandomLightPowerup();
+            powerupCollision.SetRandomShadowPowerup();
+
+            MeshRenderer mr = powerup.GetComponentInChildren<MeshRenderer>();
+            if (mr == null) {
+                Debug.LogError("No mesh renderer found on powerup prefab!");
+            }
+            switch (powerupCollision.GetLightPowerupType()) {
+                case LightPowerupType.EmpathyMode:
+                    mr.materials[0] = _powerupMaterials[0];
+                    break;
+                case LightPowerupType.SilentTreatment:
+                    mr.materials[0] = _powerupMaterials[1];
+                    break;
+            }
+            
+            switch (powerupCollision.GetShadowPowerupType()) {
+                case ShadowPowerupType.SarcasticSmile:
+                    mr.materials[2] = _powerupMaterials[2];
+                    break;
+                case ShadowPowerupType.FarCry:
+                    mr.materials[2] = _powerupMaterials[3];
+                    break;
+            }
+            
             powerupCollision.Disable();
             _powerups.Add(powerupCollision);
         }
