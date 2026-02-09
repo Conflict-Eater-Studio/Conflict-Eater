@@ -38,7 +38,7 @@ public class PlayerSpawner : MonoBehaviour
     public static event EventHandler<RoleSelectionEventArgs> OnRoleSelectionStarted;
     public static event EventHandler<RoleSelectionEventArgs> OnRoleSelectionChanged;
     public static event EventHandler<RoleSelectionEventArgs> OnRoleSelectionReleased;
-    public static event EventHandler<PlayerNameConflictEventArgs> OnPLayerNameConflict;
+    public static event EventHandler<PlayerNameConflictEventArgs> OnPlayerNameConflict;
     public static event EventHandler OnPlayersReadyToSpawn;
 
     public static event EventHandler<PlayerNameChangeEventArgs> OnPlayerNameChanged;
@@ -470,7 +470,7 @@ public class PlayerSpawner : MonoBehaviour
     )
     {
         var request = _activeRequests.FirstOrDefault(r => r.Gamepad == gamepad);
-        if (request == null || !request.IsConfirmed)
+        if (request == null || !request.IsConfirmed || request.IsReady)
             return;
 
         if (request.PlayerName.Length == 0)
@@ -560,7 +560,7 @@ public class PlayerSpawner : MonoBehaviour
             Debug.Log(
                 $"Player {request.PlayerIndex} cannot ready up with nickname '{request.PlayerName}' - already taken by Player {otherRequest.PlayerIndex}"
             );
-            OnPLayerNameConflict?.Invoke(
+            OnPlayerNameConflict?.Invoke(
                 this,
                 new PlayerNameConflictEventArgs { PlayerIndex = request.PlayerIndex }
             );

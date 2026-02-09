@@ -257,7 +257,7 @@ public class PlayerSelectUI : MonoBehaviour
         PlayerSpawner.OnPlayersReadyToSpawn += HandlePlayersReadyToSpawn;
         PlayerSpawner.OnPlayerNameChanged += HandlePlayerNameChanged;
         PlayerSpawner.OnControllerTypeDetected += HandleControllerTypeDetected;
-        PlayerSpawner.OnPLayerNameConflict += HandlePlayerNameConflict;
+        PlayerSpawner.OnPlayerNameConflict += HandlePlayerNameConflict;
     }
 
     private void OnDisable()
@@ -268,7 +268,7 @@ public class PlayerSelectUI : MonoBehaviour
         PlayerSpawner.OnPlayersReadyToSpawn -= HandlePlayersReadyToSpawn;
         PlayerSpawner.OnPlayerNameChanged -= HandlePlayerNameChanged;
         PlayerSpawner.OnControllerTypeDetected -= HandleControllerTypeDetected;
-        PlayerSpawner.OnPLayerNameConflict -= HandlePlayerNameConflict;
+        PlayerSpawner.OnPlayerNameConflict -= HandlePlayerNameConflict;
     }
 
     private void OnDestroy()
@@ -279,7 +279,7 @@ public class PlayerSelectUI : MonoBehaviour
         PlayerSpawner.OnPlayersReadyToSpawn -= HandlePlayersReadyToSpawn;
         PlayerSpawner.OnPlayerNameChanged -= HandlePlayerNameChanged;
         PlayerSpawner.OnControllerTypeDetected -= HandleControllerTypeDetected;
-        PlayerSpawner.OnPLayerNameConflict -= HandlePlayerNameConflict;
+        PlayerSpawner.OnPlayerNameConflict -= HandlePlayerNameConflict;
     }
 
     private void HandlePlayerNameConflict(
