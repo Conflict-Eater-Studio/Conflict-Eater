@@ -4994,7 +4994,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PowerupVisual
   _powerupAnimation: {fileID: 8927764033237002750}
-  cube: {fileID: 729833027609886286}
+  _cube: {fileID: 729833027609886286}
   _light: {fileID: 4687608913217067862}
   _spriteRenderer: {fileID: 1395833811995620024}
   _particleSystem: {fileID: 7433506981885088373}
