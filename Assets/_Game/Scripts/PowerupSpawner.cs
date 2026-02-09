@@ -67,17 +67,34 @@ public class PowerupSpawner : MonoBehaviour {
     }
 
     private void SpawnPowerups() {
-        List<Vector3> spawnPoints = _grid.GetPowerupSpawnPoints();
-
-        for (int i = 0; i < spawnPoints.Count; i++) {
-            GameObject powerupGO = Instantiate(_powerupPrefab, spawnPoints[i], Quaternion.identity);
-            Powerup powerup = powerupGO.GetComponent<Powerup>();
+        List<Vector3> spawnPoints = _grid.GetPowerupSpawnPoints(); 
+        Debug.Log($"Powerup spawn points: {spawnPoints.Count}");
+        if (spawnPoints.Count >= _powerupCount) {
+            for (int i = 0; i < spawnPoints.Count; i++) {
+                GameObject powerupGO = Instantiate(_powerupPrefab, spawnPoints[i], Quaternion.identity);
+                Powerup powerup = powerupGO.GetComponent<Powerup>();
             
-            powerup.SetPowerup(GetRandomLightPowerup(), GetRandomShadowPowerup());
-            powerup.Disable();
+                powerup.SetPowerup(GetRandomLightPowerup(), GetRandomShadowPowerup());
+                powerup.Disable();
             
-            _powerups.Add(powerup);
-            _powerupsCollisions.Add(powerup.GetComponent<PowerupCollision>());
+                _powerups.Add(powerup);
+                _powerupsCollisions.Add(powerup.GetComponent<PowerupCollision>());
+            }
+        }
+        else {
+            int spawnPointIdx = 0;
+            for(int i = 0; i < _powerupCount; i++) {
+                GameObject powerupGO = Instantiate(_powerupPrefab, spawnPoints[spawnPointIdx++], Quaternion.identity);
+                spawnPointIdx %= spawnPoints.Count;
+                
+                Powerup powerup = powerupGO.GetComponent<Powerup>();
+            
+                powerup.SetPowerup(GetRandomLightPowerup(), GetRandomShadowPowerup());
+                powerup.Disable();
+            
+                _powerups.Add(powerup);
+                _powerupsCollisions.Add(powerup.GetComponent<PowerupCollision>());
+            } 
         }
         for(int i = 0; i < _powerupCount - 1; i++) {
             int index = i;
@@ -102,6 +119,7 @@ public class PowerupSpawner : MonoBehaviour {
             }
         }
         _powerups.Clear();
+        _powerupsCollisions.Clear();
     }
 
     private void StopAllRunningCoroutines() {
