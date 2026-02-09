@@ -46,6 +46,10 @@ public class GridLightController : MonoBehaviour
     [SerializeField] private TilemapRenderer _tilemapRenderer; 
     private Material _material;
 
+    [Header("Player Interaction")]
+    [SerializeField] private Color _playerStandingLightColor = Color.black;
+    [SerializeField] private Color _playerStandingSkullColor = Color.red;
+
     [Header("Intensity Settings")]
     [Range(0f, 5f)]
     [SerializeField] private float _normalIntensity = 2f;
@@ -68,6 +72,7 @@ public class GridLightController : MonoBehaviour
     private Tween _materialTween;
     private static readonly int ColorId = Shader.PropertyToID("_BaseColor");
     private ShadowPowerupType _lastShadowType;
+    private readonly Dictionary<PlayerManager.PlayerRole, Vector3Int?> _lastPlayerCells = new();
 
     private readonly List<Light2D> _lights = new();
     #endregion
@@ -97,6 +102,8 @@ public class GridLightController : MonoBehaviour
 
     private void Update()
     {
+        CheckPlayerLightCollision();
+
         var currentType = GameManager.Instance.CurrentLightPowerupType;
 
         if (currentType != _lastPowerupType)
@@ -294,4 +301,121 @@ public class GridLightController : MonoBehaviour
         .SetEase(Ease.InOutSine);
     }
     #endregion
+
+    #region Player with light Management
+
+    /// <summary>
+    /// Checks if players are standing on any lights and changes the color of those lights accordingly.
+    /// Handles both Light and Skull player types.
+    /// </summary>
+    private void CheckPlayerLightCollision()
+    {
+        HandlePlayerOnLights(PlayerManager.PlayerRole.Light, _playerStandingLightColor);
+        HandlePlayerOnLights(PlayerManager.PlayerRole.Skull, _playerStandingSkullColor);
+    }
+
+    /// <summary>
+    /// Core logic for changing light colors based on the cell the player occupies.
+    /// </summary>
+    /// <param name="role">The player type (Light or Skull)</param>
+    /// <param name="standingColor">The color to set when the player is standing on the light</param>
+    private void HandlePlayerOnLights(PlayerManager.PlayerRole role, Color standingColor)
+    {
+        Transform playerTransform = null;
+
+        var playerRoot = GameManager.Instance.PlayerManager.GetPlayerOfType(role);
+
+        if (playerRoot == null)
+            return;
+
+        if (role == PlayerManager.PlayerRole.Skull)
+        {
+            playerTransform = GetActiveSkullTransform(playerRoot.transform);
+
+            if (playerTransform == null)
+                return;
+        }
+        else
+        {
+            playerTransform = playerRoot.transform;
+        }
+
+        Vector3Int currentCell = Grid.WorldToCell(playerTransform.position);
+
+        if (!_lastPlayerCells.ContainsKey(role))
+            _lastPlayerCells[role] = null;
+
+        if (!_lastPlayerCells[role].HasValue)
+        {
+            _lastPlayerCells[role] = currentCell;
+            ChangeLightColorAtCell(currentCell, standingColor);
+            return;
+        }
+
+        if (_lastPlayerCells[role].Value == currentCell)
+            return;
+
+        RestoreLightColorAtCell(_lastPlayerCells[role].Value);
+        ChangeLightColorAtCell(currentCell, standingColor);
+
+        _lastPlayerCells[role] = currentCell;
+    }
+
+    /// <summary>
+    /// Changes the color of all lights in the given grid cell to the specified color.
+    /// </summary>
+    private void ChangeLightColorAtCell(Vector3Int cell, Color color)
+    {
+        foreach (var light in _lights)
+        {
+            if (Grid.WorldToCell(light.transform.position) == cell)
+            {
+                light.color = color;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Restores lights in the specified cell to their default color based on the current power-up state.
+    /// If the lights are in a frightened/pulsing state, restores the pulsing intensity as well.
+    /// </summary>
+    private void RestoreLightColorAtCell(Vector3Int cell)
+    {
+        Color targetColor = _lastPowerupType switch
+        {
+            LightPowerupType.EmpathyMode => _empathyModeLightColor,
+            LightPowerupType.SilentTreatment => _silentTreatmentLightColor,
+            _ => _normalLightColor
+        };
+
+        foreach (var light in _lights)
+        {
+            if (Grid.WorldToCell(light.transform.position) == cell)
+            {
+                light.color = targetColor;
+
+                if (_lastPowerupType != LightPowerupType.None)
+                    light.intensity = _currentPulseValue;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns the transform of the active "shadow" for a Skull player.
+    /// Searches all ShadowController components in the hierarchy and returns the one with IsShadowActive = true.
+    /// </summary>
+    private Transform GetActiveSkullTransform(Transform skullRoot)
+    {
+        var shadowControllers = skullRoot.GetComponentsInChildren<ShadowController>(true);
+
+        foreach (var sc in shadowControllers)
+        {
+            if (sc.IsShadowActive)
+                return sc.transform;
+        }
+
+        return null;
+    }
+    #endregion
+
 }
