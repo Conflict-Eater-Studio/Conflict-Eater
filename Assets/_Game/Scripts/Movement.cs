@@ -702,8 +702,16 @@ public class Movement
 
     /// <summary>
     /// Sets whether easy movement (auto-turn at corners) is enabled.
+    /// If the setting was disabled in the PlayerPrefs, it will be overridden to false on game start
     /// </summary>
-    public void SetEasyMovement(bool enabled) => _easyMovement = enabled;
+    public void SetEasyMovement(bool enabled)
+    {
+        // Allow switching easy movement on the fly, but only enable it at game start if the setting is enabled in PlayerPrefs
+        if (GameManager.Instance != null && GameManager.Instance.EasyMovementEnabled == true)
+        {
+            _easyMovement = enabled;
+        }
+    }
 
     /// <summary>
     /// Gets whether easy movement is currently enabled.

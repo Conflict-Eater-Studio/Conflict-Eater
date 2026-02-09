@@ -60,7 +60,8 @@ public class LightPlayerController : PlayerController
             _grid,
             _speed,
             _centerThreshold,
-            _snapSpeedMultiplier
+            _snapSpeedMultiplier,
+            GameManager.Instance.EasyMovementEnabled
         );
 
         _playerInput = GetComponentInParent<PlayerInput>();
@@ -107,7 +108,8 @@ public class LightPlayerController : PlayerController
             _grid,
             _speed,
             _centerThreshold,
-            _snapSpeedMultiplier
+            _snapSpeedMultiplier,
+            GameManager.Instance.EasyMovementEnabled
         );
     }
 
