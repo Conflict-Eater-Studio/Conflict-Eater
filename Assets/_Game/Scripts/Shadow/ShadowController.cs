@@ -263,7 +263,6 @@ public class ShadowController : MonoBehaviour
             {
                 StartCoroutine(LightPlayerSpeedReset(lightPlayerController));
             }
-
         }
     }
 
@@ -391,7 +390,8 @@ public class ShadowController : MonoBehaviour
 
     public void OnRevive()
     {
-        if (Owner == null) return;
+        if (Owner == null)
+            return;
 
         if (Owner.AreAllShadowsEaten())
         {
@@ -405,5 +405,4 @@ public class ShadowController : MonoBehaviour
         yield return null;
         Owner.SetActiveShadow(this);
     }
-
 }

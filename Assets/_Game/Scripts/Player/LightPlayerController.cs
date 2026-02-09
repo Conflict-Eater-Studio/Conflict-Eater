@@ -111,7 +111,6 @@ public class LightPlayerController : PlayerController
         );
     }
 
-
     protected override void Start()
     {
         base.Start();
