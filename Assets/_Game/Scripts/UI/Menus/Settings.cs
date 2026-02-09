@@ -28,6 +28,19 @@ public class Settings : MenuBase
     [SerializeField]
     private UnityEngine.UI.Toggle _toggleEasyMovement;
 
+    [SerializeField]
+    private Sprite _toggleBackgroundOn;
+
+    [SerializeField]
+    private Sprite _toggleBackgroundOff;
+
+    [SerializeField]
+    private UnityEngine.UI.Image _toggleEasyMovementBackground;
+
+    [SerializeField]
+    private UnityEngine.UI.Image _toggleFullscreenBackground;
+
+
     private Resolution[] _resolutions;
     private int _currentResolutionIndex;
 
@@ -41,6 +54,9 @@ public class Settings : MenuBase
         _toggleFullscreen.isOn =
             PlayerPrefs.GetInt("FullscreenMode", 0) == (int)FullScreenMode.ExclusiveFullScreen;
         _resolutionDropdown.value = PlayerPrefs.GetInt("ResolutionIndex", 0);
+
+        UpdateToggleBackground(_toggleEasyMovement, _toggleEasyMovementBackground);
+        UpdateToggleBackground(_toggleFullscreen, _toggleFullscreenBackground);
 
         SetupResolutionDropdown();
     }
@@ -113,6 +129,13 @@ public class Settings : MenuBase
         Screen.fullScreenMode = _toggleFullscreen.isOn
             ? FullScreenMode.ExclusiveFullScreen
             : FullScreenMode.Windowed;
+
+        UpdateToggleBackground(_toggleFullscreen, _toggleFullscreenBackground);
+    }
+
+    public void OnEasyMovementToggle()
+    {
+        UpdateToggleBackground(_toggleEasyMovement, _toggleEasyMovementBackground);
     }
 
     public void OnSliderChange(string type)
@@ -150,4 +173,13 @@ public class Settings : MenuBase
             MenuManager.Instance.CloseLastSubMenu();
         }
     }
+
+    private void UpdateToggleBackground(UnityEngine.UI.Toggle toggle, UnityEngine.UI.Image background)
+    {
+        if (toggle.isOn)
+            background.sprite = _toggleBackgroundOn;
+        else
+            background.sprite = _toggleBackgroundOff;
+    }
+
 }
