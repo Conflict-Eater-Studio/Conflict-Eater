@@ -61,10 +61,7 @@ public class PowerupCollision : MonoBehaviour {
             if (controller.CurrentState is not ShadowActiveState) return;
             HandleShadowPowerup(controller);
             Disable();
-            SpeedParticleSystem ps = other.GetComponent<SpeedParticleSystem>();
-            if (ps != null) {
-                ps.PlayFor(shadowPowerup._duration);
-            }
+
             AudioManager.Instance.PlaySound(AudioManager.Instance.FMODEvents.SFX.ShadowPowerupPickup);
 
         }
@@ -112,6 +109,12 @@ public class PowerupCollision : MonoBehaviour {
     }
     
     private IEnumerator FarCry(ShadowController controller) {
+        SpeedParticleSystem ps = controller.GetComponent<SpeedParticleSystem>();
+        
+        if (ps != null) {
+            ps.PlayFor(shadowPowerup._duration);
+        }
+        
         GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.FarCry;
         controller.Movement.SetSpeed(speedBoost);
         yield return new WaitForSeconds(shadowPowerup._duration);

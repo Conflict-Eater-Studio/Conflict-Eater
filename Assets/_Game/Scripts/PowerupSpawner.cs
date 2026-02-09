@@ -74,27 +74,30 @@ public class PowerupSpawner : MonoBehaviour {
             powerupCollision.SetRandomShadowPowerup();
 
             MeshRenderer mr = powerup.GetComponentInChildren<MeshRenderer>();
+            Material[] material = mr.materials;
+            Debug.Log(mr.transform.name);
             if (mr == null) {
                 Debug.LogError("No mesh renderer found on powerup prefab!");
             }
             switch (powerupCollision.GetLightPowerupType()) {
                 case LightPowerupType.EmpathyMode:
-                    mr.materials[0] = _powerupMaterials[0];
+                    material[0] = _powerupMaterials[0];
                     break;
                 case LightPowerupType.SilentTreatment:
-                    mr.materials[0] = _powerupMaterials[1];
+                    material[0] = _powerupMaterials[1];
                     break;
             }
             
             switch (powerupCollision.GetShadowPowerupType()) {
                 case ShadowPowerupType.SarcasticSmile:
-                    mr.materials[2] = _powerupMaterials[2];
+                    material[2] = _powerupMaterials[2];
                     break;
                 case ShadowPowerupType.FarCry:
-                    mr.materials[2] = _powerupMaterials[3];
+                    material[2] = _powerupMaterials[3];
                     break;
             }
             
+            mr.materials = material;
             powerupCollision.Disable();
             _powerups.Add(powerupCollision);
         }
