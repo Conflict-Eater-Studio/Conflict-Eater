@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = System.Random;
 
 public class PowerupSpawner : MonoBehaviour {
     [SerializeField] private float _firstPowerupSpawnTime = 5f;
@@ -10,11 +11,12 @@ public class PowerupSpawner : MonoBehaviour {
 
     [Header("Powerups")]
     [SerializeField] private GameObject _powerupPrefab;
-    [SerializeField] private List<Material> _powerupMaterials;
-
+    [SerializeField] private List<LightPowerup> _lightPowerups;
+    [SerializeField] private List<ShadowPowerup> _shadowPowerups;
+    
     private Grid _grid;
     private readonly List<Coroutine> _runningCoroutines = new List<Coroutine>();
-    private readonly List<PowerupCollision> _powerups = new List<PowerupCollision>();
+    private readonly List<Powerup> _powerups = new List<Powerup>();
 
     private void Start() {
         _grid = GameManager.Instance.Grid;
@@ -67,39 +69,39 @@ public class PowerupSpawner : MonoBehaviour {
         List<Vector3> spawnPoints = _grid.GetPowerupSpawnPoints();
 
         for (int i = 0; i < spawnPoints.Count; i++) {
-            GameObject powerup = Instantiate(_powerupPrefab, spawnPoints[i], Quaternion.identity);
-            PowerupCollision powerupCollision = powerup.GetComponent<PowerupCollision>();
+            GameObject powerupGO = Instantiate(_powerupPrefab, spawnPoints[i], Quaternion.identity);
+            Powerup powerup = powerupGO.GetComponent<Powerup>();
             
-            powerupCollision.SetRandomLightPowerup();
-            powerupCollision.SetRandomShadowPowerup();
+            powerup.SetPowerup(GetRandomLightPowerup(), GetRandomShadowPowerup());
 
-            MeshRenderer mr = powerup.GetComponentInChildren<MeshRenderer>();
-            Material[] material = mr.materials;
-            Debug.Log(mr.transform.name);
-            if (mr == null) {
-                Debug.LogError("No mesh renderer found on powerup prefab!");
-            }
-            switch (powerupCollision.GetLightPowerupType()) {
-                case LightPowerupType.EmpathyMode:
-                    material[0] = _powerupMaterials[0];
-                    break;
-                case LightPowerupType.SilentTreatment:
-                    material[0] = _powerupMaterials[1];
-                    break;
-            }
-            
-            switch (powerupCollision.GetShadowPowerupType()) {
-                case ShadowPowerupType.SarcasticSmile:
-                    material[2] = _powerupMaterials[2];
-                    break;
-                case ShadowPowerupType.FarCry:
-                    material[2] = _powerupMaterials[3];
-                    break;
-            }
-            
-            mr.materials = material;
-            powerupCollision.Disable();
-            _powerups.Add(powerupCollision);
+            // MeshRenderer mr = powerupGO.GetComponentInChildren<MeshRenderer>();
+            // Material[] material = mr.materials;
+            // Debug.Log(mr.transform.name);
+            //
+            // if (mr == null) {
+            //     Debug.LogError("No mesh renderer found on powerup prefab!");
+            // }
+            // switch (powerupCollision.GetLightPowerupType()) {
+            //     case LightPowerupType.EmpathyMode:
+            //         material[0] = _powerupMaterials[0];
+            //         break;
+            //     case LightPowerupType.SilentTreatment:
+            //         material[0] = _powerupMaterials[1];
+            //         break;
+            // }
+            //
+            // switch (powerupCollision.GetShadowPowerupType()) {
+            //     case ShadowPowerupType.SarcasticSmile:
+            //         material[2] = _powerupMaterials[2];
+            //         break;
+            //     case ShadowPowerupType.FarCry:
+            //         material[2] = _powerupMaterials[3];
+            //         break;
+            // }
+            //
+            // mr.materials = material;
+            powerup.Disable();
+            _powerups.Add(powerup);
         }
         for(int i = 0; i < _powerupCount - 1; i++) {
             int index = i;
@@ -112,7 +114,7 @@ public class PowerupSpawner : MonoBehaviour {
         yield return new WaitForSeconds(delay);
         
         if (_powerups[index]) {
-            PowerupCollision pc = _powerups[index];
+            Powerup pc = _powerups[index];
             pc.Enable();
         }
     }
@@ -137,4 +139,43 @@ public class PowerupSpawner : MonoBehaviour {
 
         _runningCoroutines.Clear();
     }
+    
+    private LightPowerup GetRandomLightPowerup() {
+        var random = new Random();
+        return random.Next(0, 100) > 50 ? _lightPowerups[0] : _lightPowerups[1];
+    }
+    
+    private ShadowPowerup GetRandomShadowPowerup() {
+        var random = new Random();
+
+        return random.Next(0, 100) > 50 ? _shadowPowerups[0] : _shadowPowerups[1];
+
+    }
+}
+[Serializable]
+public class LightPowerup {
+    public LightPowerupType _powerupType;
+    public int _duration;
+    public Material material;
+
+}
+[Serializable]
+public class ShadowPowerup{
+    public ShadowPowerupType _powerupType;
+    public int _duration;
+    public Material material;
+
+}
+public enum ShadowPowerupType {
+    None,
+    FarCry,
+    SarcasticSmile,
+    HauntedRadar
+}
+
+public enum LightPowerupType {
+    None,
+    DeepBreath,
+    EmpathyMode,
+    SilentTreatment
 }

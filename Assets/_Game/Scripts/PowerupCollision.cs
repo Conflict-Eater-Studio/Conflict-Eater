@@ -1,74 +1,38 @@
-using System;
+
 using System.Collections;
-using Unity.Cinemachine;
+
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.Rendering.Universal;
-using Random = System.Random;
 
 
-[Serializable]
-public class LightPowerup {
-    public LightPowerupType _powerupType;
-    public int _duration;
 
-}
-[Serializable]
-public class ShadowPowerup{
-    public ShadowPowerupType _powerupType;
-    public int _duration;
-}
-public enum ShadowPowerupType {
-    None,
-    FarCry,
-    SarcasticSmile,
-    HauntedRadar
-}
-
-public enum LightPowerupType {
-    None,
-    DeepBreath,
-    EmpathyMode,
-    SilentTreatment
-}
 public class PowerupCollision : MonoBehaviour {
-    [SerializeField] private GameObject cube;
-    [SerializeField] private Light2D _light;
     [SerializeField] private ShadowController _shadowController;
-    [SerializeField] private SpriteRenderer _spriteRenderer;
-    [SerializeField] private LightPowerup lightPowerup;
-    [SerializeField] private ShadowPowerup shadowPowerup;
-    [SerializeField] private ParticleSystem _particleSystem;
-    [SerializeField] private float speedBoost = 15f;
+    [SerializeField] private float speedBoost = 12.5f;
     
-    public event EventHandler OnPowerupCollected;
-    
-    private bool _isActive = false;
+    public LightPowerup LightPowerup { get; set; }
+    public ShadowPowerup ShadowPowerup { get; set; }
+
     private Coroutine  shadowPowerupCoroutine;
     private Coroutine  lightPowerupCoroutine;
+    
+    private bool _isActive = false;
 
     private void OnTriggerEnter2D(Collider2D other) {
-        if (_isActive) return;
+        if (!_isActive) return;
 
         if (other.CompareTag("PlayerLight")) {
             HandleLightPowerup();
-            Disable();
-            _particleSystem.Emit(50);
             AudioManager.Instance.PlayOneShot(AudioManager.Instance.FMODEvents.SFX.LightPowerupPickup);
         }
 
         if (other.TryGetComponent<ShadowController>(out var controller)) {
             if (controller.CurrentState is not ShadowActiveState) return;
             HandleShadowPowerup(controller);
-            Disable();
-
             AudioManager.Instance.PlaySound(AudioManager.Instance.FMODEvents.SFX.ShadowPowerupPickup);
-
         }
-        OnPowerupCollected?.Invoke(this, EventArgs.Empty);
     }
     private void HandleShadowPowerup(ShadowController controller) {
-        switch (shadowPowerup._powerupType) {
+        switch (ShadowPowerup._powerupType) {
             case ShadowPowerupType.FarCry:
                 if (shadowPowerupCoroutine != null) {
                     StopCoroutine(shadowPowerupCoroutine);
@@ -89,7 +53,7 @@ public class PowerupCollision : MonoBehaviour {
         }
     }
     private void HandleLightPowerup() {
-        switch (lightPowerup._powerupType) {
+        switch (LightPowerup._powerupType) {
             case LightPowerupType.EmpathyMode:
                 GameManager.Instance.IsFrightenedShadowState = true;
                 GameManager.Instance.CurrentLightPowerupType = LightPowerupType.EmpathyMode;
@@ -112,12 +76,12 @@ public class PowerupCollision : MonoBehaviour {
         SpeedParticleSystem ps = controller.GetComponent<SpeedParticleSystem>();
         
         if (ps != null) {
-            ps.PlayFor(shadowPowerup._duration);
+            ps.PlayFor(ShadowPowerup._duration);
         }
         
         GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.FarCry;
         controller.Movement.SetSpeed(speedBoost);
-        yield return new WaitForSeconds(shadowPowerup._duration);
+        yield return new WaitForSeconds(ShadowPowerup._duration);
         GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.None;
 
         if (controller) {
@@ -126,40 +90,19 @@ public class PowerupCollision : MonoBehaviour {
     }
     private IEnumerator SarcasticSmile() {
         GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.SarcasticSmile;
-        yield return new WaitForSeconds(shadowPowerup._duration);
+        yield return new WaitForSeconds(ShadowPowerup._duration);
         GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.None;
     }
     private IEnumerator SilentTreatment() {
         GameManager.Instance.CurrentLightPowerupType = LightPowerupType.SilentTreatment;
-        yield return new WaitForSeconds(lightPowerup._duration);
+        yield return new WaitForSeconds(LightPowerup._duration);
         GameManager.Instance.CurrentLightPowerupType = LightPowerupType.None;
     }
-    private LightPowerupType GetRandomLightType() {
-        var random = new Random();
-        return random.Next(0, 100) > 50 ? LightPowerupType.EmpathyMode : LightPowerupType.SilentTreatment;
-    }
-    private ShadowPowerupType GetRandomShadowType() {
-        var random = new Random();
-        return random.Next(0, 100) > 50 ? ShadowPowerupType.FarCry : ShadowPowerupType.SarcasticSmile;
-    }
-    public void SetRandomLightPowerup() {
-        lightPowerup._powerupType = GetRandomLightType();
-    }
-    public void SetRandomShadowPowerup() {
-        shadowPowerup._powerupType = GetRandomShadowType();
-    }
-    public LightPowerupType GetLightPowerupType() => lightPowerup._powerupType;
-    public ShadowPowerupType GetShadowPowerupType() => shadowPowerup._powerupType;
-    public void Enable() {
-        _isActive = false;
-        _spriteRenderer.enabled = true;
-        cube.SetActive(true);
-        _light.enabled = true;
-    }
-    public void Disable() {
+
+    public void EnableCollision() {
         _isActive = true;
-        _spriteRenderer.enabled = false;
-        cube.SetActive(false);
-        _light.enabled = false;
+    }
+    public void DisableCollision() {
+        _isActive = false;
     }
 }
