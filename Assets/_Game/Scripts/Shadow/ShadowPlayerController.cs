@@ -1,11 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using NUnit.Framework;
-using UnityEditor.Rendering.LookDev;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Handles the player's control over multiple shadows/ghosts.

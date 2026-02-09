@@ -160,7 +160,8 @@ public class ShadowController : MonoBehaviour
             _grid,
             _speed,
             _centerThreshold,
-            _snapSpeedMultiplier
+            _snapSpeedMultiplier,
+            GameManager.Instance.EasyMovementEnabled
         );
         _shadowBehaviorCycle = GetComponent<ShadowBehaviorCycle>();
     }
@@ -185,7 +186,8 @@ public class ShadowController : MonoBehaviour
             _grid,
             _speed,
             _centerThreshold,
-            _snapSpeedMultiplier
+            _snapSpeedMultiplier,
+            GameManager.Instance.EasyMovementEnabled
         );
     }
 

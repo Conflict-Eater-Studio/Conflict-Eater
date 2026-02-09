@@ -19,7 +19,7 @@ public class GameManager : Singleton<GameManager>
     private PlayerSpawner _playerSpawner;
 
     [SerializeField]
-    private GridManager _gridManager; 
+    private GridManager _gridManager;
 
     public bool IsFrightenedShadowState = false;
 
@@ -32,6 +32,7 @@ public class GameManager : Singleton<GameManager>
         set { _particleSystem = value; }
     }
     public GridManager GridManager => _gridManager;
+    public bool EasyMovementEnabled { get; set; } = false;
 
     public void RegisterGrid(Grid newGrid)
     {
@@ -50,7 +51,6 @@ public class GameManager : Singleton<GameManager>
             Grid.OnAllLightTiles += GameManager_OnAllLightTiles;
         }
     }
-
 
     public void BtnMainMenu()
     {
