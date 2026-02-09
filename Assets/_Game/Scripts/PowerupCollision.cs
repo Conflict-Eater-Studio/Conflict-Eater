@@ -10,7 +10,7 @@ public class PowerupCollision : MonoBehaviour {
     [SerializeField] private ShadowController _shadowController;
     [SerializeField] private float speedBoost = 12.5f;
     
-    public event EventHandler OnPowerupEnd;
+    public event EventHandler OnPowerupCollected;
 
     public LightPowerup LightPowerup { get; set; }
     public ShadowPowerup ShadowPowerup { get; set; }
@@ -20,18 +20,32 @@ public class PowerupCollision : MonoBehaviour {
     
     private bool _isActive = false;
 
+    private void OnEnable() {
+        GameManager.Instance.Timer.OnRoundEnded += TimerOnOnRoundEnded;        
+    }
+    private void OnDisable() {
+        GameManager.Instance.Timer.OnRoundEnded -= TimerOnOnRoundEnded;        
+    }
+    private void TimerOnOnRoundEnded(object sender, OnRoundEndEventArgs e) {
+        GameManager.Instance.CurrentLightPowerupType = LightPowerupType.None;
+        GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.None;
+    }
     private void OnTriggerEnter2D(Collider2D other) {
         if (!_isActive) return;
 
         if (other.CompareTag("PlayerLight")) {
+            OnPowerupCollected?.Invoke(this, EventArgs.Empty);
             HandleLightPowerup();
             AudioManager.Instance.PlayOneShot(AudioManager.Instance.FMODEvents.SFX.LightPowerupPickup);
+            
         }
 
         if (other.TryGetComponent<ShadowController>(out var controller)) {
             if (controller.CurrentState is not ShadowActiveState) return;
+            OnPowerupCollected?.Invoke(this, EventArgs.Empty);
             HandleShadowPowerup(controller);
             AudioManager.Instance.PlaySound(AudioManager.Instance.FMODEvents.SFX.ShadowPowerupPickup);
+            
         }
     }
     private void HandleShadowPowerup(ShadowController controller) {
@@ -88,7 +102,6 @@ public class PowerupCollision : MonoBehaviour {
         
         GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.None;
         
-        OnPowerupEnd?.Invoke(this, EventArgs.Empty);
         
         if (controller) {
             controller.Movement.ResetSpeed();
@@ -98,14 +111,11 @@ public class PowerupCollision : MonoBehaviour {
         GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.SarcasticSmile;
         yield return new WaitForSeconds(ShadowPowerup._duration);
         GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.None;
-        OnPowerupEnd?.Invoke(this, EventArgs.Empty);
-
     }
     private IEnumerator SilentTreatment() {
         GameManager.Instance.CurrentLightPowerupType = LightPowerupType.SilentTreatment;
         yield return new WaitForSeconds(LightPowerup._duration);
         GameManager.Instance.CurrentLightPowerupType = LightPowerupType.None;
-        OnPowerupEnd?.Invoke(this, EventArgs.Empty);
 
     }
 

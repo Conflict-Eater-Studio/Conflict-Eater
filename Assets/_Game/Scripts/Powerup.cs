@@ -5,24 +5,12 @@ using Random = System.Random;
 public class Powerup : MonoBehaviour {
     [SerializeField] private PowerupVisual powerupVisual;
     [SerializeField] private PowerupCollision powerupCollision;
-    public event EventHandler OnPowerupCollected;
 
-    private void OnEnable() {
-        powerupCollision.OnPowerupEnd += Powerup_OnPowerupEnd;
+    public void OnEnable() {
+        powerupCollision.OnPowerupCollected += Powerup_OnPowerupCollected;
     }
-    private void OnDisable() {
-        powerupCollision.OnPowerupEnd -= Powerup_OnPowerupEnd;
-    }
-    private void Powerup_OnPowerupEnd(object sender, EventArgs e) {
+    private void Powerup_OnPowerupCollected(object sender, EventArgs e) {
         Disable();
-    }
-    private void OnTriggerEnter2D(Collider2D other) {
-        if (other.CompareTag("PlayerLight")){
-            OnPowerupCollected?.Invoke(this, EventArgs.Empty);
-        } else if (other.TryGetComponent<ShadowController>(out var controller)) {
-            if (controller.CurrentState is not ShadowActiveState) return;
-            OnPowerupCollected?.Invoke(this, EventArgs.Empty);
-        }
     }
     public void Enable() {
         powerupVisual.Show();

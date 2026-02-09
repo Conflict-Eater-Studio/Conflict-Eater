@@ -17,6 +17,7 @@ public class PowerupSpawner : MonoBehaviour {
     private Grid _grid;
     private readonly List<Coroutine> _runningCoroutines = new List<Coroutine>();
     private readonly List<Powerup> _powerups = new List<Powerup>();
+    private readonly List<PowerupCollision> _powerupsCollisions = new List<PowerupCollision>();
 
     private void Start() {
         _grid = GameManager.Instance.Grid;
@@ -102,10 +103,11 @@ public class PowerupSpawner : MonoBehaviour {
             // mr.materials = material;
             powerup.Disable();
             _powerups.Add(powerup);
+            _powerupsCollisions.Add(powerup.GetComponent<PowerupCollision>());
         }
         for(int i = 0; i < _powerupCount - 1; i++) {
             int index = i;
-            _powerups[index].OnPowerupCollected += (sender, args) => {
+            _powerupsCollisions[index].OnPowerupCollected += (sender, args) => {
                 _runningCoroutines.Add(StartCoroutine(ActivateSingleAfterDelay(index + 1, _spawnDelta)));
             };
         }
