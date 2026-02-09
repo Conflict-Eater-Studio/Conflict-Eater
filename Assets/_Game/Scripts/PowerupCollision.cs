@@ -1,4 +1,5 @@
 
+using System;
 using System.Collections;
 
 using UnityEngine;
@@ -9,6 +10,8 @@ public class PowerupCollision : MonoBehaviour {
     [SerializeField] private ShadowController _shadowController;
     [SerializeField] private float speedBoost = 12.5f;
     
+    public event EventHandler OnPowerupEnd;
+
     public LightPowerup LightPowerup { get; set; }
     public ShadowPowerup ShadowPowerup { get; set; }
 
@@ -74,16 +77,19 @@ public class PowerupCollision : MonoBehaviour {
     
     private IEnumerator FarCry(ShadowController controller) {
         SpeedParticleSystem ps = controller.GetComponent<SpeedParticleSystem>();
-        
         if (ps != null) {
             ps.PlayFor(ShadowPowerup._duration);
         }
         
         GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.FarCry;
         controller.Movement.SetSpeed(speedBoost);
+        
         yield return new WaitForSeconds(ShadowPowerup._duration);
+        
         GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.None;
-
+        
+        OnPowerupEnd?.Invoke(this, EventArgs.Empty);
+        
         if (controller) {
             controller.Movement.ResetSpeed();
         }
@@ -92,11 +98,15 @@ public class PowerupCollision : MonoBehaviour {
         GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.SarcasticSmile;
         yield return new WaitForSeconds(ShadowPowerup._duration);
         GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.None;
+        OnPowerupEnd?.Invoke(this, EventArgs.Empty);
+
     }
     private IEnumerator SilentTreatment() {
         GameManager.Instance.CurrentLightPowerupType = LightPowerupType.SilentTreatment;
         yield return new WaitForSeconds(LightPowerup._duration);
         GameManager.Instance.CurrentLightPowerupType = LightPowerupType.None;
+        OnPowerupEnd?.Invoke(this, EventArgs.Empty);
+
     }
 
     public void EnableCollision() {

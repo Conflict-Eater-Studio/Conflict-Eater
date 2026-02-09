@@ -7,6 +7,15 @@ public class Powerup : MonoBehaviour {
     [SerializeField] private PowerupCollision powerupCollision;
     public event EventHandler OnPowerupCollected;
 
+    private void OnEnable() {
+        powerupCollision.OnPowerupEnd += Powerup_OnPowerupEnd;
+    }
+    private void OnDisable() {
+        powerupCollision.OnPowerupEnd -= Powerup_OnPowerupEnd;
+    }
+    private void Powerup_OnPowerupEnd(object sender, EventArgs e) {
+        Disable();
+    }
     private void OnTriggerEnter2D(Collider2D other) {
         if (other.CompareTag("PlayerLight")){
             OnPowerupCollected?.Invoke(this, EventArgs.Empty);
@@ -35,9 +44,6 @@ public class Powerup : MonoBehaviour {
     }
     private void SetShadowPowerup(ShadowPowerup shadowPowerup) {
         powerupCollision.ShadowPowerup = shadowPowerup;
-    }
-    private void Powerup_OnPowerupCollected(object sender, EventArgs e) {
-        Disable();
     }
 
 }
