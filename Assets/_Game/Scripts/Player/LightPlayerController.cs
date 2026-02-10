@@ -318,6 +318,14 @@ public class LightPlayerController : PlayerController
 
     private IEnumerator HandleRoundLoseRoutine()
     {
+        Vector3 ownerPosition = transform.position;
+        var zone = GameManager.Instance.CameraManager.GetZoneByPosition(ownerPosition);
+
+        if(zone != CameraManager.CameraZonesName.None)
+        {
+            GameManager.Instance.CameraManager.ZoomIn(zone);
+        } 
+
         yield return new WaitForSeconds(1f);
         _animator.SetBool(AnimatorBoolIsDeath, true);
     }

@@ -21,6 +21,9 @@ public class GameManager : Singleton<GameManager>
     [SerializeField]
     private GridManager _gridManager;
 
+    [SerializeField]
+    private CameraManager _cameraManager;
+
     public bool IsFrightenedShadowState = false;
 
     [SerializeField] private ShadowPowerupType _currentShadowPowerupType = ShadowPowerupType.None;
@@ -36,6 +39,8 @@ public class GameManager : Singleton<GameManager>
     }
     public GridManager GridManager => _gridManager;
     public bool EasyMovementEnabled { get; set; } = false;
+
+    public CameraManager CameraManager => _cameraManager;
 
     public ShadowPowerupType CurrentShadowPowerupType
     {

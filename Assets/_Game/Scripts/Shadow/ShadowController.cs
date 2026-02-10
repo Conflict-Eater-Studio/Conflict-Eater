@@ -276,8 +276,9 @@ public class ShadowController : MonoBehaviour
         light.Movement.IsLocked = true;
 
         light.HandleRoundLose();
+        AudioManager.Instance.PlaySound(AudioManager.Instance.FMODEvents.SFX.GameOver);
 
-        yield return new WaitForSeconds(2);
+        yield return new WaitForSeconds(3);
         GameManager.Instance.Timer.EndRound();
 
         _isPushingPlayer = false;
