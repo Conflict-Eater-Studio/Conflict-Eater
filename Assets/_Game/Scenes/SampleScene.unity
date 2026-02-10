@@ -1445,6 +1445,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1508087371761502761, guid: 8bd2bd5cce4e8b64fa21fdd294e2ba03, type: 3}
+      propertyPath: _spawnDelta
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1508087371761502761, guid: 8bd2bd5cce4e8b64fa21fdd294e2ba03, type: 3}
       propertyPath: _powerupCount
       value: 3
       objectReference: {fileID: 0}
@@ -2390,7 +2394,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 7.5
+  orthographic size: 8.4375
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
