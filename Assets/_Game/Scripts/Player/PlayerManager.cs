@@ -174,6 +174,12 @@ public class PlayerManager
         playerA.SetPlayerObject(playerB.PlayerObject); // This updates Input reference
         playerB.SetPlayerObject(tempGameObject); // This updates Input reference
 
+        string nickA = playerA.PlayerObject.GetComponentInChildren<PlayerController>().PlayerNick;
+        string nickB = playerB.PlayerObject.GetComponentInChildren<PlayerController>().PlayerNick;
+
+        playerA.PlayerObject.GetComponentInChildren<PlayerController>().PlayerNick = nickB;
+        playerB.PlayerObject.GetComponentInChildren<PlayerController>().PlayerNick = nickA;
+
         // Now pair gamepads to the new PlayerInputs
         // P1 keeps padA, but now it's paired to the GameObject they swapped to
         InputUser.PerformPairingWithDevice(padA, playerA.Input.user);
