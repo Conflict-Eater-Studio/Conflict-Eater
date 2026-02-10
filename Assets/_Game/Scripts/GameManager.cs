@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -54,6 +55,7 @@ public class GameManager : Singleton<GameManager>
         set => _currentLightPowerupType = value;
     }
 
+    public bool IsLightWinningRound = false;
 
     public void RegisterGrid(Grid newGrid)
     {
@@ -146,6 +148,8 @@ public class GameManager : Singleton<GameManager>
 
     private void OnRoundEnd(object sender, EventArgs e)
     {
+        IsLightWinningRound = false;
+
         // Swap players and update score
         PlayerManager.SwapPlayerRoles(
             PlayerManager.PlayerRole.Light,
@@ -167,6 +171,12 @@ public class GameManager : Singleton<GameManager>
 
     private void GameManager_OnAllLightTiles(object sender, EventArgs e)
     {
+        IsFrightenedShadowState = true;
+
+        var player = PlayerManager.GetPlayerOfType(PlayerManager.PlayerRole.Light);
+        LightPlayerController lightPlayerController = player.GetComponentInChildren<LightPlayerController>();
+        lightPlayerController.HandleRoundWin();
+
         // Score bonus for time left
         // (Get this round because round has not yet advanced)
         // Claculate the bonus before round end to preserve Timer.RoundTime
@@ -175,6 +185,13 @@ public class GameManager : Singleton<GameManager>
             ?.PlayerScore.RoundScores.First(r => r.RoundNumber == Timer.CurrentRound)
             ?.SetTimeBonus(Timer.RoundTime, Timer.RoundDuration);
 
+        StartCoroutine(AllLightTilesEndRound());
+    }
+
+    private IEnumerator AllLightTilesEndRound()
+    {
+        AudioManager.Instance.PlaySound(AudioManager.Instance.FMODEvents.SFX.Win);
+        yield return new WaitForSeconds(3);
         Timer.EndRound();
     }
 

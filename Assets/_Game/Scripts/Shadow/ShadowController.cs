@@ -244,7 +244,8 @@ public class ShadowController : MonoBehaviour
             }
             else
             {
-                if (_isShadowActive || GameManager.Instance.CurrentShadowPowerupType == ShadowPowerupType.SarcasticSmile )
+                if ((_isShadowActive || GameManager.Instance.CurrentShadowPowerupType == ShadowPowerupType.SarcasticSmile) 
+                    && !GameManager.Instance.IsLightWinningRound)
                 {
                     var player = GameManager.Instance.PlayerManager.GetPlayerOfType(PlayerManager.PlayerRole.Light);
                     LightPlayerController lightPlayerController = player.GetComponentInChildren<LightPlayerController>();

@@ -37,6 +37,7 @@ public class LightPlayerController : PlayerController
     private const string AnimatorBoolIsMovingRight = "IsMovingRight";
     private const string AnimatorBoolIsMovingLeft = "IsMovingLeft";
     private const string AnimatorBoolIsDeath = "IsDeath";
+    private const string AnimatorBoolIsWin = "IsWin";
 
     public float Speed => _speed;
 
@@ -137,6 +138,7 @@ public class LightPlayerController : PlayerController
     private void Timer_OnRoundEnd(object sender, EventArgs e)
     {
         _animator.SetBool("IsDeath", false);
+        _animator.SetBool(AnimatorBoolIsWin, false);
         _isRoundStarted = false;
     }
 
@@ -316,6 +318,12 @@ public class LightPlayerController : PlayerController
         StartCoroutine(HandleRoundLoseRoutine());
     }
 
+    public void HandleRoundWin()
+    {
+        _movement.IsLocked = true;
+        StartCoroutine(HandlRoundWinRoutine());
+    }
+
     private IEnumerator HandleRoundLoseRoutine()
     {
         Vector3 ownerPosition = transform.position;
@@ -328,5 +336,19 @@ public class LightPlayerController : PlayerController
 
         yield return new WaitForSeconds(1f);
         _animator.SetBool(AnimatorBoolIsDeath, true);
+    }
+
+    private IEnumerator HandlRoundWinRoutine()
+    {
+        Vector3 ownerPosition = transform.position;
+        var zone = GameManager.Instance.CameraManager.GetZoneByPosition(ownerPosition);
+
+        if (zone != CameraManager.CameraZonesName.None)
+        {
+            GameManager.Instance.CameraManager.ZoomIn(zone);
+        }
+
+        yield return new WaitForSeconds(1f);
+        _animator.SetBool(AnimatorBoolIsWin, true);
     }
 }
