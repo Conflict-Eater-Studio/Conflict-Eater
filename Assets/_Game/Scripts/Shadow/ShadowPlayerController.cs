@@ -53,6 +53,7 @@ public class ShadowPlayerController : PlayerController
     #region Public Fields
     public IReadOnlyList<GameObject> Shadows => _shadows;
     public Color ASwitchColor => _aSwitchColor;
+    public bool CanMove = true;
     #endregion
 
     #region VFX Cleanup
@@ -138,6 +139,7 @@ public class ShadowPlayerController : PlayerController
             return;
         if (AreAllShadowsEaten())
             return;
+        if(!CanMove) return;
 
         Vector2 moveInput = context.ReadValue<Vector2>();
         var activeGhost = _shadows[_activeShadowIndex];
@@ -258,6 +260,7 @@ public class ShadowPlayerController : PlayerController
             ghost.name = $"Ghost_{i + 1}";
 
             var controller = ghost.GetComponent<ShadowController>();
+            controller.Owner = this;
             controller.SetShadowType(_roundShadowTypes[i]);
             controller.IsShadowActive = false;
             // Disable easy movement for newly spawned ghosts (AI managed) until they become active
@@ -345,6 +348,7 @@ public class ShadowPlayerController : PlayerController
     /// </summary>
     private void Timer_OnRoundStart(object sender, System.EventArgs e)
     {
+        CanMove = true;
         _isRoundStarted = true;
     }
     #endregion

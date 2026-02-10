@@ -36,6 +36,7 @@ public class LightPlayerController : PlayerController
     private const string AnimatorBoolIsMovingUp = "IsMovingUp";
     private const string AnimatorBoolIsMovingRight = "IsMovingRight";
     private const string AnimatorBoolIsMovingLeft = "IsMovingLeft";
+    private const string AnimatorBoolIsDeath = "IsDeath";
 
     public float Speed => _speed;
 
@@ -135,6 +136,7 @@ public class LightPlayerController : PlayerController
 
     private void Timer_OnRoundEnd(object sender, EventArgs e)
     {
+        _animator.SetBool("IsDeath", false);
         _isRoundStarted = false;
     }
 
@@ -306,5 +308,17 @@ public class LightPlayerController : PlayerController
     private void OnShowMyPlayer(InputAction.CallbackContext context)
     {
         FlashLight();
+    }
+
+    public void HandleRoundLose()
+    {
+        _movement.IsLocked = true;
+        StartCoroutine(HandleRoundLoseRoutine());
+    }
+
+    private IEnumerator HandleRoundLoseRoutine()
+    {
+        yield return new WaitForSeconds(1f);
+        _animator.SetBool(AnimatorBoolIsDeath, true);
     }
 }

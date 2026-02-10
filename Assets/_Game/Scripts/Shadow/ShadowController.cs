@@ -61,10 +61,12 @@ public class ShadowController : MonoBehaviour
     private ShadowPlayerController _owner;
     private bool _canBeSwitchedTo = true;
 
-    private const string AnimatorBoolIsMovingBottom = "IsMovingBottom";
-    private const string AnimatorBoolIsMovingUp = "IsMovingUp";
-    private const string AnimatorBoolIsMovingRight = "IsMovingRight";
-    private const string AnimatorBoolIsMovingLeft = "IsMovingLeft";
+    public const string AnimatorBoolIsMovingBottom = "IsMovingBottom";
+    public const string AnimatorBoolIsMovingUp = "IsMovingUp";
+    public const string AnimatorBoolIsMovingRight = "IsMovingRight";
+    public const string AnimatorBoolIsMovingLeft = "IsMovingLeft";
+
+    private bool _isPushingPlayer;
 
     public bool IsShadowActive
     {
@@ -102,6 +104,8 @@ public class ShadowController : MonoBehaviour
     public bool EnableAI => _enableAIMovement;
     public float DirectionChangeDelay => _directionChangeDelay;
     public ShadowType Type => _shadowType;
+    public Animator Animator => _animator;
+    public Animator AnimatorFace => _faceAnimator;
     #endregion
 
     #region State Management
@@ -242,7 +246,10 @@ public class ShadowController : MonoBehaviour
             {
                 if (_isShadowActive || GameManager.Instance.CurrentShadowPowerupType == ShadowPowerupType.SarcasticSmile )
                 {
-                    GameManager.Instance.Timer.EndRound();
+                    var player = GameManager.Instance.PlayerManager.GetPlayerOfType(PlayerManager.PlayerRole.Light);
+                    LightPlayerController lightPlayerController = player.GetComponentInChildren<LightPlayerController>();
+
+                    StartCoroutine(PushPlayerAndEndRound(lightPlayerController));
                 }
                 else
                 {
@@ -252,6 +259,28 @@ public class ShadowController : MonoBehaviour
                 }
             }
         }
+    }
+
+    private IEnumerator PushPlayerAndEndRound(LightPlayerController light)
+    {
+        if (_isPushingPlayer)
+            yield break;
+
+        _isPushingPlayer = true;
+
+        foreach (var shadow in _owner.Shadows)
+        {
+            shadow.GetComponent<ShadowController>().SetState(new ShadowEndRoundState());
+        }
+
+        light.Movement.IsLocked = true;
+
+        light.HandleRoundLose();
+
+        yield return new WaitForSeconds(2);
+        GameManager.Instance.Timer.EndRound();
+
+        _isPushingPlayer = false;
     }
 
     private void OnTriggerExit2D(Collider2D collision)
