@@ -2915,6 +2915,8 @@ MonoBehaviour:
     From: {r: 0.87058824, g: 1, b: 0.73333335, a: 1}
     To: {r: 0.3019608, g: 1, b: 0.27058825, a: 1}
   _tilemapRenderer: {fileID: 7585007979915472412}
+  _playerStandingLightColor: {r: 0, g: 0, b: 0, a: 1}
+  _playerStandingSkullColor: {r: 1, g: 0, b: 0, a: 1}
   _normalIntensity: 1.25
   _frightenedMinIntensity: 0.3
   _frightenedMaxIntensity: 1.5
@@ -16945,19 +16947,19 @@ MonoBehaviour:
   _portalData:
   - PortalId: 1
     CellPosition: {x: -15, y: -1}
-    PortalColor: {r: 1, g: 0, b: 0.7058824, a: 1}
+    PortalColor: {r: 1, g: 0.37254903, b: 0.8156863, a: 1}
     PortalCooldown: 3
   - PortalId: 1
     CellPosition: {x: 13, y: -1}
-    PortalColor: {r: 1, g: 0, b: 0.7058824, a: 1}
+    PortalColor: {r: 1, g: 0.37254903, b: 0.8156863, a: 1}
     PortalCooldown: 3
   - PortalId: 2
     CellPosition: {x: -1, y: 5}
-    PortalColor: {r: 0, g: 0.9843137, b: 1, a: 1}
+    PortalColor: {r: 0.56078434, g: 1, b: 0.26666668, a: 1}
     PortalCooldown: 3
   - PortalId: 2
     CellPosition: {x: -1, y: -8}
-    PortalColor: {r: 0, g: 0.9843137, b: 1, a: 1}
+    PortalColor: {r: 0.56078434, g: 1, b: 0.26666668, a: 1}
     PortalCooldown: 3
   _powerUpSpawnCells:
   - {x: -1, y: -4}
