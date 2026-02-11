@@ -6155,7 +6155,7 @@ MonoBehaviour:
   dialogueText: {fileID: 1549205321}
   skipText: {fileID: 1359475914}
   typingSpeed: 0.14
-  frameInterval: 0.04
+  frameInterval: 0.004
   skipAction: {fileID: 6475930682459443897, guid: 3351cb5e0724953449a522359c7eecc0, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
