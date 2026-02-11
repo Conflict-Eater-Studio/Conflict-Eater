@@ -72,8 +72,8 @@ public class PowerupCollision : MonoBehaviour {
     private void HandleLightPowerup() {
         switch (LightPowerup._powerupType) {
             case LightPowerupType.EmpathyMode:
-                GameManager.Instance.IsFrightenedShadowState = true;
                 GameManager.Instance.CurrentLightPowerupType = LightPowerupType.EmpathyMode;
+                GameManager.Instance.IsFrightenedShadowState = true;
                 break;
             case LightPowerupType.SilentTreatment:
                 if (lightPowerupCoroutine != null) {
