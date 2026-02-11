@@ -920,7 +920,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 704244929295975110, guid: bf93e0d707747e8409d83fd20f11d0a4, type: 3}
       propertyPath: _rounds
-      value: 2
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 704244929295975110, guid: bf93e0d707747e8409d83fd20f11d0a4, type: 3}
       propertyPath: _matchDurationSeconds

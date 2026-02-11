@@ -45,21 +45,7 @@ public class MainMenu : MenuBase
     {
         if (MenuManager.Instance != null)
         {
-            // Load game scene with loading screen, close all menus, don't open any menu
-            MenuManager.Instance.LoadScene(
-                MenuManager.Scene.Game,
-                menuToOpen: null,
-                resetGameState: false,
-                onComplete: () =>
-                {
-                    // NOTE: Start playing game music, we don't store GUID for now
-                    AudioManager.Instance.PlaySound(
-                        AudioManager.Instance.FMODEvents.Music.Music8Bit
-                    );
-                    GameManager.Instance.EasyMovementEnabled =
-                        PlayerPrefs.GetInt("EasyMovement", 0) == 1;
-                }
-            );
+            MenuManager.Instance.StartCutscene();
         }
     }
 

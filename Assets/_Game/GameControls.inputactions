@@ -412,6 +412,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "SkipCutscene",
+                    "type": "Button",
+                    "id": "ff88170c-10c2-41f5-a90d-2b17d0126b3c",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -654,6 +663,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "ScrollWheel",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "68ed6839-ead1-452e-adaf-352a9099dec4",
+                    "path": "<Gamepad>/dpad/up",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "SkipCutscene",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
