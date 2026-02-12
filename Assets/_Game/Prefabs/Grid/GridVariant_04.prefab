@@ -241,19 +241,19 @@ MonoBehaviour:
   - PortalId: 1
     CellPosition: {x: -15, y: 1}
     PortalColor: {r: 1, g: 0.37254903, b: 0.8156863, a: 1}
-    PortalCooldown: 0
+    PortalCooldown: 3
   - PortalId: 1
     CellPosition: {x: 13, y: 1}
     PortalColor: {r: 1, g: 0.37254903, b: 0.8156863, a: 1}
-    PortalCooldown: 0
+    PortalCooldown: 3
   - PortalId: 2
     CellPosition: {x: -1, y: 5}
     PortalColor: {r: 0.56078434, g: 1, b: 0.26666668, a: 1}
-    PortalCooldown: 0
+    PortalCooldown: 3
   - PortalId: 2
     CellPosition: {x: -1, y: -8}
     PortalColor: {r: 0.56078434, g: 1, b: 0.26666668, a: 1}
-    PortalCooldown: 0
+    PortalCooldown: 3
   _powerUpSpawnCells:
   - {x: -1, y: -5}
   - {x: -12, y: -1}

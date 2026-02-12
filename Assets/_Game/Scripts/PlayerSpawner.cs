@@ -826,5 +826,13 @@ public class PlayerSpawner : MonoBehaviour
 
         Debug.Log($"Shadow player spawned for {playerIndex}.");
     }
+
+    public PlayerManager.PlayerRole GetRoleForPlayer(PlayerManager.PlayerIndex index)
+    {
+        var request = _activeRequests.FirstOrDefault(r => r.PlayerIndex == index);
+
+        return request != null ? request.SelectedRole : PlayerManager.PlayerRole.None;
+    }
+
     #endregion
 }

@@ -145,7 +145,7 @@ public class CutsceneController : MonoBehaviour
 
     private IEnumerator PlayTextSequence()
     {
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(4f);
 
         dialogueText.text = "";
         dialogueText.gameObject.SetActive(true);
