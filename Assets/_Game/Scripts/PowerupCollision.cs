@@ -92,31 +92,45 @@ public class PowerupCollision : MonoBehaviour {
     private IEnumerator FarCry(ShadowController controller) {
         SpeedParticleSystem ps = controller.GetComponent<SpeedParticleSystem>();
         if (ps != null) {
-            ps.PlayFor(ShadowPowerup._duration);
+            ps.Run();
         }
         
         GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.FarCry;
         controller.Movement.SetSpeed(speedBoost);
-        
-        yield return new WaitForSeconds(ShadowPowerup._duration);
+
+        yield return WaitWhilePaused(ShadowPowerup._duration);
+
+        ps.Stop();
         
         GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.None;
-        
         
         if (controller) {
             controller.Movement.ResetSpeed();
         }
     }
+
     private IEnumerator SarcasticSmile() {
         GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.SarcasticSmile;
-        yield return new WaitForSeconds(ShadowPowerup._duration);
+        yield return WaitWhilePaused(ShadowPowerup._duration);
         GameManager.Instance.CurrentShadowPowerupType = ShadowPowerupType.None;
     }
+
     private IEnumerator SilentTreatment() {
         GameManager.Instance.CurrentLightPowerupType = LightPowerupType.SilentTreatment;
-        yield return new WaitForSeconds(LightPowerup._duration);
+        yield return WaitWhilePaused(LightPowerup._duration);
         GameManager.Instance.CurrentLightPowerupType = LightPowerupType.None;
+    }
 
+    private IEnumerator WaitWhilePaused(float duration) {
+        float remaining = duration;
+
+        while (remaining > 0f) {
+            if (!GameManager.Instance.Timer.IsGamePaused) {
+                remaining -= Time.deltaTime;
+            }
+
+            yield return null;
+        }
     }
 
     public void EnableCollision() {

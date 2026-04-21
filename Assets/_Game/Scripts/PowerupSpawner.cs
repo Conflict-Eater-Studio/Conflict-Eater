@@ -105,6 +105,15 @@ public class PowerupSpawner : MonoBehaviour {
     }
     private IEnumerator ActivateSingleAfterDelay(int index, float delay) {
         yield return new WaitForSeconds(delay);
+        float remaining = delay;
+
+        while (remaining > 0f) {
+            if (!GameManager.Instance.Timer.IsGamePaused) {
+                remaining -= Time.deltaTime;
+            }
+
+            yield return null;
+        }
         
         if (_powerups[index]) {
             Powerup pc = _powerups[index];
