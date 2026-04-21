@@ -7,7 +7,7 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] private GameObject _lightTutorial;
     [SerializeField] private GameObject _skullTutorial;
 
-    void Start()
+    void OnEnable()
     {
         if(GameManager.Instance)
         {
@@ -16,6 +16,12 @@ public class TutorialManager : MonoBehaviour
 
             PlayerSpawner.OnPlayersReadyToSpawn += PlayerSpawner_OnPlayersReadyToSpawn;
         }
+    }
+
+    void OnDisable() {
+        GameManager.Instance.Timer.OnRoundStart -= Timer_OnRoundStart;
+        GameManager.Instance.Timer.OnRoundEnded -= Timer_OnRoundEnded;
+        PlayerSpawner.OnPlayersReadyToSpawn -= PlayerSpawner_OnPlayersReadyToSpawn;
     }
 
     private void PlayerSpawner_OnPlayersReadyToSpawn(object sender, System.EventArgs e)
