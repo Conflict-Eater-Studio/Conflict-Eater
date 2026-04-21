@@ -113,13 +113,11 @@ public class Movement
         if (_isDirectionLocked && maxAxis < _deactivationThreshold)
         {
             _isDirectionLocked = false;
-            _queuedDirection = Vector2.zero;
             return;
         }
 
         if (maxAxis < _activationThreshold)
         {
-            _queuedDirection = Vector2.zero;
             return;
         }
 
@@ -197,8 +195,6 @@ public class Movement
 
             if (!_grid.IsWalkable(queuedNeighbor))
             {
-                _queuedDirection = Vector2.zero;
-
                 // Moved into wall, re-evaluate stick input
                 if (_moveDirection == Vector2.zero)
                 {
@@ -222,8 +218,6 @@ public class Movement
 
             if (!_grid.IsWalkable(queuedNeighbor))
             {
-                // Can't turn here, clear the queue but keep moving forward
-                _queuedDirection = Vector2.zero;
                 return;
             }
 
